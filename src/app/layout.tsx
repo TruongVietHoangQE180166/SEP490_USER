@@ -5,7 +5,7 @@ import { RouteGuard } from '@/guards/routeGuard';
 import { PageLoadingIndicator } from '@/components/PageLoadingIndicator';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { SearchDock } from '@/components/SearchDock';
-import { HeroHeader } from '@/components/header';
+import { HeroHeader } from '@/components/header1';
 import { MainWrapper } from '@/components/MainWrapper';
 import { ToastContainer } from '@/components/ui/toast';
 

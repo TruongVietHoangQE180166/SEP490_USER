@@ -1,11 +1,9 @@
 'use client'
-
 import Link from 'next/link'
 import { Logo } from '@/components/logo'
 import { Menu, X, LogIn, User, LogOut, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
-import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import { observer } from '@legendapp/state/react'
 import { authState$ } from '@/modules/auth/store'
@@ -25,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
+
 const menuItems = [
     { name: 'Features', href: '#link' },
     { name: 'Solution', href: '#link' },
@@ -34,23 +33,19 @@ const menuItems = [
 
 export const HeroHeader = observer(() => {
     const [menuState, setMenuState] = React.useState(false)
-    const [isScrolled, setIsScrolled] = React.useState(false)
     const [dropdownOpen, setDropdownOpen] = React.useState(false)
-    const isAuthenticated = authState$.isAuthenticated.get()
-    const user = authState$.user.get()
+    const [isClient, setIsClient] = React.useState(false)
+    const isAuthenticated = isClient ? authState$.isAuthenticated.get() : false
+    const user = isClient ? authState$.user.get() : null
     const { logout } = useLogout()
     const pathname = usePathname()
     
-    // Don't show header on auth pages
-    const isAuthPage = pathname && Object.values(ROUTES.AUTH).some((route) => pathname.startsWith(route))
-
     React.useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50)
-        }
-        window.addEventListener('scroll', handleScroll)
-        return () => window.removeEventListener('scroll', handleScroll)
+        setIsClient(true)
     }, [])
+    
+    // Don't show header on auth pages
+    const isAuthPage = isClient && pathname && Object.values(ROUTES.AUTH).some((route) => pathname.startsWith(route))
     
     // Close dropdown when clicking outside
     React.useEffect(() => {
@@ -70,10 +65,10 @@ export const HeroHeader = observer(() => {
         <header>
             <nav
                 data-state={menuState && 'active'}
-                className="fixed z-20 w-full px-2">
-                <div className={cn('mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-8', isScrolled && 'bg-background/50 max-w-6xl rounded-2xl backdrop-blur-lg lg:px-8')}>
+                className="bg-background/50 fixed z-20 w-full border-b backdrop-blur-3xl">
+                <div className="mx-auto max-w-6xl px-6 transition-all duration-300">
                     <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
-                        <div className="flex w-full justify-between lg:w-auto">
+                        <div className="flex w-full items-center justify-between gap-12 lg:w-auto">
                             <Link
                                 href="/"
                                 aria-label="home"
@@ -88,20 +83,20 @@ export const HeroHeader = observer(() => {
                                 <Menu className="in-data-[state=active]:rotate-180 in-data-[state=active]:scale-0 in-data-[state=active]:opacity-0 m-auto size-6 duration-200" />
                                 <X className="in-data-[state=active]:rotate-0 in-data-[state=active]:scale-100 in-data-[state=active]:opacity-100 absolute inset-0 m-auto size-6 -rotate-180 scale-0 opacity-0 duration-200" />
                             </button>
-                        </div>
 
-                        <div className="absolute inset-0 m-auto hidden size-fit lg:block">
-                            <ul className="flex gap-8 text-sm">
-                                {menuItems.map((item, index) => (
-                                    <li key={index}>
-                                        <Link
-                                            href={item.href}
-                                            className="text-muted-foreground hover:text-accent-foreground block duration-150">
-                                            <span>{item.name}</span>
-                                        </Link>
-                                    </li>
-                                ))}
-                            </ul>
+                            <div className="hidden lg:block">
+                                <ul className="flex gap-8 text-sm">
+                                    {menuItems.map((item, index) => (
+                                        <li key={index}>
+                                            <Link
+                                                href={item.href}
+                                                className="text-muted-foreground hover:text-accent-foreground block duration-150">
+                                                <span>{item.name}</span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
 
                         <div className="bg-background in-data-[state=active]:block lg:in-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
@@ -118,8 +113,6 @@ export const HeroHeader = observer(() => {
                                     ))}
                                 </ul>
                             </div>
-                            
-                            {/* Theme Toggle */}
                             <div className="flex items-center">
                                 <ThemeToggle />
                             </div>
@@ -134,13 +127,35 @@ export const HeroHeader = observer(() => {
                                             className="group flex items-center justify-center rounded-full border border-border/40 bg-background/50 p-1 transition-all duration-200 hover:bg-accent hover:border-border/80 focus:outline-none focus:ring-2 focus:ring-ring/20 outline-none"
                                             aria-label="User menu"
                                         >
-                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-border/50 transition-all duration-200 group-hover:scale-105">
-                                                {user?.name ? (
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-border/50 transition-all duration-200 group-hover:scale-105 overflow-hidden">
+                                                {user?.avatar ? (
+                                                    <img 
+                                                        src={user.avatar} 
+                                                        alt={user.name || 'User'} 
+                                                        className="w-full h-full object-cover rounded-full"
+                                                        onError={(e) => {
+                                                            // Fallback to initials if image fails to load
+                                                            e.currentTarget.style.display = 'none';
+                                                            const parentElement = e.currentTarget.parentElement;
+                                                            if (parentElement) {
+                                                                const nextElement = e.currentTarget.nextSibling;
+                                                                if (nextElement && 'style' in nextElement) {
+                                                                    (nextElement as HTMLElement).style.display = 'flex';
+                                                                }
+                                                            }
+                                                        }}
+                                                    />
+                                                ) : user?.name ? (
                                                     <span className="text-sm font-bold">
                                                         {user.name.charAt(0).toUpperCase()}
                                                     </span>
                                                 ) : (
                                                     <User className="h-5 w-5" />
+                                                )}
+                                                {user?.name && !user?.avatar && (
+                                                    <span className="text-sm font-bold hidden">
+                                                        {user.name.charAt(0).toUpperCase()}
+                                                    </span>
                                                 )}
                                             </div>
                                         </button>
@@ -156,13 +171,35 @@ export const HeroHeader = observer(() => {
                                                     className="absolute right-0 mt-3 w-72 rounded-2xl border border-border/50 bg-popover/80 p-2 shadow-2xl backdrop-blur-xl z-50 ring-1 ring-black/5"
                                                 >
                                                     <div className="flex items-center gap-4 p-4 mb-2 rounded-xl bg-gradient-to-br from-muted/50 to-muted/10 border border-border/20">
-                                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background text-primary shadow-sm ring-1 ring-border/20">
-                                                            {user?.name ? (
+                                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background text-primary shadow-sm ring-1 ring-border/20 overflow-hidden">
+                                                            {user?.avatar ? (
+                                                                <img 
+                                                                    src={user.avatar} 
+                                                                    alt={user.name || 'User'} 
+                                                                    className="w-full h-full object-cover rounded-full"
+                                                                    onError={(e) => {
+                                                                        // Fallback to initials if image fails to load
+                                                                        e.currentTarget.style.display = 'none';
+                                                                        const parentElement = e.currentTarget.parentElement;
+                                                                        if (parentElement) {
+                                                                            const nextElement = e.currentTarget.nextSibling;
+                                                                            if (nextElement && 'style' in nextElement) {
+                                                                                (nextElement as HTMLElement).style.display = 'flex';
+                                                                            }
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            ) : user?.name ? (
                                                                 <span className="text-lg font-bold">
                                                                     {user.name.charAt(0).toUpperCase()}
                                                                 </span>
                                                             ) : (
                                                                 <User className="h-6 w-6" />
+                                                            )}
+                                                            {user?.name && !user?.avatar && (
+                                                                <span className="text-lg font-bold hidden">
+                                                                    {user.name.charAt(0).toUpperCase()}
+                                                                </span>
                                                             )}
                                                         </div>
                                                         <div className="flex flex-col overflow-hidden">
@@ -227,7 +264,7 @@ export const HeroHeader = observer(() => {
                                     <>
                                         <Button
                                             asChild
-                                            variant={isScrolled ? "default" : "outline"}
+                                            variant="outline"
                                             size="sm">
                                             <Link href={ROUTES.AUTH.LOGIN}>
                                                 <LogIn className="w-4 h-4 mr-2" />
@@ -236,18 +273,9 @@ export const HeroHeader = observer(() => {
                                         </Button>
                                         <Button
                                             asChild
-                                            size="sm"
-                                            className={cn(isScrolled && 'hidden')}>
+                                            size="sm">
                                             <Link href={ROUTES.AUTH.REGISTER}>
                                                 <span>Sign Up</span>
-                                            </Link>
-                                        </Button>
-                                        <Button
-                                            asChild
-                                            size="sm"
-                                            className="hidden">
-                                            <Link href={ROUTES.AUTH.LOGIN}>
-                                                <span>Get Started</span>
                                             </Link>
                                         </Button>
                                     </>

@@ -10,6 +10,7 @@ import { MESSAGES } from '@/constants/messages';
 import { errorActions } from '@/errors/errorStore';
 import { ErrorType } from '@/errors/errorTypes';
 
+
 export const useLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -19,6 +20,7 @@ export const useLogin = () => {
     try {
       const user = await authService.login(credentials);
       authActions.setUser(user, user.id);
+      
       router.push('/'); // Redirect to root (home page) instead of ROUTES.PRIVATE.HOME
       return { success: true };
     } catch (error) {
@@ -32,3 +34,5 @@ export const useLogin = () => {
 
   return { login, isLoading };
 };
+
+export default useLogin;

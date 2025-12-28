@@ -3,10 +3,13 @@
 import { observer } from '@legendapp/state/react';
 import { withAuthGuard } from '@/guards/authGuard';
 import { useProfile } from '@/modules/profile/hooks/useProfile';
+import { useChangePassword } from '@/modules/profile/hooks/useChangePassword';
 import { ProfileCard } from '@/modules/profile/components/ProfileCard';
+import { ChangePasswordCard } from '@/modules/profile/components/ChangePasswordCard';
 
 const ProfilePageContent = observer(() => {
   const { profile, isLoading, isEditing, updateProfile, toggleEdit } = useProfile();
+  const { changePassword, isLoading: isChangingPassword, error, success } = useChangePassword();
 
   if (isLoading && !profile) {
     return <div className="text-center py-8">Đang tải...</div>;
@@ -18,13 +21,18 @@ const ProfilePageContent = observer(() => {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Hồ sơ cá nhân</h1>
       <ProfileCard
         profile={profile}
         isEditing={isEditing}
         onToggleEdit={toggleEdit}
         onUpdate={updateProfile}
       />
+      <div className="mt-8">
+        <ChangePasswordCard 
+          onPasswordChange={changePassword}
+          isLoading={isChangingPassword}
+        />
+      </div>
     </div>
   );
 });

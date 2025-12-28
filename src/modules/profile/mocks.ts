@@ -1,6 +1,9 @@
 import { UserProfile } from './types';
 
-export const MOCK_PROFILES: Record<string, UserProfile> = {
+// Password mặc định cho tất cả user: "123456"
+const MOCK_PASSWORD = '123456';
+
+export const MOCK_PROFILES: Record<string, UserProfile & { password: string }> = {
   '1': {
     id: '1',
     name: 'Admin User',
@@ -10,6 +13,7 @@ export const MOCK_PROFILES: Record<string, UserProfile> = {
     phone: '+84 901 234 567',
     address: 'Quận 1, TP. Hồ Chí Minh',
     joinedAt: '2023-06-15T00:00:00Z',
+    password: MOCK_PASSWORD,
   },
   '2': {
     id: '2',
@@ -20,6 +24,7 @@ export const MOCK_PROFILES: Record<string, UserProfile> = {
     phone: '+84 902 345 678',
     address: 'Quận 2, TP. Hồ Chí Minh',
     joinedAt: '2023-08-20T00:00:00Z',
+    password: MOCK_PASSWORD,
   },
   '3': {
     id: '3',
@@ -30,5 +35,6 @@ export const MOCK_PROFILES: Record<string, UserProfile> = {
     phone: '+84 903 456 789',
     address: 'Quận 3, TP. Hồ Chí Minh',
     joinedAt: '2024-01-10T00:00:00Z',
+    password: MOCK_PASSWORD,
   },
 };
