@@ -9,7 +9,7 @@ import { ChangePasswordCard } from '@/modules/profile/components/ChangePasswordC
 
 const ProfilePageContent = observer(() => {
   const { profile, isLoading, isEditing, updateProfile, toggleEdit } = useProfile();
-  const { changePassword, isLoading: isChangingPassword, error, success } = useChangePassword();
+  const { changePassword, isLoading: isChangingPassword } = useChangePassword();
 
   if (isLoading && !profile) {
     return <div className="text-center py-8">Đang tải...</div>;

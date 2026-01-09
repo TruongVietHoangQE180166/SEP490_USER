@@ -2,61 +2,59 @@
 
 import { observer } from '@legendapp/state/react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { UploadCloud, User, Mail, Phone, MapPin, Quote, Calendar, CheckCircle } from 'lucide-react';
+import { UploadCloud, User as UserIcon, Phone, Calendar, CheckCircle, Hash, MapPin, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { FormEvent, useState } from 'react';
-import { UserProfile } from '../types';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { FormEvent, useState, useRef } from 'react';
+import { UserProfile, UpdateProfileRequest } from '../types';
 import { cn } from '@/lib/utils';
+import { useProfileForm } from '../hooks/useProfileForm';
 
 interface ProfileCardProps {
   profile: UserProfile;
   isEditing: boolean;
   onToggleEdit: () => void;
-  onUpdate: (updates: Partial<UserProfile>) => void;
+  onUpdate: (updates: UpdateProfileRequest) => void;
   className?: string;
 }
 
 export const ProfileCard = observer(
   ({ profile, isEditing, onToggleEdit, onUpdate, className }: ProfileCardProps) => {
     const shouldReduceMotion = useReducedMotion();
+    const fileInputRef = useRef<HTMLInputElement>(null);
     
-    const [formData, setFormData] = useState({
-      name: profile.name,
-      bio: profile.bio || '',
-      phone: profile.phone || '',
-      address: profile.address || '',
-    });
-    const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
+    const {
+        formData,
+        showSaveConfirmation,
+        setShowSaveConfirmation,
+        handleFileChange,
+        handleInputChange,
+        handleAddressChange,
+        confirmSave,
+        cancelSave,
+        handleReset,
+        setFormData 
+    } = useProfileForm({ profile, onUpdate, onToggleEdit });
+
+    const handleAvatarClick = () => {
+      fileInputRef.current?.click();
+    };
+
+    const onFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        await handleFileChange(file);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       setShowSaveConfirmation(true);
-    };
-    
-    const confirmSave = () => {
-      onUpdate(formData);
-      onToggleEdit();
-      setShowSaveConfirmation(false);
-    };
-    
-    const cancelSave = () => {
-      setShowSaveConfirmation(false);
-    };
-
-    const handleReset = () => {
-      setFormData({
-        name: profile.name,
-        bio: profile.bio || '',
-        phone: profile.phone || '',
-        address: profile.address || '',
-      });
-      onToggleEdit();
     };
 
     return (
@@ -86,7 +84,7 @@ export const ProfileCard = observer(
               Profile settings
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {isEditing ? "Update your avatar, personal details, and notification preferences." : "View and manage your profile information."}
+              {isEditing ? "Update your personal details." : "View and manage your profile information."}
             </p>
           </div>
           {!isEditing ? (
@@ -112,58 +110,29 @@ export const ProfileCard = observer(
               <div className="relative group">
                 <Avatar 
                   className="h-24 w-24 border border-border/60 cursor-pointer transition-transform duration-300 group-hover:scale-105"
-                  onClick={() => {
-                    const modal = document.createElement('div');
-                    modal.className = 'fixed inset-0 bg-black/80 backdrop-blur z-[99999] flex items-center justify-center p-4';
-                    modal.onclick = (e) => {
-                      if (e.target === modal) modal.remove();
-                    };
-                    
-                    const img = document.createElement('img');
-                    img.src = profile.avatar || '';
-                    img.alt = profile.name || 'User Avatar';
-                    img.className = 'max-w-full max-h-full rounded-full object-cover';
-                    
-                    modal.appendChild(img);
-                    document.body.appendChild(modal);
-                  }}
+                  onClick={handleAvatarClick}
                 >
-                  <AvatarImage src={profile.avatar || ''} alt={profile.name || 'User Avatar'} className="object-cover" />
+                  <AvatarImage src={formData.avatar || profile.avatar || ''} alt={formData.fullName || 'User Avatar'} className="object-cover" />
                   <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-primary/20 text-lg font-semibold text-primary">
-                    {profile.name?.charAt(0).toUpperCase()}
+                    {formData.fullName?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <div 
-                  className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
-                  onClick={() => {
-                    const modal = document.createElement('div');
-                    modal.className = 'fixed inset-0 bg-black/80 backdrop-blur z-[99999] flex items-center justify-center p-4';
-                    modal.onclick = (e) => {
-                      if (e.target === modal) modal.remove();
-                    };
-                    
-                    const img = document.createElement('img');
-                    img.src = profile.avatar || '';
-                    img.alt = profile.name || 'User Avatar';
-                    img.className = 'max-w-full max-h-full rounded-full object-cover';
-                    
-                    modal.appendChild(img);
-                    document.body.appendChild(modal);
-                  }}
-                >
-                  <span className="text-white text-xs font-medium bg-black/50 rounded-full px-2 py-1">Click to view</span>
-                </div>
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-foreground">{profile.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {profile.email}
-                </p>
+                <p className="text-sm font-medium text-foreground">{formData.fullName}</p>
               </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={onFileSelect} 
+                className="hidden" 
+                accept="image/*"
+              />
               <Button
                 type="button"
                 variant="outline"
                 className="rounded-full border-border/60 bg-white/5 px-4 py-2 text-sm text-foreground"
+                onClick={handleAvatarClick}
               >
                 <UploadCloud className="mr-2 h-4 w-4" />
                 Update avatar
@@ -175,47 +144,31 @@ export const ProfileCard = observer(
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  <Label htmlFor="profile-first-name">First name</Label>
+                  <UserIcon className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="profile-fullname">Full Name</Label>
                 </div>
                 <Input
-                  id="profile-first-name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  id="profile-fullname"
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
                   className="h-11 rounded-2xl border-border/60 bg-background/60 px-4"
-                  autoComplete="given-name"
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  <Label htmlFor="profile-last-name">Last name</Label>
+                  <UserIcon className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="profile-nickname">Nick Name</Label>
                 </div>
                 <Input
-                  id="profile-last-name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  id="profile-nickname"
+                  value={formData.nickName || ''}
+                  onChange={(e) => handleInputChange('nickName', e.target.value)}
                   className="h-11 rounded-2xl border-border/60 bg-background/60 px-4"
-                  autoComplete="family-name"
                 />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-muted-foreground" />
-                  <Label htmlFor="profile-email">Email address</Label>
-                </div>
-                <Input
-                  id="profile-email"
-                  type="email"
-                  value={profile.email}
-                  readOnly
-                  className="h-11 rounded-2xl border-border/60 bg-background/60 px-4"
-                  autoComplete="email"
-                />
-              </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-muted-foreground" />
@@ -224,45 +177,87 @@ export const ProfileCard = observer(
                 <Input
                   id="profile-phone"
                   type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  value={formData.phoneNumber || ''}
+                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                   placeholder="+1 (555) 123-4567"
                   className="h-11 rounded-2xl border-border/60 bg-background/60 px-4"
-                  autoComplete="tel"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <Label htmlFor="profile-dob">Date of Birth</Label>
+                </div>
+                <Input
+                  id="profile-dob"
+                  type="date"
+                  value={formData.dateOfBirth || ''}
+                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                  className="h-11 rounded-2xl border-border/60 bg-background/60 px-4"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                <Label htmlFor="profile-address">Address</Label>
+            <div className="space-y-4">
+               <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                      <UserIcon className="w-4 h-4 text-muted-foreground" />
+                      <Label htmlFor="profile-gender">Gender</Label>
+                  </div>
+                  <div className="flex items-center gap-6 pt-1">
+                    {['MALE', 'FEMALE', 'OTHER'].map((gender) => (
+                        <div key={gender} className="flex items-center gap-2 cursor-pointer group" onClick={() => handleInputChange('gender', gender)}>
+                          <div className={cn(
+                            "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
+                            formData.gender === gender ? "border-primary bg-primary" : "border-muted-foreground group-hover:border-primary"
+                          )}>
+                             {formData.gender === gender && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
+                          </div>
+                          <span className={cn("text-sm", formData.gender === gender ? "font-medium text-foreground" : "text-muted-foreground group-hover:text-foreground")}>
+                              {gender.charAt(0) + gender.slice(1).toLowerCase()}
+                          </span>
+                        </div>
+                    ))}
+                  </div>
+                </div>
+
+              <div className="space-y-4">
+                 <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                    <Label className="text-base font-medium">Address Information</Label>
+                 </div>
+                 
+                 <div className="grid gap-6 rounded-2xl border border-border/60 bg-background/40 p-6 backdrop-blur">
+                    <div className="space-y-3">
+                       <Label htmlFor="address-val" className="text-sm font-medium">Physical Address <span className="text-red-500">*</span></Label>
+                       <Input
+                         id="address-val"
+                         // Check if addresses array is populated, else use default or empty
+                         value={formData.addresses && formData.addresses[0] ? formData.addresses[0].address : ''}
+                         onChange={(e) => handleAddressChange(0, 'address', e.target.value)}
+                         placeholder="e.g. 123 Main St, New York, NY 10001"
+                         className="h-11 rounded-xl border-border/60 bg-background/60 px-4"
+                       />
+                       <p className="text-[0.8rem] text-muted-foreground">
+                         Enter your primary physical address where you can receive mail.
+                       </p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                       <Label htmlFor="address-other" className="text-sm font-medium">Address Description / Note</Label>
+                       <Input
+                         id="address-other"
+                         value={formData.addresses && formData.addresses[0] ? (formData.addresses[0].other || '') : ''}
+                         onChange={(e) => handleAddressChange(0, 'other', e.target.value)}
+                         placeholder="e.g. Apartment complex, near the central park, gate code 1234"
+                         className="h-11 rounded-xl border-border/60 bg-background/60 px-4"
+                       />
+                       <p className="text-[0.8rem] text-muted-foreground">
+                         Add any extra details, landmarks, or delivery instructions for this address.
+                       </p>
+                    </div>
+                 </div>
               </div>
-              <Input
-                id="profile-address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="Enter your address"
-                className="h-11 rounded-2xl border-border/60 bg-background/60 px-4"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Quote className="w-4 h-4 text-muted-foreground" />
-                <Label htmlFor="profile-bio">Bio</Label>
-              </div>
-              <Textarea
-                id="profile-bio"
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                rows={4}
-                className="rounded-2xl border-border/60 bg-background/60 px-4 py-3 text-sm"
-                placeholder="Tell us about your role, interests, or current focus."
-              />
-              <p className="text-right text-xs text-muted-foreground">
-                {formData.bio.length}/160 characters
-              </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
@@ -309,52 +304,17 @@ export const ProfileCard = observer(
                   <div className="relative group">
                     <Avatar 
                       className="h-24 w-24 border border-border/60 cursor-pointer transition-transform duration-300 group-hover:scale-105"
-                      onClick={() => {
-                        const modal = document.createElement('div');
-                        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur z-[99999] flex items-center justify-center p-4';
-                        modal.onclick = (e) => {
-                          if (e.target === modal) modal.remove();
-                        };
-                        
-                        const img = document.createElement('img');
-                        img.src = profile.avatar || '';
-                        img.alt = profile.name || 'User Avatar';
-                        img.className = 'max-w-full max-h-full rounded-full object-cover';
-                        
-                        modal.appendChild(img);
-                        document.body.appendChild(modal);
-                      }}
                     >
-                      <AvatarImage src={profile.avatar || ''} alt={profile.name || 'User Avatar'} className="object-cover" />
+                      <AvatarImage src={profile.avatar || ''} alt={profile.fullName || 'User Avatar'} className="object-cover" />
                       <AvatarFallback className="flex h-full w-full items-center justify-center rounded-full bg-primary/20 text-lg font-semibold text-primary">
-                        {profile.name?.charAt(0).toUpperCase()}
+                        {profile.fullName?.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <div 
-                      className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
-                      onClick={() => {
-                        const modal = document.createElement('div');
-                        modal.className = 'fixed inset-0 bg-black/80 backdrop-blur z-[99999] flex items-center justify-center p-4';
-                        modal.onclick = (e) => {
-                          if (e.target === modal) modal.remove();
-                        };
-                        
-                        const img = document.createElement('img');
-                        img.src = profile.avatar || '';
-                        img.alt = profile.name || 'User Avatar';
-                        img.className = 'max-w-full max-h-full rounded-full object-cover';
-                        
-                        modal.appendChild(img);
-                        document.body.appendChild(modal);
-                      }}
-                    >
-                      <span className="text-white text-xs font-medium bg-black/50 rounded-full px-2 py-1">Click to view</span>
-                    </div>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-medium text-foreground">{profile.name}</p>
+                    <p className="text-sm font-medium text-foreground">{profile.fullName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {profile.email}
+                      @{profile.username}
                     </p>
                   </div>
                 </div>
@@ -364,35 +324,45 @@ export const ProfileCard = observer(
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">First name</span>
+                      <UserIcon className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Full Name</span>
                     </div>
-                    <p className="text-foreground">{profile.name}</p>
+                    <p className="text-foreground">{profile.fullName || 'Not provided'}</p>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Last name</span>
+                      <UserIcon className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Nick Name</span>
                     </div>
-                    <p className="text-foreground">{profile.name}</p>
+                    <p className="text-foreground">{profile.nickName || 'Not provided'}</p>
                   </div>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Email address</span>
-                    </div>
-                    <p className="text-foreground">{profile.email}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-muted-foreground">Phone number</span>
                     </div>
-                    <p className="text-foreground">{profile.phone || 'Not provided'}</p>
+                    <p className="text-foreground">{profile.phoneNumber || 'Not provided'}</p>
                   </div>
+                  <div className="space-y-2">
+                     <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">Date of Birth</span>
+                    </div>
+                    <p className="text-foreground">
+                        {profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <UserIcon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">Gender</span>
+                  </div>
+                  <p className="text-foreground">{profile.gender || 'Not provided'}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -400,15 +370,18 @@ export const ProfileCard = observer(
                     <MapPin className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-muted-foreground">Address</span>
                   </div>
-                  <p className="text-foreground">{profile.address || 'Not provided'}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Quote className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Bio</span>
-                  </div>
-                  <p className="text-foreground">{profile.bio || 'Not provided'}</p>
+                  {profile.addresses && profile.addresses.length > 0 ? (
+                    <div className="flex flex-col gap-2">
+                        <div className="rounded-lg border border-border/40 bg-background/40 p-3 text-sm flex flex-col gap-1">
+                             <div className="font-medium">{profile.addresses[0].address}</div>
+                             {profile.addresses[0].other && (
+                               <div className="text-xs text-muted-foreground">{profile.addresses[0].other}</div>
+                             )}
+                        </div>
+                    </div>
+                  ) : (
+                    <p className="text-foreground">Not provided</p>
+                  )}
                 </div>
               </div>
             </div>

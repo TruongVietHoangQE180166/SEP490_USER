@@ -127,11 +127,11 @@ export const HeroHeader = observer(() => {
                                             className="group flex items-center justify-center rounded-full border border-border/40 bg-background/50 p-1 transition-all duration-200 hover:bg-accent hover:border-border/80 focus:outline-none focus:ring-2 focus:ring-ring/20 outline-none"
                                             aria-label="User menu"
                                         >
-                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-border/50 transition-all duration-200 group-hover:scale-105 overflow-hidden">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary ring-1 ring-border/50 transition-all duration-200 group-hover:scale-105 overflow-hidden">
                                                 {user?.avatar ? (
                                                     <img 
                                                         src={user.avatar} 
-                                                        alt={user.name || 'User'} 
+                                                        alt={user.username || 'User'} 
                                                         className="w-full h-full object-cover rounded-full"
                                                         onError={(e) => {
                                                             // Fallback to initials if image fails to load
@@ -145,16 +145,16 @@ export const HeroHeader = observer(() => {
                                                             }
                                                         }}
                                                     />
-                                                ) : user?.name ? (
+                                                ) : user?.username ? (
                                                     <span className="text-sm font-bold">
-                                                        {user.name.charAt(0).toUpperCase()}
+                                                        {user.username.charAt(0).toUpperCase()}
                                                     </span>
                                                 ) : (
                                                     <User className="h-5 w-5" />
                                                 )}
-                                                {user?.name && !user?.avatar && (
+                                                {user?.username && !user?.avatar && (
                                                     <span className="text-sm font-bold hidden">
-                                                        {user.name.charAt(0).toUpperCase()}
+                                                        {user.username.charAt(0).toUpperCase()}
                                                     </span>
                                                 )}
                                             </div>
@@ -171,11 +171,11 @@ export const HeroHeader = observer(() => {
                                                     className="absolute right-0 mt-3 w-72 rounded-2xl border border-border/50 bg-popover/80 p-2 shadow-2xl backdrop-blur-xl z-50 ring-1 ring-black/5"
                                                 >
                                                     <div className="flex items-center gap-4 p-4 mb-2 rounded-xl bg-gradient-to-br from-muted/50 to-muted/10 border border-border/20">
-                                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-background text-primary shadow-sm ring-1 ring-border/20 overflow-hidden">
+                                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-background text-primary shadow-sm ring-1 ring-border/20 overflow-hidden">
                                                             {user?.avatar ? (
                                                                 <img 
                                                                     src={user.avatar} 
-                                                                    alt={user.name || 'User'} 
+                                                                    alt={user.username || 'User'} 
                                                                     className="w-full h-full object-cover rounded-full"
                                                                     onError={(e) => {
                                                                         // Fallback to initials if image fails to load
@@ -189,22 +189,22 @@ export const HeroHeader = observer(() => {
                                                                         }
                                                                     }}
                                                                 />
-                                                            ) : user?.name ? (
+                                                            ) : user?.username ? (
                                                                 <span className="text-lg font-bold">
-                                                                    {user.name.charAt(0).toUpperCase()}
+                                                                    {user.username.charAt(0).toUpperCase()}
                                                                 </span>
                                                             ) : (
                                                                 <User className="h-6 w-6" />
                                                             )}
-                                                            {user?.name && !user?.avatar && (
+                                                            {user?.username && !user?.avatar && (
                                                                 <span className="text-lg font-bold hidden">
-                                                                    {user.name.charAt(0).toUpperCase()}
+                                                                    {user.username.charAt(0).toUpperCase()}
                                                                 </span>
                                                             )}
                                                         </div>
                                                         <div className="flex flex-col overflow-hidden">
                                                             <p className="truncate text-sm font-bold text-foreground">
-                                                                {user?.name || 'User'}
+                                                                {user?.username || 'User'}
                                                             </p>
                                                             <p className="truncate text-xs text-muted-foreground font-medium">
                                                                 {user?.email || 'user@example.com'}

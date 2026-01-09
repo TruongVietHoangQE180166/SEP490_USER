@@ -31,7 +31,7 @@ export const useChangePassword = () => {
     }
 
     const user = authState$.user.get();
-    if (!user?.id) {
+    if (!user?.userId) {
       const errorMsg = 'User not authenticated';
       setError(errorMsg);
       toast.error(errorMsg);
@@ -47,7 +47,6 @@ export const useChangePassword = () => {
       loadingActions.showUpdateLoading('Updating password...');
       
       const result = await profileActions.changePassword(
-        user.id,
         currentPassword,
         newPassword
       );

@@ -7,8 +7,8 @@ import { authActions } from '../store';
 import { LoginCredentials } from '../types';
 import { ROUTES } from '@/constants/routes';
 import { MESSAGES } from '@/constants/messages';
-import { errorActions } from '@/errors/errorStore';
-import { ErrorType } from '@/errors/errorTypes';
+import { toast } from '@/components/ui/toast';
+
 
 
 export const useLogin = () => {
@@ -18,14 +18,17 @@ export const useLogin = () => {
   const login = async (credentials: LoginCredentials) => {
     setIsLoading(true);
     try {
-      const user = await authService.login(credentials);
-      authActions.setUser(user, user.id);
+      const { user, accessToken } = await authService.login(credentials);
+      
+      // Save user and token to auth store
+      authActions.setUser(user, accessToken);
       
       router.push('/'); // Redirect to root (home page) instead of ROUTES.PRIVATE.HOME
+      toast.success('Đăng nhập thành công');
       return { success: true };
     } catch (error) {
       const message = error instanceof Error ? error.message : MESSAGES.ERROR.UNKNOWN;
-      errorActions.setError(ErrorType.AUTH, message);
+      toast.error(message);
       return { success: false, error: message };
     } finally {
       setIsLoading(false);
