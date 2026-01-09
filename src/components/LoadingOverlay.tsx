@@ -16,18 +16,9 @@ const LoadingOverlay = observer(() => {
     return null;
   }
 
-  // Get colors based on loading type
+  // Use a single consistent color variant
   const getLoaderVariant = () => {
-    switch (type) {
-      case 'update':
-        return 'electric';
-      case 'create':
-        return 'fire';
-      case 'delete':
-        return 'rainbow';
-      default:
-        return 'default';
-    }
+    return 'default';
   };
 
   return (
@@ -42,7 +33,7 @@ const LoadingOverlay = observer(() => {
         <div className="flex flex-col items-center gap-6 p-8 rounded-2xl bg-card/90 shadow-xl border border-border">
           <ThunderLoader
             className="w-24 h-24"
-            variant={getLoaderVariant()}
+            variant="default"
             animate="thunder"
             showGlow={true}
             showFill={true}

@@ -44,6 +44,7 @@ export const PageLoadingIndicator = () => {
         >
           <ThunderLoader
             className="w-64 h-64"
+            variant="default"
             animate="thunder"
             showGlow={true}
             showFill={true}

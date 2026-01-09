@@ -14,3 +14,9 @@ export interface ProfileState {
   isLoading: boolean;
   isEditing: boolean;
 }
+
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

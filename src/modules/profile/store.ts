@@ -1,5 +1,6 @@
 import { observable } from '@legendapp/state';
 import { ProfileState, UserProfile } from './types';
+import { profileService } from './services';
 
 const initialProfileState: ProfileState = {
   profile: null,
@@ -32,5 +33,20 @@ export const profileActions = {
 
   reset: () => {
     profileState$.set(initialProfileState);
+  },
+
+  changePassword: async (userId: string, currentPassword: string, newPassword: string) => {
+    try {
+      profileState$.isLoading.set(true);
+      const success = await profileService.changePassword(userId, currentPassword, newPassword);
+      if (success) {
+        return { success: true, message: 'Password changed successfully' };
+      }
+      return { success: false, message: 'Failed to change password' };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    } finally {
+      profileState$.isLoading.set(false);
+    }
   },
 };
