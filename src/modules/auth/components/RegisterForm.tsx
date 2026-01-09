@@ -12,7 +12,7 @@ import { ROUTES } from '@/constants/routes';
 
 export const RegisterForm = () => {
   const { register, isLoading } = useRegister();
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -22,15 +22,7 @@ export const RegisterForm = () => {
     e.preventDefault();
     setError('');
 
-    if (password !== confirmPassword) {
-      setError('Mật khẩu không khớp');
-      return;
-    }
-
-    const result = await register({ name, email, password });
-    if (!result.success) {
-      setError(result.error || 'Đăng ký thất bại');
-    }
+    await register({ username, email, password, confirmPassword });
   };
 
   return (
@@ -96,17 +88,17 @@ export const RegisterForm = () => {
         {/* Register Form */}
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name" className="block text-sm">
-              Họ và tên
+            <Label htmlFor="username" className="block text-sm">
+              Tên đăng nhập
             </Label>
             <Input
               type="text"
               required
-              name="name"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nguyễn Văn A"
+              name="username"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Tên đăng nhập của bạn"
             />
           </div>
 

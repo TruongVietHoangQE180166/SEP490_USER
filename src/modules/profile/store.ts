@@ -12,6 +12,8 @@ export const profileState$ = observable<ProfileState>(initialProfileState);
 
 // Actions
 export const profileActions = {
+  // Syncs the store with the latest profile data from the server.
+  // We use this for both initial load and after successful updates.
   setProfile: (profile: UserProfile) => {
     profileState$.profile.set(profile);
   },
@@ -23,22 +25,19 @@ export const profileActions = {
   setEditing: (isEditing: boolean) => {
     profileState$.isEditing.set(isEditing);
   },
-
-  updateProfile: (updates: Partial<UserProfile>) => {
-    const currentProfile = profileState$.profile.peek();
-    if (currentProfile) {
-      profileState$.profile.set({ ...currentProfile, ...updates });
-    }
-  },
+  
+  // Note: We don't have a partial update action (updateProfile) here because 
+  // our strategy is to always replace the full profile state with the 
+  // response from the API (via setProfile) to ensure consistency.
 
   reset: () => {
     profileState$.set(initialProfileState);
   },
 
-  changePassword: async (userId: string, currentPassword: string, newPassword: string) => {
+  changePassword: async (currentPassword: string, newPassword: string) => {
     try {
       profileState$.isLoading.set(true);
-      const success = await profileService.changePassword(userId, currentPassword, newPassword);
+      const success = await profileService.changePassword(currentPassword, newPassword);
       if (success) {
         return { success: true, message: 'Password changed successfully' };
       }

@@ -43,12 +43,30 @@ export const authActions = {
       token,
       isAuthenticated: true,
     });
+    
+    // Also save individual fields to localStorage for easy access
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('accessToken', token);
+      localStorage.setItem('userId', user.userId);
+      localStorage.setItem('username', user.username);
+      localStorage.setItem('email', user.email);
+      if (user.avatar) {
+        localStorage.setItem('avatar', user.avatar);
+      }
+    }
   },
+
 
   clearAuth: () => {
     authState$.set(initialAuthState);
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+      // Also remove individual fields
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('username');
+      localStorage.removeItem('email');
+      localStorage.removeItem('avatar');
     }
   },
 

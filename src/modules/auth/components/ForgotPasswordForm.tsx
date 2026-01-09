@@ -10,25 +10,7 @@ import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
 
 export const ForgotPasswordForm = () => {
-  const { sendResetLink, isLoading } = useForgotPassword();
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    const result = await sendResetLink(email);
-    
-    if (result.success) {
-      setSuccess(result.message || 'Link đã được gửi!');
-      setEmail(''); // Clear form
-    } else {
-      setError(result.error || 'Gửi link thất bại');
-    }
-  };
+  const { email, setEmail, handleSubmit, isLoading } = useForgotPassword();
 
   return (
     <form
@@ -42,7 +24,7 @@ export const ForgotPasswordForm = () => {
           </Link>
           <h1 className="mb-1 mt-4 text-xl font-semibold">Khôi phục mật khẩu</h1>
           <p className="text-sm text-muted-foreground">
-            Nhập email để nhận link đặt lại mật khẩu
+            Nhập email để nhận mã OTP đặt lại mật khẩu
           </p>
         </div>
 
@@ -63,26 +45,14 @@ export const ForgotPasswordForm = () => {
             />
           </div>
 
-          {error && (
-            <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
-              <p className="text-sm text-destructive">{error}</p>
-            </div>
-          )}
-
-          {success && (
-            <div className="p-3 rounded-md bg-primary/10 border border-primary/20">
-              <p className="text-sm text-primary">{success}</p>
-            </div>
-          )}
-
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Đang gửi...' : 'Gửi link đặt lại'}
+            {isLoading ? 'Đang gửi...' : 'Gửi mã OTP'}
           </Button>
         </div>
 
         <div className="mt-6 text-center">
           <p className="text-muted-foreground text-sm">
-            Chúng tôi sẽ gửi link để bạn đặt lại mật khẩu.
+            Chúng tôi sẽ gửi mã OTP gồm 6 chữ số đến email của bạn.
           </p>
         </div>
       </div>

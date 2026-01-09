@@ -1,77 +1,138 @@
-import { MockApiService } from '@/services/mockApi';
-import { MOCK_USERS, MOCK_PASSWORD } from './mocks';
-import { LoginCredentials, RegisterCredentials, User } from './types';
+
+
+
+
+import { LoginCredentials, RegisterCredentials, User, LoginApiResponse, RegisterApiResponse, RegisterUserData, VerifyOtpCredentials, VerifyOtpApiResponse, SendOtpCredentials, SendOtpApiResponse, ResetPasswordCredentials, ResetPasswordApiResponse } from './types';
 import { MESSAGES } from '@/constants/messages';
+import { ApiConfigService } from '@/services/apiConfig';
+import { decodeJWT } from './utils';
 
 export const authService = {
-  async login(credentials: LoginCredentials): Promise<User> {
-    const user = MOCK_USERS.find((u) => u.email === credentials.email);
-
-    if (!user || credentials.password !== MOCK_PASSWORD) {
+  async login(credentials: LoginCredentials): Promise<{ user: User; accessToken: string }> {
+    try {
+      const apiResponse = await ApiConfigService.post<LoginApiResponse>(
+        '/api/auth/login',
+        credentials
+      );
+      
+      if (!apiResponse || !apiResponse.success || !apiResponse.data) {
+        const errorMessage = apiResponse?.message?.messageDetail || MESSAGES.AUTH.LOGIN_FAILED;
+        throw new Error(errorMessage);
+      }
+      
+      const { accessToken } = apiResponse.data;
+      const user = decodeJWT(accessToken);
+      if (!user) {
+        throw new Error('Failed to decode token');
+      }
+      
+      return { user, accessToken };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error(MESSAGES.AUTH.LOGIN_FAILED);
     }
-
-    return user;
   },
 
-  async register(credentials: RegisterCredentials): Promise<User> {
-    const existingUser = MOCK_USERS.find((u) => u.email === credentials.email);
 
-    if (existingUser) {
+  async register(credentials: RegisterCredentials): Promise<RegisterUserData> {
+    try {
+      // Remove confirmPassword before sending to API
+      const { confirmPassword, ...registerData } = credentials;
+      
+      const apiResponse = await ApiConfigService.post<RegisterApiResponse>(
+        '/api/auth/register',
+        registerData
+      );
+      
+      if (!apiResponse || !apiResponse.success || !apiResponse.data) {
+        const errorMessage = apiResponse?.message?.messageDetail || MESSAGES.AUTH.REGISTER_FAILED;
+        throw new Error(errorMessage);
+      }
+      
+      return apiResponse.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error(MESSAGES.AUTH.REGISTER_FAILED);
     }
-
-    const newUser: User = {
-      id: String(MOCK_USERS.length + 1),
-      email: credentials.email,
-      name: credentials.name,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${credentials.name}`,
-      role: 'user',
-    };
-
-    MOCK_USERS.push(newUser);
-    return newUser;
   },
+
+
+  async verifyOTP(credentials: VerifyOtpCredentials): Promise<string | null> {
+    try {
+      const apiResponse = await ApiConfigService.post<VerifyOtpApiResponse>(
+        '/api/auth/verifyOTP',
+        credentials
+      );
+
+      if (!apiResponse || !apiResponse.success) {
+        const errorMessage = apiResponse?.message?.messageDetail || 'Xác thực OTP thất bại';
+        throw new Error(errorMessage);
+      }
+
+      return apiResponse.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Xác thực OTP thất bại');
+    }
+  },
+
+  async sendOTP(credentials: SendOtpCredentials): Promise<string | null> {
+    try {
+      const apiResponse = await ApiConfigService.post<SendOtpApiResponse>(
+        '/api/auth/sendOTP',
+        credentials
+      );
+
+      if (!apiResponse || !apiResponse.success) {
+        const errorMessage = apiResponse?.message?.messageDetail || 'Gửi OTP thất bại';
+        throw new Error(errorMessage);
+      }
+
+      return apiResponse.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Gửi OTP thất bại');
+    }
+  },
+
 
   async logout(): Promise<void> {
     // Simulate logout delay
+    // Note: clearAuth is handled by useLogout hook via authActions.clearAuth()
     await new Promise((resolve) => setTimeout(resolve, 500));
   },
 
   async getCurrentUser(token: string): Promise<User | null> {
-    // In real app, decode token and fetch user
-    const userId = token;
-    return MOCK_USERS.find((u) => u.id === userId) || null;
+    // Decode token to get user info
+    return decodeJWT(token);
   },
 
-  async forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  async resetPassword(credentials: ResetPasswordCredentials): Promise<string | null> {
+    try {
+      const apiResponse = await ApiConfigService.post<ResetPasswordApiResponse>(
+        '/api/user/reset-password',
+        credentials
+      );
 
-    const user = MOCK_USERS.find((u) => u.email === email);
+      if (!apiResponse || !apiResponse.success) {
+        const errorMessage = apiResponse?.message?.messageDetail || 'Đặt lại mật khẩu thất bại';
+        throw new Error(errorMessage);
+      }
 
-    if (!user) {
-      // For security, don't reveal if email exists
-      return {
-        success: true,
-        message: 'Nếu email tồn tại, link đặt lại mật khẩu đã được gửi.',
-      };
+      return apiResponse.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Đặt lại mật khẩu thất bại');
     }
-
-    // In real app, send email with reset link
-    console.log(`Password reset link sent to: ${email}`);
-
-    return {
-      success: true,
-      message: 'Link đặt lại mật khẩu đã được gửi đến email của bạn.',
-    };
-  },
-
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // In real app, verify token and update password
-    console.log(`Password reset for token: ${token}`);
   },
 };

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useLogin } from '../hooks/useLogin';
 import { LogoIcon } from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/toast';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
@@ -13,18 +12,12 @@ import { ROUTES } from '@/constants/routes';
 
 export const LoginForm = () => {
   const { login, isLoading } = useLogin();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const result = await login({ email, password });
-    if (result.success) {
-      toast.success('Đăng nhập thành công');
-    } else {
-      const errorMessage = result.error || 'Đăng nhập thất bại';
-      toast.error(errorMessage);
-    }
+    await login({ username, password });
   };
 
   return (
@@ -43,7 +36,7 @@ export const LoginForm = () => {
 
         {/* Social Login Buttons */}
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <Button type="button" variant="outline">
+          <Button type="button" variant="outline" onClick={() => window.location.href = 'https://vict-beeab2c3akcqgyej.malaysiawest-01.azurewebsites.net/oauth2/authorization/google'}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="0.98em"
@@ -90,17 +83,17 @@ export const LoginForm = () => {
         {/* Login Form */}
         <div className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email" className="block text-sm">
-              Email
+            <Label htmlFor="username" className="block text-sm">
+              Tên đăng nhập
             </Label>
             <Input
-              type="email"
+              type="text"
               required
-              name="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@example.com"
+              name="username"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Tên đăng nhập của bạn"
             />
           </div>
 
