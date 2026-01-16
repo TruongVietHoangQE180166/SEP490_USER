@@ -10,7 +10,7 @@ export function MainWrapper({ children }: { children: React.ReactNode }) {
   const isAuthPage = pathname && Object.values(ROUTES.AUTH).some((route) => pathname.startsWith(route));
   
   return (
-    <div className={isAuthPage ? 'relative min-h-screen' : 'relative min-h-screen pt-16'}>
+    <div className={isAuthPage ? 'relative min-h-screen' : 'relative min-h-screen pt-28'}>
       {children}
     </div>
   );

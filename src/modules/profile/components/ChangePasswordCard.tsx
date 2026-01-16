@@ -50,7 +50,7 @@ export const ChangePasswordCard = observer(
           ease: shouldReduceMotion ? "linear" : [0.16, 1, 0.3, 1],
           delay: 0.1,
         }}
-        className={cn("w-full max-w-6xl rounded-3xl overflow-hidden border border-border/60 bg-card/85 p-8 backdrop-blur-xl sm:p-12 relative", className)}
+        className={cn("w-full max-w-8xl rounded-3xl overflow-hidden border border-border/60 bg-card/85 p-8 backdrop-blur-xl sm:p-12 relative", className)}
         aria-labelledby="change-password-settings-title"
       >
         <div

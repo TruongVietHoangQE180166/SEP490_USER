@@ -162,6 +162,8 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+
+  --width-8xl: 1440px;
 }
 
 /* Custom scrollbar styles */

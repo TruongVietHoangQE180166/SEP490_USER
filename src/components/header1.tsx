@@ -11,6 +11,7 @@ import { useLogout } from '@/modules/auth/hooks/useLogout'
 import { ROUTES } from '@/constants/routes'
 import { usePathname } from 'next/navigation'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { CryptoTicker } from '@/components/CryptoTicker'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,9 +26,10 @@ import {
 
 
 const menuItems = [
+    { name: 'Trang chủ', href: '/' },
+    { name: 'Blog', href: '/blog' },
     { name: 'Features', href: '#link' },
     { name: 'Solution', href: '#link' },
-    { name: 'Pricing', href: '#link' },
     { name: 'About', href: '#link' },
 ]
 
@@ -65,8 +67,9 @@ export const HeroHeader = observer(() => {
         <header>
             <nav
                 data-state={menuState && 'active'}
-                className="bg-background/50 fixed z-20 w-full border-b backdrop-blur-3xl">
-                <div className="mx-auto max-w-6xl px-6 transition-all duration-300">
+                className="bg-background fixed z-40 w-full border-b">
+                <CryptoTicker />
+                <div className="mx-auto max-w-8xl px-6 transition-all duration-300">
                     <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
                         <div className="flex w-full items-center justify-between gap-12 lg:w-auto">
                             <Link
@@ -168,7 +171,7 @@ export const HeroHeader = observer(() => {
                                                     animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                                                     exit={{ opacity: 0, y: 10, scale: 0.95, filter: "blur(4px)" }}
                                                     transition={{ duration: 0.2, ease: "easeOut" }}
-                                                    className="absolute right-0 mt-3 w-72 rounded-2xl border border-border/50 bg-popover/80 p-2 shadow-2xl backdrop-blur-xl z-50 ring-1 ring-black/5"
+                                                    className="absolute right-0 mt-3 w-72 rounded-2xl border border-border/50 bg-popover p-2 shadow-2xl z-50 ring-1 ring-black/5"
                                                 >
                                                     <div className="flex items-center gap-4 p-4 mb-2 rounded-xl bg-gradient-to-br from-muted/50 to-muted/10 border border-border/20">
                                                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-background text-primary shadow-sm ring-1 ring-border/20 overflow-hidden">
