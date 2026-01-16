@@ -3,6 +3,7 @@ import { BlogState, BlogCategory } from './types';
 
 const initialBlogState: BlogState = {
   posts: [],
+  featuredPosts: [],
   categories: [],
   currentPost: null,
   isLoading: true,
@@ -16,6 +17,10 @@ export const blogState$ = observable<BlogState>(initialBlogState);
 export const blogActions = {
   setPosts: (posts: BlogState['posts']) => {
     blogState$.posts.set(posts);
+  },
+  
+  setFeaturedPosts: (posts: BlogState['posts']) => {
+    blogState$.featuredPosts.set(posts);
   },
 
   setCategories: (categories: BlogCategory[]) => {

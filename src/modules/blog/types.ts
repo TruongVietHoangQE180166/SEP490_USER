@@ -68,6 +68,7 @@ export interface BlogDetailApiResponse {
 
 export interface BlogState {
   posts: BlogPost[];
+  featuredPosts: BlogPost[];
   categories: BlogCategory[];
   currentPost: BlogPost | null;
   isLoading: boolean;

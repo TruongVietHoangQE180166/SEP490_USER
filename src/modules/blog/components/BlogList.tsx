@@ -34,6 +34,7 @@ const itemVariants: Variants = {
 export const BlogList = observer(() => {
   const { 
     posts, 
+    featuredPosts,
     isLoading, 
     searchQuery, 
     selectedCategory, 
@@ -43,12 +44,10 @@ export const BlogList = observer(() => {
   } = useBlog();
   const { categories, isLoading: isCategoriesLoading } = useBlogCategories();
 
-  const featuredPosts = posts.slice(0, 3);
-
   return (
     <div className="max-w-8xl mx-auto px-4 py-8">
       {/* Featured Carousel */}
-      {featuredPosts.length > 0 && !searchQuery && (
+      {featuredPosts.length > 0 && (
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
