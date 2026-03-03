@@ -43,6 +43,7 @@ export const useCourseList = () => {
   const [activeAssets, setActiveAssets] = useState<string[]>(['All']);
   const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [minRating, setMinRating] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'free' | 'enrolled' | 'not-enrolled'>('all');
 
   // Simulate a light loading state when search/filter/sort changes
   useEffect(() => {
@@ -51,7 +52,7 @@ export const useCourseList = () => {
     setCurrentPage(1); // Reset page when filters change
     const timer = setTimeout(() => setIsSearching(false), 400);
     return () => clearTimeout(timer);
-  }, [searchQuery, sortBy, activeAssets, priceRange, minRating]);
+  }, [searchQuery, sortBy, activeAssets, priceRange, minRating, statusFilter]);
 
   const toggleAsset = (asset: string) => {
     setActiveAssets(prev => {
@@ -75,9 +76,24 @@ export const useCourseList = () => {
       const query = searchQuery.toLowerCase();
       result = result.filter(c => 
         c.title.toLowerCase().includes(query) || 
-        c.author?.name.toLowerCase().includes(query) ||
+        c.author?.name?.toLowerCase().includes(query) ||
         (c.assets ?? []).some(asset => asset.toLowerCase().includes(query))
       );
+    }
+
+    // Status filter (Free, Enrolled, Not Enrolled)
+    if (statusFilter !== 'all') {
+      switch (statusFilter) {
+        case 'free':
+          result = result.filter(c => c.isFree === true || c.price === 0);
+          break;
+        case 'enrolled':
+          result = result.filter(c => c.isEnrolled === true);
+          break;
+        case 'not-enrolled':
+          result = result.filter(c => c.isEnrolled !== true);
+          break;
+      }
     }
 
     // Multiple Assets filter
@@ -111,7 +127,7 @@ export const useCourseList = () => {
     }
 
     return result;
-  }, [courses, searchQuery, sortBy, activeAssets, priceRange, minRating]);
+  }, [courses, searchQuery, sortBy, activeAssets, priceRange, minRating, statusFilter]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredAndSortedCourses.length / ITEMS_PER_PAGE);
@@ -137,6 +153,7 @@ export const useCourseList = () => {
     setActiveAssets(['All']);
     setPriceRange([0, 10000000]);
     setMinRating(0);
+    setStatusFilter('all');
     setCurrentPage(1);
   };
 
@@ -164,6 +181,8 @@ export const useCourseList = () => {
         setPriceRange,
         minRating,
         setMinRating,
+        statusFilter,
+        setStatusFilter,
         clearFilters
     }
   };

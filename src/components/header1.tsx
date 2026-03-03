@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { Logo } from '@/components/logo'
-import { Menu, X, LogIn, User, LogOut, Settings } from 'lucide-react'
+import { Menu, X, LogIn, User, LogOut, Settings, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import React from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -46,8 +46,9 @@ export const HeroHeader = observer(() => {
         setIsClient(true)
     }, [])
     
-    // Don't show header on auth pages
-    const isAuthPage = isClient && pathname && Object.values(ROUTES.AUTH).some((route) => pathname.startsWith(route))
+    // Don't show header on auth pages or learn pages
+    const isAuthPage = pathname && Object.values(ROUTES.AUTH).some((route) => pathname.startsWith(route))
+    const isLearnPage = pathname && pathname.startsWith('/learn')
     
     // Close dropdown when clicking outside
     React.useEffect(() => {
@@ -61,7 +62,7 @@ export const HeroHeader = observer(() => {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [dropdownOpen])
     
-    if (isAuthPage) return null
+    if (isAuthPage || isLearnPage) return null
     
     return (
         <header>
@@ -225,6 +226,17 @@ export const HeroHeader = observer(() => {
                                                                 <User className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                                             </div>
                                                             Hồ sơ cá nhân
+                                                        </Link>
+
+                                                        <Link 
+                                                            href={ROUTES.PRIVATE.MY_COURSE}
+                                                            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-accent hover:text-accent-foreground group"
+                                                            onClick={() => setDropdownOpen(false)}
+                                                        >
+                                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background/80 border border-border/50 group-hover:bg-background group-hover:border-primary/20 transition-colors shadow-sm">
+                                                                <BookOpen className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                            </div>
+                                                            Khóa học của tôi
                                                         </Link>
                                                         
                                                         <div className="my-1 h-px bg-border/40 mx-2" />

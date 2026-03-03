@@ -1,5 +1,5 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { Course, CourseApiResponse, CoursePaginationResponse } from './types';
+import { Course, CourseApiResponse, CoursePaginationResponse, Question } from './types';
 
 export const courseService = {
   async getAllCourses(page = 1, size = 1000, field = 'createdDate', direction = 'desc'): Promise<Course[]> {
@@ -54,6 +54,27 @@ export const courseService = {
     // Note: If backend only supports slug for public view, this might need to change
     const response = await ApiConfigService.get<CourseApiResponse<Course>>(`/api/course/${id}`);
     if (!response || !response.success || !response.data) return null;
+    return response.data;
+  },
+
+  async getQuizQuestions(quizId: string): Promise<Question[]> {
+    const response = await ApiConfigService.get<CourseApiResponse<Question[]>>(`/api/question/by-quiz?quizId=${quizId}`);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Failed to fetch quiz questions');
+    }
+    return response.data;
+  },
+
+  async trackProgress(id: string, type: 'DOCUMENT' | 'VIDEO' | 'QUIZ', isCompleted: boolean = true): Promise<any> {
+    const response = await ApiConfigService.patch<any>(
+      `/api/course/tracking/${id}?type=${type}&isCompleted=${isCompleted}`,
+      {} // Empty body
+    );
+    
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Failed to track progress');
+    }
+    
     return response.data;
   }
 };

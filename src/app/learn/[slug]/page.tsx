@@ -5,11 +5,11 @@ import { useParams } from 'next/navigation';
 
 export default function LearnPage() {
   const params = useParams();
-  const id = params.id as string;
+  const slug = params.slug as string;
 
   return (
     <div className="min-h-screen bg-background">
-      <LearningView id={id} />
+      <LearningView slug={slug} />
     </div>
   );
 }

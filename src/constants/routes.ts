@@ -14,6 +14,7 @@ export const ROUTES = {
   PRIVATE: {
     PROFILE: '/profile',
     DASHBOARD: '/dashboard',
+    MY_COURSE: '/my-course',
   },
 } as const;
 
