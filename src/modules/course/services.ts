@@ -1,5 +1,5 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { Course, CourseApiResponse, CoursePaginationResponse, Question } from './types';
+import { Course, CourseApiResponse, CoursePaginationResponse, Question, Rating, RatingPaginationResponse } from './types';
 
 export const courseService = {
   async getAllCourses(page = 1, size = 1000, field = 'createdDate', direction = 'desc'): Promise<Course[]> {
@@ -75,6 +75,32 @@ export const courseService = {
       throw new Error(response?.message?.messageDetail || 'Failed to track progress');
     }
     
+    return response.data;
+  },
+
+  async getRatings(courseId: string, page = 1, size = 1000, field = 'createdDate', direction = 'desc'): Promise<Rating[]> {
+    const response = await ApiConfigService.get<CourseApiResponse<RatingPaginationResponse>>(
+      `/api/rate?page=${page}&size=${size}&field=${field}&direction=${direction}&courseId=${courseId}`
+    );
+
+    if (!response || !response.success || !response.data) {
+      return [];
+    }
+
+    return response.data.content || [];
+  },
+
+  async createRating(courseId: string, rating: number, comment: string): Promise<any> {
+    const response = await ApiConfigService.post<any>('/api/rate', {
+      courseId,
+      rate: rating,
+      comment
+    });
+
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Failed to submit rating');
+    }
+
     return response.data;
   }
 };

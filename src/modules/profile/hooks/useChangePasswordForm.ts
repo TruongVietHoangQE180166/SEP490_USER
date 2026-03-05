@@ -27,20 +27,20 @@ export const useChangePasswordForm = ({ onPasswordChange }: { onPasswordChange: 
 
     strength = Object.values(checks).filter(Boolean).length;
 
-    let strengthLabel = "Very Weak";
+    let strengthLabel = "Rất yếu";
     let strengthColor = "bg-red-500";
 
     if (strength >= 5) {
-      strengthLabel = "Very Strong";
+      strengthLabel = "Rất mạnh";
       strengthColor = "bg-green-500";
     } else if (strength >= 4) {
-      strengthLabel = "Strong";
+      strengthLabel = "Mạnh";
       strengthColor = "bg-teal-500";
     } else if (strength >= 3) {
-      strengthLabel = "Medium";
+      strengthLabel = "Trung bình";
       strengthColor = "bg-yellow-500";
     } else if (strength >= 2) {
-      strengthLabel = "Weak";
+      strengthLabel = "Yếu";
       strengthColor = "bg-orange-500";
     }
 
@@ -54,7 +54,7 @@ export const useChangePasswordForm = ({ onPasswordChange }: { onPasswordChange: 
 
     // Validate required fields
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
-      toast.error('Please fill in all required fields');
+      toast.error('Vui lòng điền đầy đủ các trường bắt buộc');
       return;
     }
 

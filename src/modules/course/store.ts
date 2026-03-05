@@ -54,5 +54,9 @@ export const courseActions = {
 
   setCompletedLessons: (lessonIds: string[]) => {
     courseState$.completedLessons.set(lessonIds);
+  },
+
+  reset: () => {
+    courseState$.set(initialCourseState);
   }
 };

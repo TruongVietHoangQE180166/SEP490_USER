@@ -152,3 +152,27 @@ export interface TrackingResponse {
   };
   success: boolean;
 }
+
+export interface Rating {
+  id: string;
+  rating: number;
+  comment: string;
+  courseId: string;
+  courseTitle: string;
+  fullName: string;
+  avatar: string;
+  createdDate: string;
+}
+
+export interface RatingPaginationResponse {
+  content: Rating[];
+  request: {
+    page: number;
+    size: number;
+    sortRequest: {
+      direction: string;
+      field: string;
+    };
+  };
+  totalElement: number;
+}

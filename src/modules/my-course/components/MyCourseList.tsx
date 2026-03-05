@@ -20,6 +20,7 @@ export const MyCourseList = observer(() => {
 
   const filteredCourses = useMemo(() => {
     return enrolledCourses.filter(course => {
+      if (!course.isEnrolled) return false;
       const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesFilter = 
         activeTab === 'all' ? true :

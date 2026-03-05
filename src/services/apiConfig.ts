@@ -45,16 +45,18 @@ export class ApiConfigService {
   }
 
   static async put<T>(endpoint: string, data?: any): Promise<T> {
+    const isFormData = data instanceof FormData;
     return this.execute<T>(endpoint, {
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 
   static async patch<T>(endpoint: string, data?: any): Promise<T> {
+    const isFormData = data instanceof FormData;
     return this.execute<T>(endpoint, {
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 

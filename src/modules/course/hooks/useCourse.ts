@@ -16,7 +16,8 @@ export const useCourses = () => {
     courseActions.setLoading(true);
     try {
       const data = await courseService.getAllCourses();
-      courseActions.setCourses(data);
+      const publishedCourses = data.filter(c => c.status === 'PUBLISHED');
+      courseActions.setCourses(publishedCourses);
     } catch (err: any) {
       const message = err.message || 'Không thể tải danh sách khóa học';
       courseActions.setError(message);

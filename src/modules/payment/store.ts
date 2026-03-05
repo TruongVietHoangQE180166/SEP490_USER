@@ -7,6 +7,7 @@ const initialPaymentState: PaymentState = {
   paymentInfo: null,
   currentOrder: null,
   isLoading: false,
+  isPaymentCompleted: false,
   error: null,
 };
 
@@ -22,9 +23,14 @@ export const paymentActions = {
   setPaymentInfo: (info: PaymentState['paymentInfo']) => {
     paymentState$.paymentInfo.set(info);
     paymentState$.currentOrder.set(null); // Reset order/QR code when setting new info
+    paymentState$.isPaymentCompleted.set(false);
   },
   setCurrentOrder: (order: PaymentState['currentOrder']) => {
     paymentState$.currentOrder.set(order);
+    paymentState$.isPaymentCompleted.set(false);
+  },
+  setPaymentCompleted: (isCompleted: boolean) => {
+    paymentState$.isPaymentCompleted.set(isCompleted);
   },
   setLoading: (isLoading: boolean) => {
     paymentState$.isLoading.set(isLoading);
@@ -34,5 +40,6 @@ export const paymentActions = {
   },
   resetOrder: () => {
     paymentState$.currentOrder.set(null);
+    paymentState$.isPaymentCompleted.set(false);
   }
 };

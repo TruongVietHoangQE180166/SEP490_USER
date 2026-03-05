@@ -49,6 +49,34 @@ export const LessonContent = observer(({ lesson, onRefresh }: { lesson: any, onR
     return () => clearInterval(interval);
   }, [lesson.type, lesson.id, isCompleted, docTimeElapsed, videoTimeElapsed]);
 
+  if (lesson.isLocked) {
+    return (
+      <div className="h-[60vh] flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-700">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl" />
+          <div className="relative h-40 w-40 rounded-full bg-gradient-to-br from-background to-muted border-4 border-border/40 shadow-2xl flex items-center justify-center transform hover:rotate-6 transition-transform">
+            <Lock className="h-16 w-16 text-muted-foreground/60" />
+          </div>
+        </div>
+        <div className="text-center space-y-3 max-w-md mx-auto">
+          <h2 className="text-3xl font-black text-foreground tracking-tight">Nội dung này đang bị khóa</h2>
+          <p className="text-muted-foreground font-medium">Bạn cần hoàn thành các nội dung trước đó hoặc có quyền truy cập để mở khóa bài học này.</p>
+          <div className="pt-4">
+            <Button 
+                variant="outline" 
+                className="rounded-full px-8 font-bold border-primary/20 hover:bg-primary/5 hover:text-primary transition-all"
+                onClick={() => {
+                   // Redirect or suggest next action
+                }}
+            >
+                Quay lại bài học khả dụng
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (lesson.type === 'video') {
     const isVideoLocked = videoTimeElapsed < VIDEO_REQUIRED_TIME && !isCompleted;
     const remainingVideoTime = VIDEO_REQUIRED_TIME - videoTimeElapsed;

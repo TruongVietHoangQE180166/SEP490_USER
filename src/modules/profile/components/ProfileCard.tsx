@@ -65,7 +65,7 @@ export const ProfileCard = observer(
           duration: 0.45,
           ease: shouldReduceMotion ? "linear" : [0.16, 1, 0.3, 1],
         }}
-        className={cn("w-full max-w-8xl rounded-3xl overflow-hidden border border-border/60 bg-card/85 p-8 backdrop-blur-xl sm:p-12 relative", className)}
+        className={cn("w-full max-w-8xl mx-auto rounded-3xl overflow-hidden border border-border/60 bg-card/85 p-8 backdrop-blur-xl sm:p-12 relative", className)}
         aria-labelledby="glass-profile-settings-title"
       >
         <div
@@ -75,16 +75,16 @@ export const ProfileCard = observer(
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.28em] text-muted-foreground">
-              Profile
+              Hồ sơ
             </div>
             <h1
               id="glass-profile-settings-title"
               className="mt-3 text-2xl font-semibold text-foreground sm:text-3xl"
             >
-              Profile settings
+              Cài đặt hồ sơ
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {isEditing ? "Update your personal details." : "View and manage your profile information."}
+              {isEditing ? "Cập nhật thông tin cá nhân của bạn." : "Xem và quản lý thông tin hồ sơ của bạn."}
             </p>
           </div>
           {!isEditing ? (
@@ -93,12 +93,12 @@ export const ProfileCard = observer(
               className="gap-2 shadow-lg shadow-primary/20"
             >
               <UploadCloud className="w-4 h-4" />
-              Edit Profile
+              Chỉnh sửa hồ sơ
             </Button>
           ) : (
             <Badge className="group gap-2 rounded-full border border-border/60 bg-white/5 px-4 py-2 text-muted-foreground transition-colors duration-300 hover:border-primary/60 hover:bg-primary/15 hover:text-primary">
               <span className="h-2 w-2 rounded-full bg-primary" aria-hidden />
-              Editing
+              Đang chỉnh sửa
             </Badge>
           )}
         </div>
@@ -135,7 +135,7 @@ export const ProfileCard = observer(
                 onClick={handleAvatarClick}
               >
                 <UploadCloud className="mr-2 h-4 w-4" />
-                Update avatar
+                Cập nhật ảnh đại diện
               </Button>
             </div>
           </div>
@@ -145,7 +145,7 @@ export const ProfileCard = observer(
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <UserIcon className="w-4 h-4 text-muted-foreground" />
-                  <Label htmlFor="profile-fullname">Full Name</Label>
+                  <Label htmlFor="profile-fullname">Họ và tên</Label>
                 </div>
                 <Input
                   id="profile-fullname"
@@ -157,7 +157,7 @@ export const ProfileCard = observer(
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <UserIcon className="w-4 h-4 text-muted-foreground" />
-                  <Label htmlFor="profile-nickname">Nick Name</Label>
+                  <Label htmlFor="profile-nickname">Biệt danh</Label>
                 </div>
                 <Input
                   id="profile-nickname"
@@ -172,21 +172,21 @@ export const ProfileCard = observer(
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-muted-foreground" />
-                  <Label htmlFor="profile-phone">Phone number</Label>
+                  <Label htmlFor="profile-phone">Số điện thoại</Label>
                 </div>
                 <Input
                   id="profile-phone"
                   type="tel"
                   value={formData.phoneNumber || ''}
                   onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="0xx xxxx xxx"
                   className="h-11 rounded-2xl border-border/60 bg-background/60 px-4"
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <Label htmlFor="profile-dob">Date of Birth</Label>
+                  <Label htmlFor="profile-dob">Ngày sinh</Label>
                 </div>
                 <Input
                   id="profile-dob"
@@ -202,19 +202,23 @@ export const ProfileCard = observer(
                <div className="space-y-2">
                   <div className="flex items-center gap-2">
                       <UserIcon className="w-4 h-4 text-muted-foreground" />
-                      <Label htmlFor="profile-gender">Gender</Label>
+                      <Label htmlFor="profile-gender">Giới tính</Label>
                   </div>
                   <div className="flex items-center gap-6 pt-1">
-                    {['MALE', 'FEMALE', 'OTHER'].map((gender) => (
-                        <div key={gender} className="flex items-center gap-2 cursor-pointer group" onClick={() => handleInputChange('gender', gender)}>
+                    {[
+                      { value: 'MALE', label: 'Nam' },
+                      { value: 'FEMALE', label: 'Nữ' },
+                      { value: 'OTHER', label: 'Khác' }
+                    ].map((gender) => (
+                        <div key={gender.value} className="flex items-center gap-2 cursor-pointer group" onClick={() => handleInputChange('gender', gender.value)}>
                           <div className={cn(
                             "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
-                            formData.gender === gender ? "border-primary bg-primary" : "border-muted-foreground group-hover:border-primary"
+                            formData.gender === gender.value ? "border-primary bg-primary" : "border-muted-foreground group-hover:border-primary"
                           )}>
-                             {formData.gender === gender && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
+                             {formData.gender === gender.value && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
                           </div>
-                          <span className={cn("text-sm", formData.gender === gender ? "font-medium text-foreground" : "text-muted-foreground group-hover:text-foreground")}>
-                              {gender.charAt(0) + gender.slice(1).toLowerCase()}
+                          <span className={cn("text-sm", formData.gender === gender.value ? "font-medium text-foreground" : "text-muted-foreground group-hover:text-foreground")}>
+                              {gender.label}
                           </span>
                         </div>
                     ))}
@@ -224,36 +228,35 @@ export const ProfileCard = observer(
               <div className="space-y-4">
                  <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <Label className="text-base font-medium">Address Information</Label>
+                    <Label className="text-base font-medium">Thông tin địa chỉ</Label>
                  </div>
                  
                  <div className="grid gap-6 rounded-2xl border border-border/60 bg-background/40 p-6 backdrop-blur">
                     <div className="space-y-3">
-                       <Label htmlFor="address-val" className="text-sm font-medium">Physical Address <span className="text-red-500">*</span></Label>
+                       <Label htmlFor="address-val" className="text-sm font-medium">Địa chỉ cụ thể <span className="text-red-500">*</span></Label>
                        <Input
                          id="address-val"
-                         // Check if addresses array is populated, else use default or empty
                          value={formData.addresses && formData.addresses[0] ? formData.addresses[0].address : ''}
                          onChange={(e) => handleAddressChange(0, 'address', e.target.value)}
-                         placeholder="e.g. 123 Main St, New York, NY 10001"
+                         placeholder="Ví dụ: 123 Đường ABC, Quận X, TP. Y"
                          className="h-11 rounded-xl border-border/60 bg-background/60 px-4"
                        />
                        <p className="text-[0.8rem] text-muted-foreground">
-                         Enter your primary physical address where you can receive mail.
+                         Nhập địa chỉ chính nơi bạn có thể nhận thư tín.
                        </p>
                     </div>
                     
                     <div className="space-y-3">
-                       <Label htmlFor="address-other" className="text-sm font-medium">Address Description / Note</Label>
+                       <Label htmlFor="address-other" className="text-sm font-medium">Mô tả địa chỉ / Ghi chú</Label>
                        <Input
                          id="address-other"
                          value={formData.addresses && formData.addresses[0] ? (formData.addresses[0].other || '') : ''}
                          onChange={(e) => handleAddressChange(0, 'other', e.target.value)}
-                         placeholder="e.g. Apartment complex, near the central park, gate code 1234"
+                         placeholder="Ví dụ: Chung cư X, gần công viên, mã cổng 1234"
                          className="h-11 rounded-xl border-border/60 bg-background/60 px-4"
                        />
                        <p className="text-[0.8rem] text-muted-foreground">
-                         Add any extra details, landmarks, or delivery instructions for this address.
+                         Thêm các chi tiết bổ sung, mốc giới hoặc hướng dẫn giao hàng cho địa chỉ này.
                        </p>
                     </div>
                  </div>
@@ -267,30 +270,30 @@ export const ProfileCard = observer(
                 className="rounded-full border-border/60 bg-white/5 px-6 py-3 text-sm text-muted-foreground hover:text-primary"
                 onClick={handleReset}
               >
-                Cancel
+                Hủy
               </Button>
               <AlertDialog open={showSaveConfirmation} onOpenChange={setShowSaveConfirmation}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      Confirm Changes
+                <AlertDialogContent className="rounded-[32px] border border-border/40 bg-background/80 backdrop-blur-2xl p-8">
+                  <AlertDialogHeader className="space-y-4">
+                    <AlertDialogTitle className="flex items-center gap-2 text-2xl font-black">
+                      <CheckCircle className="w-6 h-6 text-green-500" />
+                      Xác nhận thay đổi
                     </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to save these changes to your profile?
+                    <AlertDialogDescription className="text-base font-bold text-foreground/50">
+                      Bạn có chắc chắn muốn lưu các thay đổi này vào hồ sơ không?
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={cancelSave}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmSave}>Save changes</AlertDialogAction>
+                  <AlertDialogFooter className="mt-8 gap-4 sm:gap-0">
+                    <AlertDialogCancel onClick={cancelSave} className="h-12 rounded-2xl border-border/40 bg-background/40 font-black">Hủy bỏ</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmSave} className="h-12 rounded-2xl bg-primary text-primary-foreground font-black shadow-xl shadow-primary/20">Lưu thay đổi</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
               <Button
                 type="submit"
-                className="rounded-full bg-primary px-6 py-3 text-primary-foreground shadow-[0_20px_60px_-30px_rgba(79,70,229,0.75)] transition-transform duration-300 hover:-translate-y-1"
+                className="rounded-full bg-primary px-6 py-3 text-primary-foreground shadow-[0_20px_60px_-30px_rgba(var(--primary-rgb),0.75)] transition-transform duration-300 hover:-translate-y-1 font-black"
               >
-                Save changes
+                Lưu thay đổi
               </Button>
             </div>
           </div>
@@ -325,16 +328,16 @@ export const ProfileCard = observer(
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <UserIcon className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Full Name</span>
+                      <span className="text-sm font-medium text-muted-foreground">Họ và tên</span>
                     </div>
-                    <p className="text-foreground">{profile.fullName || 'Not provided'}</p>
+                    <p className="text-foreground font-bold">{profile.fullName || 'Chưa cung cấp'}</p>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <UserIcon className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Nick Name</span>
+                      <span className="text-sm font-medium text-muted-foreground">Biệt danh</span>
                     </div>
-                    <p className="text-foreground">{profile.nickName || 'Not provided'}</p>
+                    <p className="text-foreground font-bold">{profile.nickName || 'Chưa cung cấp'}</p>
                   </div>
                 </div>
 
@@ -342,17 +345,17 @@ export const ProfileCard = observer(
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Phone number</span>
+                      <span className="text-sm font-medium text-muted-foreground">Số điện thoại</span>
                     </div>
-                    <p className="text-foreground">{profile.phoneNumber || 'Not provided'}</p>
+                    <p className="text-foreground font-bold">{profile.phoneNumber || 'Chưa cung cấp'}</p>
                   </div>
                   <div className="space-y-2">
                      <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Date of Birth</span>
+                      <span className="text-sm font-medium text-muted-foreground">Ngày sinh</span>
                     </div>
-                    <p className="text-foreground">
-                        {profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : 'Not provided'}
+                    <p className="text-foreground font-bold">
+                        {profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('vi-VN') : 'Chưa cung cấp'}
                     </p>
                   </div>
                 </div>
@@ -360,27 +363,29 @@ export const ProfileCard = observer(
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <UserIcon className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Gender</span>
+                    <span className="text-sm font-medium text-muted-foreground">Giới tính</span>
                   </div>
-                  <p className="text-foreground">{profile.gender || 'Not provided'}</p>
+                  <p className="text-foreground font-bold">
+                    {profile.gender === 'MALE' ? 'Nam' : profile.gender === 'FEMALE' ? 'Nữ' : profile.gender === 'OTHER' ? 'Khác' : 'Chưa cung cấp'}
+                  </p>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Address</span>
+                    <span className="text-sm font-medium text-muted-foreground">Địa chỉ</span>
                   </div>
                   {profile.addresses && profile.addresses.length > 0 ? (
                     <div className="flex flex-col gap-2">
-                        <div className="rounded-lg border border-border/40 bg-background/40 p-3 text-sm flex flex-col gap-1">
-                             <div className="font-medium">{profile.addresses[0].address}</div>
+                        <div className="rounded-2xl border border-border/40 bg-background/40 p-4 text-sm flex flex-col gap-1">
+                             <div className="font-bold text-foreground">{profile.addresses[0].address}</div>
                              {profile.addresses[0].other && (
-                               <div className="text-xs text-muted-foreground">{profile.addresses[0].other}</div>
+                               <div className="text-xs text-muted-foreground font-medium italic">{profile.addresses[0].other}</div>
                              )}
                         </div>
                     </div>
                   ) : (
-                    <p className="text-foreground">Not provided</p>
+                    <p className="text-foreground font-bold">Chưa cung cấp</p>
                   )}
                 </div>
               </div>

@@ -89,18 +89,28 @@ const CustomScrollbarStyle = () => (
 
 export const PaymentCheckout = observer(() => {
   const router = useRouter();
-  const { paymentInfo, currentOrder, isLoading, error, handleCreateOrder, resetOrder, formatPrice } = usePaymentOrder();
+  const { 
+    paymentInfo, 
+    currentOrder, 
+    isLoading, 
+    isPaymentCompleted,
+    error, 
+    handleCreateOrder, 
+    resetOrder, 
+    formatPrice 
+  } = usePaymentOrder();
   const [selectedMethod, setSelectedMethod] = useState<'VNPAY' | 'WALLET' | 'BANK'>('BANK');
 
   if (isLoading) {
+    // ... skeleton code ...
     return (
       <main className="relative min-h-screen overflow-hidden bg-background pt-8 pb-24">
         <div className="mx-auto max-w-8xl px-6">
           <Skeleton className="mb-12 h-12 w-48 rounded-full" />
           <div className="space-y-12">
-            <div className="space-y-6">
-              <Skeleton className="h-8 w-64 rounded-full" />
-              <Skeleton className="h-20 w-3/4 rounded-2xl" />
+            <div className="space-y-6 text-center lg:text-left">
+              <Skeleton className="h-8 w-64 rounded-full mx-auto lg:mx-0" />
+              <Skeleton className="h-20 w-3/4 rounded-2xl mx-auto lg:mx-0" />
             </div>
             
             <div className="relative overflow-hidden rounded-[40px] border border-border/20 bg-background/40 backdrop-blur-3xl min-h-[700px]">
@@ -108,17 +118,10 @@ export const PaymentCheckout = observer(() => {
                   <div className="lg:col-span-5 h-full">
                     <Skeleton className="h-full w-full" />
                   </div>
-                  <div className="lg:col-span-7 p-14 space-y-10">
-                    <div className="flex justify-between items-center">
-                       <Skeleton className="h-12 w-32" />
-                       <Skeleton className="h-16 w-48" />
-                    </div>
-                    <div className="space-y-6">
-                       <Skeleton className="h-24 w-full rounded-3xl" />
-                       <Skeleton className="h-24 w-full rounded-3xl" />
-                       <Skeleton className="h-24 w-full rounded-3xl" />
-                    </div>
-                    <Skeleton className="h-20 w-full rounded-3xl mt-auto" />
+                  <div className="lg:col-span-7 p-14 space-y-10 flex flex-col items-center justify-center">
+                    <Skeleton className="h-64 w-64 rounded-[40px]" />
+                    <Skeleton className="h-12 w-64 rounded-full" />
+                    <Skeleton className="h-20 w-full rounded-3xl" />
                   </div>
                </div>
             </div>
@@ -224,7 +227,7 @@ export const PaymentCheckout = observer(() => {
                   <div className="relative lg:col-span-5 overflow-hidden border-b lg:border-b-0 lg:border-r border-border/20">
                     <img 
                       src={paymentInfo.courseThumbnail} 
-                      alt={paymentInfo.courseTitle} 
+                        alt={paymentInfo.courseTitle} 
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" 
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-60" />
@@ -236,7 +239,120 @@ export const PaymentCheckout = observer(() => {
                     <div className="absolute top-0 right-0 h-64 w-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-[100px]" />
                     
                     <AnimatePresence mode="wait">
-                      {currentOrder ? (
+                      {isPaymentCompleted ? (
+                        <motion.div 
+                          key="success-view"
+                          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          className="relative flex flex-col h-full items-center justify-center text-center py-4"
+                        >
+                          {/* Celebration Icon Container */}
+                          <div className="relative mb-8">
+                            <motion.div 
+                              initial={{ scale: 0, rotate: -45 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ type: "spring", damping: 10, stiffness: 150, delay: 0.1 }}
+                              className="h-28 w-28 rounded-full bg-gradient-to-tr from-primary to-primary/60 flex items-center justify-center text-primary-foreground shadow-[0_20px_50px_-15px_rgba(var(--primary-rgb),0.5)] z-10 relative"
+                            >
+                              <CheckCircle2 className="h-14 w-14" strokeWidth={3} />
+                            </motion.div>
+                            
+                            {/* Decorative Rings */}
+                            {[...Array(3)].map((_, i) => (
+                              <motion.div 
+                                key={i}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: [0, 0.4, 0], scale: [0.8, 1.4 + i*0.2, 1.6 + i*0.2] }}
+                                transition={{ repeat: Infinity, duration: 3, delay: i * 0.4 }}
+                                className="absolute inset-0 rounded-full border-2 border-primary/30 -z-10"
+                              />
+                            ))}
+                          </div>
+
+                          <div className="space-y-4 mb-10">
+                            <motion.h2 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                              className="text-4xl md:text-5xl font-black text-foreground tracking-tight"
+                            >
+                              Thanh toán <span className="text-primary italic">Thành công!</span>
+                            </motion.h2>
+                            <motion.p 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.4 }}
+                              className="text-base font-medium text-foreground/50 max-w-md mx-auto"
+                            >
+                              Hệ thống đã xác nhận giao dịch của bạn. <br/>
+                              Chào mừng bạn đến với khóa học <span className="text-foreground font-black">"{paymentInfo.courseTitle}"</span>.
+                            </motion.p>
+                          </div>
+
+                          {/* Order Receipt Card */}
+                          <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="w-full max-w-sm rounded-3xl border border-primary/20 bg-primary/[0.03] backdrop-blur-sm overflow-hidden mb-12"
+                          >
+                            <div className="p-6 space-y-4">
+                              <div className="flex justify-between items-center text-sm border-b border-primary/10 pb-4">
+                                <span className="font-bold text-foreground/40 uppercase tracking-widest text-[10px]">Mã giao dịch</span>
+                                <span className="font-mono font-black text-primary text-xs uppercase">{currentOrder?.id.substring(0, 8) || 'N/A'}</span>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="font-bold text-foreground/40 uppercase tracking-widest text-[10px]">Sản phẩm</span>
+                                  <span className="font-black text-foreground/80 text-xs truncate max-w-[180px]">Course Access</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                  <span className="font-bold text-foreground/40 uppercase tracking-widest text-[10px]">Ngày thanh toán</span>
+                                  <span className="font-black text-foreground/80 text-xs">
+                                    {new Date().toLocaleDateString('vi-VN')}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between items-center pt-2">
+                                  <span className="font-bold text-foreground/40 uppercase tracking-widest text-[11px]">Tổng cộng</span>
+                                  <span className="text-xl font-black text-primary">
+                                    {formatPrice(currentOrder?.amount || 0)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Decorative Cut-outs for receipt look */}
+                            <div className="relative h-4 bg-primary/10 flex justify-between items-center px-4 overflow-hidden">
+                              {[...Array(12)].map((_, i) => (
+                                <div key={i} className="h-2 w-2 rounded-full bg-background mt-[-1px]" />
+                              ))}
+                            </div>
+                          </motion.div>
+
+                          {/* Action Buttons */}
+                          <div className="w-full max-w-sm space-y-5">
+                            <div className="group relative">
+                              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary to-primary/40 opacity-40 blur-lg group-hover:opacity-70 transition-opacity" />
+                              <Button 
+                                onClick={() => router.push('/my-course')}
+                                className="relative w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black text-lg shadow-2xl transition-all hover:scale-[1.03] active:scale-[0.97]"
+                              >
+                                Bắt đầu học ngay
+                                <ArrowLeft className="h-5 w-5 rotate-180 ml-2" />
+                              </Button>
+                            </div>
+                            
+                            <Button 
+                              variant="ghost"
+                              onClick={() => router.push('/course')}
+                              className="w-full h-12 rounded-2xl font-black text-xs uppercase tracking-widest text-foreground/40 hover:text-primary hover:bg-primary/5 transition-all"
+                            >
+                              Khám phá thêm khóa học
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ) : currentOrder ? (
                         <motion.div 
                           key="qr-view"
                           initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -284,6 +400,11 @@ export const PaymentCheckout = observer(() => {
                               </div>
                             </div>
                             
+                            <div className="flex items-center gap-3 justify-center py-3 bg-primary/5 rounded-full border border-primary/10">
+                              <RotateCcw className="h-3 w-3 animate-spin text-primary" />
+                              <span className="text-[9px] font-black text-primary/70 uppercase tracking-[0.2em]">Hệ thống đang kiểm tra trạng thái thanh toán tự động...</span>
+                            </div>
+
                             <div className="flex items-center gap-3 justify-center py-3 bg-emerald-500/5 rounded-full border border-emerald-500/10">
                               <ShieldCheck className="h-4 w-4 text-emerald-500" />
                               <span className="text-[10px] font-black text-emerald-600/70 uppercase tracking-[0.2em]">Kênh thanh toán đã được bảo mật 256-bit</span>

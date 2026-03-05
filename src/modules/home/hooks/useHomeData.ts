@@ -3,42 +3,48 @@
 import { useEffect } from 'react';
 import { homeState$, homeActions } from '../store';
 import { homeService } from '../services';
-import { loadingActions } from '@/stores/loadingStore';
 
 export const useHomeData = () => {
+  const freeCourses = homeState$.freeCourses.get();
+  const featuredCourses = homeState$.featuredCourses.get();
+  const isLoading = homeState$.isLoading.get();
+  const error = homeState$.error.get();
+
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    loadingActions.showFetchLoading('Đang tải bài viết...');
+    homeActions.setLoading(true);
     try {
-      const [postsData, statsData] = await Promise.all([
-        homeService.getPosts(),
-        homeService.getStats(),
-      ]);
-      homeActions.setPosts(postsData);
-      homeActions.setStats(statsData);
+      const allCourses = await homeService.getHomeCourses();
+      
+      // Filter published courses
+      const published = allCourses.filter(c => c.status === 'PUBLISHED');
+      
+      // Free courses
+      const free = published.filter(c => c.isFree || c.price === 0);
+      
+      // Featured courses: averageRate >= 4 or top 6 if not many high rated
+      const featured = [...published]
+        .sort((a, b) => (b.averageRate || 0) - (a.averageRate || 0))
+        .slice(0, 10);
+      
+      homeActions.setFreeCourses(free);
+      homeActions.setFeaturedCourses(featured);
+      homeActions.setError(null);
+    } catch (err: any) {
+      homeActions.setError(err.message || 'Không thể tải dữ liệu trang chủ');
     } finally {
-      loadingActions.hideLoading();
-    }
-  };
-
-  const likePost = async (postId: string) => {
-    loadingActions.showUpdateLoading('Đang cập nhật...');
-    try {
-      await homeService.likePost(postId);
-      homeActions.likePost(postId);
-    } finally {
-      loadingActions.hideLoading();
+      homeActions.setLoading(false);
     }
   };
 
   return {
-    posts: homeState$.posts.get(),
-    stats: homeState$.stats.get(),
-    isLoading: homeState$.isLoading.get(),
-    likePost,
+    freeCourses,
+    featuredCourses,
+    isLoading,
+    error,
     refresh: loadData,
   };
 };

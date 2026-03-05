@@ -1,20 +1,8 @@
-export interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  likes: number;
-}
-
-export interface HomeStats {
-  totalPosts: number;
-  totalUsers: number;
-  todayViews: number;
-}
+import { Course } from '../course/types';
 
 export interface HomeState {
-  posts: Post[];
-  stats: HomeStats | null;
+  freeCourses: Course[];
+  featuredCourses: Course[];
   isLoading: boolean;
+  error: string | null;
 }

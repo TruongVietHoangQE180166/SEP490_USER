@@ -16,6 +16,12 @@ export const SearchDock = () => {
   
   // Don't show on learning view
   const isLearnPage = pathname?.startsWith('/learn');
+  
+  // Don't show on admin or teacher routes
+  const isAdminPage = pathname?.startsWith('/admin');
+  const isTeacherPage = pathname?.startsWith('/teacher');
+  // Don't show on trading page (full-screen layout)
+  const isTradingPage = pathname?.startsWith('/trading');
 
   // Mock trending searches
   const trendingSearches = [
@@ -54,7 +60,7 @@ export const SearchDock = () => {
     e.stopPropagation();
   };
 
-  if (isAuthPage || isLearnPage) return null;
+  if (isAuthPage || isLearnPage || isAdminPage || isTeacherPage || isTradingPage) return null;
   
   return (
     <ExpandableDock

@@ -20,10 +20,7 @@ export const useMyCourse = () => {
   };
 
   useEffect(() => {
-    // Only fetch if we don't already have courses in store
-    if (enrolledCourses.length === 0) {
-      fetchMyCourses();
-    }
+    fetchMyCourses();
   }, []);
 
   return {
