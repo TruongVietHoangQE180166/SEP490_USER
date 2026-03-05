@@ -25,22 +25,52 @@ const badgeVariants = cva(
   }
 )
 
+import { motion } from "framer-motion"
+
+interface BadgeProps extends React.ComponentProps<"span">, VariantProps<typeof badgeVariants> {
+  asChild?: boolean
+  shiny?: boolean
+  shinySpeed?: number
+}
+
 function Badge({
   className,
   variant,
   asChild = false,
+  shiny = false,
+  shinySpeed = 5,
+  children,
   ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
+}: BadgeProps) {
   const Comp = asChild ? Slot : "span"
 
   return (
     <Comp
       data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(
+        badgeVariants({ variant }), 
+        "relative overflow-hidden",
+        className
+      )}
       {...props}
-    />
+    >
+      {children}
+      {shiny && (
+        <motion.div
+          initial={{ x: "-100%", skewX: -20 }}
+          animate={{ x: "200%" }}
+          transition={{
+            repeat: Infinity,
+            duration: shinySpeed,
+            ease: "linear",
+            repeatDelay: 0.5
+          }}
+          className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"
+        />
+      )}
+    </Comp>
   )
 }
+export type { BadgeProps }
 
 export { Badge, badgeVariants }

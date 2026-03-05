@@ -26,7 +26,7 @@ import {
 
 
 const menuItems = [
-    { name: 'Trang chủ', href: '/' },
+    { name: 'Khóa học', href: '/course' },
     { name: 'Blog', href: '/blog' },
     { name: 'Features', href: '#link' },
     { name: 'Solution', href: '#link' },

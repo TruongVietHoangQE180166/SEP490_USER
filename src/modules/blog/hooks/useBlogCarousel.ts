@@ -41,12 +41,18 @@ export const useBlogCarousel = (posts: BlogPost[]) => {
     setCurrentIndex(index);
   };
 
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [posts.length]);
+
+  const safeIndex = currentIndex >= posts.length ? 0 : currentIndex;
+
   return {
-    currentIndex,
+    currentIndex: safeIndex,
     direction,
     nextSlide,
     prevSlide,
     setSlide,
-    currentPost: posts[currentIndex],
+    currentPost: posts[safeIndex],
   };
 };

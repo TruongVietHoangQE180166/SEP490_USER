@@ -7,6 +7,7 @@ import { toast } from '@/components/ui/toast';
 
 export const useBlog = () => {
   const posts = blogState$.posts.get();
+  const featuredPosts = blogState$.featuredPosts.get();
   const isLoading = blogState$.isLoading.get();
   const error = blogState$.error.get();
   
@@ -23,6 +24,10 @@ export const useBlog = () => {
       blogActions.setError(null);
       const data = await blogService.getAllPosts(1, 1000, 'createdDate', 'desc');
       blogActions.setPosts(data || []);
+      // Set featured posts only when loading all posts for the first time or refreshing
+      if (data && data.length > 0) {
+        blogActions.setFeaturedPosts(data.slice(0, 3));
+      }
     } catch (err: any) {
       const message = err.message || 'Không thể tải bài viết';
       blogActions.setError(message);
@@ -86,6 +91,7 @@ export const useBlog = () => {
 
   return {
     posts,
+    featuredPosts,
     isLoading,
     error,
     searchQuery,
