@@ -31,6 +31,7 @@ import { useRouter } from 'next/navigation';
 import { cn, getEmbedUrl } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import { RelatedCourses } from "./RelatedCourses";
+import { paymentActions } from '@/modules/payment/store';
 
 // ============================================================================
 // ANIMATION VARIANTS
@@ -101,6 +102,22 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
     isRelatedCoursesLoading,
     formatPrice
   } = useCourseDetail(slug);
+
+  const handleRegistration = () => {
+    if (!currentCourse) return;
+    
+    paymentActions.setPaymentInfo({
+      courseId: currentCourse.id,
+      courseTitle: currentCourse.title,
+      courseThumbnail: currentCourse.thumbnailUrl || currentCourse.thumbnail || '',
+      courseDescription: currentCourse.description,
+      price: currentCourse.price,
+      salePrice: currentCourse.salePrice || currentCourse.price,
+      discountPercent: currentCourse.discountPercent || 0
+    });
+    
+    router.push(`/payment/${currentCourse.slug}`);
+  };
 
   if (isLoading || !currentCourse) {
     return (
@@ -252,7 +269,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                       </p>
                     </div>
                     <div className="ml-auto">
-                      <Link href={`/learn/${currentCourse.id}`}>
+                      <div onClick={handleRegistration} className="cursor-pointer">
                         <motion.div
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
@@ -276,7 +293,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                             />
                           </Button>
                         </motion.div>
-                      </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -295,15 +312,20 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                 </h1>
                 <p className="max-w-3xl text-foreground/70">{currentCourse.description}</p>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <div className="flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
                     <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                    <span className="font-semibold text-foreground">{currentCourse.averageRate || currentCourse.rating}</span>
-                    <span className="text-foreground/60">({studentCount.toLocaleString()} học viên)</span>
+                    <span className="font-bold text-amber-600 dark:text-amber-500 text-base">{currentCourse.averageRate?.toFixed(1) || '0.0'}</span>
+                    <span className="text-foreground/60 text-xs">({currentCourse.totalRate || 0} đánh giá)</span>
+                  </div>
+                  <div className="h-1 w-1 rounded-full bg-foreground/20" />
+                  <div className="flex items-center gap-1.5 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="text-foreground/70 font-medium">{studentCount.toLocaleString()} học viên</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {(currentCourse.assets ?? []).map((asset, idx) => (
-                      <Badge key={idx} variant="secondary" className="bg-primary/10 text-primary border-none text-[10px]">
+                      <Badge key={idx} variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] h-6">
                         #{asset}
                       </Badge>
                     ))}
@@ -317,13 +339,13 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                 </Button>
                 
                 {currentCourse.isEnrolled ? (
-                  <Link href={`/learn/${currentCourse.id}`}>
+                  <Link href={`/learn/${currentCourse.slug}`}>
                     <Button className="h-12 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground min-w-[140px] font-bold transition-all">
                       Vào học ngay
                     </Button>
                   </Link>
                 ) : (
-                  <Link href={`/learn/${currentCourse.id}`}>
+                  <div onClick={handleRegistration} className="cursor-pointer">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -342,7 +364,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                         />
                       </Button>
                     </motion.div>
-                  </Link>
+                  </div>
                 )}
               </div>
             </div>
@@ -421,21 +443,9 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
             {/* Course Stats */}
             <motion.div variants={itemVariants} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[
+                { label: "Số chương", value: `${(currentCourse.moocs ?? []).length} Chương`, icon: <BookOpen className="h-5 w-5" /> },
+                { label: "Số học liệu", value: `${totalLessonsCount} tài nguyên`, icon: <PlayCircle className="h-5 w-5" /> },
                 { label: "Tổng thời lượng", value: totalDurationText, icon: <Clock className="h-5 w-5" /> },
-                { label: "Số bài giảng", value: `${totalLessonsCount} bài`, icon: <PlayCircle className="h-5 w-5" /> },
-                { 
-                  label: "Tài sản (Assets)", 
-                  value: (currentCourse.assets ?? []).length > 0 ? (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {currentCourse.assets?.map((asset, idx) => (
-                        <Badge key={idx} variant="secondary" className="bg-primary/5 border-primary/10 text-primary text-[10px] px-2 py-0 h-5 font-bold">
-                          {asset}
-                        </Badge>
-                      ))}
-                    </div>
-                  ) : "Chưa cập nhật", 
-                  icon: <Zap className="h-5 w-5" /> 
-                },
               ].map((stat, index) => (
                 <div key={index} className="group relative overflow-hidden rounded-2xl border border-border/40 bg-background/60 p-6 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg">
                   <div className="flex items-start gap-4">
@@ -450,6 +460,44 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                 </div>
               ))}
             </motion.div>
+
+            {/* Learning Progress (Only for enrolled users) */}
+            {currentCourse.isEnrolled && (
+              <motion.div 
+                variants={itemVariants} 
+                className="relative overflow-hidden rounded-xl border border-border/40 bg-background/40 p-5 backdrop-blur-sm"
+              >
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-end justify-between">
+                        <div className="space-y-1">
+                            <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-foreground/50">Tiến độ khóa học</h4>
+                            <p className="text-sm font-semibold text-foreground">
+                                Đã hoàn thành {Math.round((currentCourse.progress || 0) * totalLessonsCount / 100)}/{totalLessonsCount} bài học
+                            </p>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-xl font-black text-primary">{Math.round(currentCourse.progress || 0)}%</span>
+                        </div>
+                    </div>
+                    
+                    <div className="relative h-2 w-full rounded-full bg-primary/10 overflow-hidden">
+                        <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${currentCourse.progress || 0}%` }}
+                            transition={{ duration: 1.2, ease: "easeOut" }}
+                            className="h-full bg-primary rounded-full"
+                        />
+                    </div>
+
+                    {currentCourse.progress === 100 && (
+                        <div className="flex items-center gap-1.5 text-green-500 text-xs font-bold uppercase tracking-wider">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Chúc mừng! Bạn đã hoàn thành khóa học
+                        </div>
+                    )}
+                </div>
+              </motion.div>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Curriculum */}
@@ -477,7 +525,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           ].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
                         return (
-                          <div key={mooc.id} className="overflow-hidden rounded-xl border border-border/30 bg-background/30">
+                          <div key={mooc.id || mIndex} className="overflow-hidden rounded-xl border border-border/30 bg-background/30">
                             <button 
                               onClick={() => toggleSection(sectionKey)}
                               className="w-full p-4 text-left transition-colors hover:bg-background/50 flex items-center justify-between group/section"
@@ -501,8 +549,8 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                               className="overflow-hidden"
                             >
                               <div className="border-t border-border/20">
-                                {lessons.map((lesson: any) => (
-                                  <div key={lesson.id} className="group/lesson flex items-center justify-between p-4 hover:bg-background/40 transition-all border-b border-border/10 last:border-b-0">
+                                {lessons.map((lesson: any, lIdx: number) => (
+                                  <div key={lesson.id || `${lesson.type}-${lIdx}`} className="group/lesson flex items-center justify-between p-4 hover:bg-background/40 transition-all border-b border-border/10 last:border-b-0">
                                     <div className="flex items-center gap-3">
                                       <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/40 bg-background/50 text-foreground/60">
                                         {lesson.type === 'video' ? <PlayCircle className="h-4 w-4" /> : lesson.type === 'quiz' ? <Timer className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
@@ -560,13 +608,13 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
 
 
                       {currentCourse.isEnrolled ? (
-                        <Link href={`/learn/${currentCourse.id}`} className="block">
+                        <Link href={`/learn/${currentCourse.slug}`} className="block">
                           <Button className="w-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-bold transition-all">
                             Vào học ngay
                           </Button>
                         </Link>
                       ) : (
-                        <Link href={`/learn/${currentCourse.id}`} className="block">
+                        <div onClick={handleRegistration} className="w-full cursor-pointer">
                           <motion.div
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -585,7 +633,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                               />
                             </Button>
                           </motion.div>
-                        </Link>
+                        </div>
                       )}
                     </div>
                   </div>

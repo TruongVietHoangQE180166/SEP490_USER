@@ -94,9 +94,9 @@ export function RelatedCourses({ courses, title = "Khóa học liên quan", clas
           style={{ x }}
           className="flex gap-6"
         >
-          {courses.map((course) => (
+          {courses.map((course, idx) => (
             <motion.div
-              key={course.id}
+              key={course.id || idx}
               className="min-w-[300px] max-w-[320px]"
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
             >

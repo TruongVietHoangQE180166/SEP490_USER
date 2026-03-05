@@ -51,6 +51,13 @@ export class ApiConfigService {
     });
   }
 
+  static async patch<T>(endpoint: string, data?: any): Promise<T> {
+    return this.execute<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
   static async delete<T>(endpoint: string): Promise<T> {
     return this.execute<T>(endpoint, { method: 'DELETE' });
   }

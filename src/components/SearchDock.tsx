@@ -13,6 +13,9 @@ export const SearchDock = () => {
 
   // Don't show on auth pages
   const isAuthPage = AUTH_ROUTES.some((route) => pathname?.startsWith(route));
+  
+  // Don't show on learning view
+  const isLearnPage = pathname?.startsWith('/learn');
 
   // Mock trending searches
   const trendingSearches = [
@@ -51,7 +54,7 @@ export const SearchDock = () => {
     e.stopPropagation();
   };
 
-  if (isAuthPage) return null;
+  if (isAuthPage || isLearnPage) return null;
   
   return (
     <ExpandableDock

@@ -41,30 +41,49 @@ export const CourseCard = ({ course }: CourseCardProps) => {
               className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-[10px] uppercase tracking-wider font-black text-primary-foreground shadow-lg shadow-primary/25 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"
             >
               <BookOpen className="h-3.5 w-3.5" />
-              Xem khóa học
+              {course.isEnrolled ? 'Tiếp tục học' : 'Xem chi tiết'}
             </motion.div>
           </div>
 
-          {course.discountPercent > 0 && (
-            <div className="absolute top-3 right-3">
-              <Badge className="bg-red-500 text-white border-none font-black text-xs px-2 py-0.5 shadow-lg shadow-red-500/30">
-                -{course.discountPercent}%
-              </Badge>
+          <div className="absolute top-0 left-0 z-20 flex flex-col items-start gap-0.5">
+            {course.isFree && (
+              <div className="bg-emerald-600 text-white font-black text-[10px] px-3 py-1.5 rounded-br-xl shadow-xl border-b border-r border-white/20 backdrop-blur-sm uppercase tracking-wider flex items-center gap-1.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                Miễn phí
+              </div>
+            )}
+            {course.isEnrolled && (
+              <div className="bg-primary text-white font-black text-[10px] px-3 py-1.5 rounded-br-xl shadow-xl border-b border-r border-white/20 backdrop-blur-sm uppercase tracking-wider flex items-center gap-1.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                Đang sở hữu
+              </div>
+            )}
+          </div>
+
+          {!course.isEnrolled && course.discountPercent > 0 && !course.isFree && (
+            <div className="absolute top-0 right-0 z-20">
+              <div className="bg-red-600 text-white font-black text-[10px] px-3 py-1.5 rounded-bl-xl shadow-xl border-b border-l border-white/20 backdrop-blur-sm uppercase tracking-wider">
+                Giảm {course.discountPercent}%
+              </div>
             </div>
           )}
         </div>
 
         {/* Content */}
         <div className="p-4 flex flex-col flex-grow">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center gap-1 text-yellow-500">
-              <Star className="h-3.5 w-3.5 fill-current" />
-              <span className="text-xs font-bold">{course.averageRate || course.rating || 0}</span>
+          <div className="flex items-center gap-3 mb-2 px-0.5">
+            <div className="flex items-center gap-1.5 text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+              <Star className="h-3 w-3 fill-current" />
+              <span className="text-[11px] font-bold">
+                {course.averageRate?.toFixed(1) || '0.0'}
+                <span className="text-[10px] text-amber-500/60 font-medium ml-1">
+                  ({course.totalRate || 0})
+                </span>
+              </span>
             </div>
-            <span className="text-muted-foreground text-xs">•</span>
-            <div className="flex items-center gap-1 text-muted-foreground text-[10px]">
+            <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/30 px-2.5 py-1 rounded-full border border-border/50">
               <Users className="h-3 w-3" />
-              <span>{studentCount.toLocaleString()} học viên</span>
+              <span className="text-[10px] font-bold">{studentCount.toLocaleString()}</span>
             </div>
           </div>
 
@@ -72,10 +91,10 @@ export const CourseCard = ({ course }: CourseCardProps) => {
             {course.title}
           </h3>
           
-          <div className="mt-auto flex flex-wrap gap-1.5 min-h-[1.25rem] mb-1">
+          <div className="mt-auto flex flex-wrap gap-1.5 min-h-[1.25rem] mb-2">
               {(course.assets ?? []).length > 0 ? (
                 course.assets?.map((asset, idx) => (
-                  <span key={idx} className="text-[10px] font-bold text-primary/70">
+                  <span key={idx} className="text-[10px] font-bold text-primary/70 bg-primary/5 px-1.5 rounded-sm">
                     #{asset}
                   </span>
                 ))
@@ -84,11 +103,19 @@ export const CourseCard = ({ course }: CourseCardProps) => {
               )}
           </div>
 
-          <div className="pt-2 flex items-center justify-between border-t border-border/50">
+          <div className="pt-3 flex items-center justify-between border-t border-border/50">
             <div className="flex flex-col justify-center min-h-[2.5rem]">
-              {course.discountPercent > 0 ? (
+              {course.isEnrolled ? (
+                <div className="flex items-center gap-1.5 text-primary text-xs font-bold uppercase tracking-wider">
+                  Vào học ngay
+                </div>
+              ) : course.isFree ? (
+                <span className="text-xl font-black text-emerald-600 leading-none">
+                  FREE
+                </span>
+              ) : course.discountPercent > 0 ? (
                 <>
-                  <span className="text-xs text-muted-foreground line-through decoration-red-500/50 leading-none mb-1">
+                  <span className="text-[10px] text-muted-foreground line-through decoration-red-500/40 leading-none mb-1">
                     {formatPrice(course.price)}
                   </span>
                   <span className="text-lg font-black text-primary leading-none">
@@ -96,10 +123,23 @@ export const CourseCard = ({ course }: CourseCardProps) => {
                   </span>
                 </>
               ) : (
-                <span className="text-xl font-black text-primary leading-none">
+                <span className="text-lg font-black text-primary leading-none">
                   {formatPrice(course.price)}
                 </span>
               )}
+            </div>
+
+            <div className="flex items-center gap-2">
+               {!course.isEnrolled && (
+                  <div className="rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
+                    Mua ngay
+                  </div>
+               )}
+               {course.isEnrolled && (
+                  <div className="rounded-full bg-primary/10 px-4 py-2 text-[10px] font-black uppercase text-primary transition-all group-hover:bg-primary group-hover:text-primary-foreground">
+                    Học tiếp
+                  </div>
+               )}
             </div>
           </div>
         </div>

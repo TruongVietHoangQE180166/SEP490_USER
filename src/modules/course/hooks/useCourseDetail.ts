@@ -31,12 +31,24 @@ export const useCourseDetail = (slugName: string) => {
   }, [slugName]);
 
   const loadCourseDetail = async () => {
-    setIsLoading(true);
-    setError(null);
     try {
+      setIsLoading(true);
+      setError(null);
       const data = await courseService.getCourseBySlugName(slugName);
       if (data) {
         setCourse(data);
+        
+        // Populate completed lessons from API response data
+        const completedIds: string[] = [];
+        data.moocs?.forEach(mooc => {
+          mooc.videos?.forEach(v => { if (v.isCompleted) completedIds.push(v.id); });
+          mooc.quizzes?.forEach(q => { if (q.isCompleted && q.id) completedIds.push(q.id); });
+          mooc.documents?.forEach(d => { if (d.isCompleted) completedIds.push(d.id); });
+        });
+        
+        // Update global store for consistency
+        const { courseActions } = await import('../store');
+        courseActions.setCompletedLessons(completedIds);
       } else {
         setError('Không tìm thấy khóa học');
       }

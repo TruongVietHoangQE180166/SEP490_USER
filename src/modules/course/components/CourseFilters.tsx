@@ -13,6 +13,8 @@ interface CourseFiltersProps {
   setPriceRange: (range: number[]) => void;
   minRating: number;
   setMinRating: (rating: number) => void;
+  statusFilter: 'all' | 'free' | 'enrolled' | 'not-enrolled';
+  setStatusFilter: (status: 'all' | 'free' | 'enrolled' | 'not-enrolled') => void;
   clearFilters: () => void;
 }
 
@@ -23,6 +25,8 @@ export const CourseFilters = ({
   setPriceRange,
   minRating,
   setMinRating,
+  statusFilter,
+  setStatusFilter,
   clearFilters
 }: CourseFiltersProps) => {
   const assets = [
@@ -34,11 +38,44 @@ export const CourseFilters = ({
     { name: 'FIGMA', icon: Target },
   ];
 
+  const statuses = [
+    { label: 'Tất cả', value: 'all' },
+    { label: 'Miễn phí', value: 'free' },
+    { label: 'Đã mua', value: 'enrolled' },
+    { label: 'Chưa mua', value: 'not-enrolled' },
+  ] as const;
+
   return (
     <div className="sticky top-24 space-y-6">
-      <div className="bg-card border border-border/50 rounded-2xl p-6 space-y-10 shadow-sm">
+      <div className="bg-card border border-border/50 rounded-2xl p-6 space-y-8 shadow-sm">
+        {/* Status Filter - Compact Pills */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+             <Target className="h-4 w-4" /> Trạng thái
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            {statuses.map((status) => {
+              const isActive = statusFilter === status.value;
+              return (
+                <button
+                  key={status.value}
+                  onClick={() => setStatusFilter(status.value)}
+                  className={`
+                    w-full px-3 py-2 rounded-xl border transition-all font-black text-[10px] uppercase tracking-wider
+                    ${isActive 
+                      ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20' 
+                      : 'bg-muted/40 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground'}
+                  `}
+                >
+                  {status.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Asset Filter - Tag Style */}
-        <div className="space-y-5">
+        <div className="space-y-4">
           <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
              <Filter className="h-4 w-4" /> Tài sản (Assets)
           </h3>
@@ -87,18 +124,6 @@ export const CourseFilters = ({
                 <span>10tr+</span>
             </div>
           </div>
-
-          <div className="flex flex-wrap gap-2 pt-2">
-            {[500000, 2000000, 5000000].map((val) => (
-                <button 
-                  key={val} 
-                  onClick={() => setPriceRange([0, val])}
-                  className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-muted/30 hover:bg-primary/10 hover:text-primary transition-all border border-transparent hover:border-primary/20"
-                >
-                  Dưới {val/1000}k
-                </button>
-            ))}
-          </div>
         </div>
 
         {/* Rating Filter */}
@@ -106,7 +131,7 @@ export const CourseFilters = ({
           <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <Star className="h-4 w-4" /> Đánh giá
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-2">
               {[4, 3, 2].map((rating) => (
                   <button 
                     key={rating} 

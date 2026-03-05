@@ -4,6 +4,7 @@ export interface Answer {
   isCorrect: boolean;
   questionId: string;
   createdDate: string;
+  createdBy?: string | null;
 }
 
 export interface Question {
@@ -12,6 +13,7 @@ export interface Question {
   orderIndex: number;
   quizId: string;
   createdDate: string;
+  createdBy?: string | null;
   answers: Answer[];
 }
 
@@ -24,6 +26,7 @@ export interface Quiz {
   orderIndex?: number;
   createdDate: string;
   questions: Question[];
+  isCompleted?: boolean | null;
 }
 
 export interface Video {
@@ -37,6 +40,7 @@ export interface Video {
   videoStatus: string;
   createdDate: string;
   moocId: string;
+  isCompleted?: boolean | null;
 }
 
 export interface Document {
@@ -48,6 +52,7 @@ export interface Document {
   orderIndex: number;
   moocId: string;
   createdDate: string;
+  isCompleted?: boolean | null;
 }
 
 export interface MOOC {
@@ -61,6 +66,8 @@ export interface MOOC {
   videos: Video[];
   quizzes: Quiz[];
   documents: Document[];
+  isCompleted?: boolean;
+  isUnlocked?: boolean;
 }
 
 export interface CourseAuthor {
@@ -87,6 +94,8 @@ export interface Course {
   isEnrolled: boolean;
   assets: string[];
   moocs: MOOC[];
+  progress?: number;
+  isFree?: boolean;
   
   // UI-only compatibility
   thumbnail?: string; 
@@ -123,7 +132,23 @@ export interface CoursePaginationResponse {
 export interface CourseState {
   courses: Course[];
   currentCourse: Course | null;
-  currentLesson: Video | null;
+  currentLesson: any | null;
+  quizQuestions: Question[];
+  isQuizMode: boolean;
+  currentQuizId: string | null;
   isLoading: boolean;
   error: string | null;
+  completedLessons: string[];
+}
+
+export type TrackingType = 'DOCUMENT' | 'VIDEO' | 'QUIZ';
+
+export interface TrackingResponse {
+  message: string;
+  data: {
+    id: string;
+    isCompleted: boolean;
+    type: TrackingType;
+  };
+  success: boolean;
 }
