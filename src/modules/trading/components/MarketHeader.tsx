@@ -4,6 +4,7 @@ import { tradingState$, tradingActions } from '../store';
 import { Timeframe } from '../types';
 import { cn } from '@/lib/utils';
 import { observer } from '@legendapp/state/react';
+import { HelpCircle } from 'lucide-react';
 
 // Chỉ dùng XAUT
 const SYMBOL = 'XAU-USDT-SWAP';
@@ -15,83 +16,72 @@ const TIMEFRAMES: { label: string; value: Timeframe }[] = [
   { label: '1 tháng', value: '1month' },
 ];
 
-interface MarketHeaderProps {
-  onTimeframeChange?: (tf: Timeframe) => void;
-}
-
-export const MarketHeader = observer(function MarketHeader({ onTimeframeChange }: MarketHeaderProps) {
-  const tf = tradingState$.timeframe.get();
+export const MarketHeader = observer(function MarketHeader() {
   const currentPrice = tradingState$.currentPrice.get();
-
-  const handleTfChange = (newTf: Timeframe) => {
-    tradingActions.setTimeframe(newTf);
-    onTimeframeChange?.(newTf);
-  };
-
-  // Lấy close trước đó để tính % change
-  const chartData = tradingState$.chartData.get();
-  const prevPrice = chartData.length >= 2
-    ? chartData[chartData.length - 2].close
-    : currentPrice;
-  const priceChange = currentPrice - prevPrice;
-  const priceChangePct = prevPrice > 0 ? (priceChange / prevPrice) * 100 : 0;
-  const isUp = priceChange >= 0;
+  const ticker = tradingState$.marketTicker.get();
+  const isUp = ticker.change24hPct >= 0;
 
   return (
-    <div className="flex flex-wrap items-center gap-6 px-5 py-4 bg-card/80 backdrop-blur-xl">
-      {/* Symbol + giá */}
-      <div className="flex items-center gap-4">
-        {/* Logo/Icon */}
-        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/20 border border-primary/40 text-primary animate-pulse-slow">
-           <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+    <div className="flex flex-nowrap items-center gap-2 px-6 py-3 bg-card/40 backdrop-blur-md border-b border-border/40 overflow-x-auto no-scrollbar whitespace-nowrap">
+      {/* Symbol Area */}
+      <div className="flex items-center gap-3 pr-6 border-r border-border/40 shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
+           <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-12h4v8h-4z"/>
            </svg>
         </div>
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-foreground text-sm tracking-widest uppercase">{SYMBOL}</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/30 font-bold uppercase tracking-tighter">
-              Gold
-            </span>
-          </div>
-          <span className="text-[10px] text-muted-foreground uppercase font-medium tracking-wider opacity-70">Tokenized Gold Asset</span>
+          <span className="font-black text-foreground text-sm tracking-tighter uppercase">{SYMBOL}</span>
+          <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Perpetual</span>
         </div>
       </div>
 
-      {/* Giá hiện tại - font mono đặc thù crypto */}
-      <div className="flex flex-col min-w-[140px]">
-        <span className="text-2xl font-mono font-bold text-foreground tracking-tighter leading-none mb-1">
-          ${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      {/* Main Price */}
+      <div id="tut-market-price" className="flex flex-col px-6 border-r border-border/40 min-w-[120px]">
+        <span className={cn(
+          "text-lg font-mono font-black italic tracking-tighter leading-none mb-1",
+          isUp ? 'text-emerald-400' : 'text-rose-400'
+        )}>
+          {currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
-        <div className={cn('flex items-center gap-1.5 text-xs font-mono font-bold', isUp ? 'text-emerald-500' : 'text-rose-500')}>
-          <span className="text-[10px]">{isUp ? '▲' : '▼'}</span>
-          <span>{Math.abs(priceChange).toFixed(2)}</span>
-          <span className="opacity-80">({isUp ? '+' : ''}{priceChangePct.toFixed(3)}%)</span>
+        <div className={cn('flex items-center gap-1 text-[10px] font-bold', isUp ? 'text-emerald-400' : 'text-rose-400')}>
+          <span>{isUp ? '+' : ''}{ticker.change24h.toFixed(2)}</span>
+          <span className="opacity-60">({isUp ? '+' : ''}{ticker.change24hPct.toFixed(2)}%)</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-8 ml-4">
-          <div className="h-10 w-px bg-border/50" />
-          
-          {/* Timeframe selector - dạng tab bar hiện đại */}
-          <div className="flex items-center bg-muted/30 p-1 rounded-xl border border-border/40">
-            {TIMEFRAMES.map(t => (
-              <button
-                key={t.value}
-                onClick={() => handleTfChange(t.value)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-200 uppercase tracking-tight',
-                  tf === t.value
-                    ? 'bg-background text-primary shadow-sm border border-border/50'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+      {/* Stats Grid */}
+      <div id="tut-market-stats" className="flex items-center gap-8 px-6 shrink-0">
+        <StatItem label="Chỉ số" value={ticker.indexPrice} prefix="$" />
+        <StatItem label="Giá đánh dấu" value={ticker.markPrice} prefix="$" />
+        <StatItem label="Giá Tether Gold" value={ticker.tetherGoldPrice} prefix="$" />
+        <StatItem label="Cao 24h" value={ticker.high24h} prefix="$" />
+        <StatItem label="Thấp 24h" value={ticker.low24h} prefix="$" />
+        <StatItem label="Khối lượng 24h (XAUT)" value={ticker.vol24h} />
+        <StatItem label="Giá trị 24h (USDT)" value={ticker.value24h} prefix="$" />
       </div>
 
+      <div className="ml-auto pl-4 shrink-0">
+        <button
+          onClick={() => window.dispatchEvent(new Event('start-trading-tutorial'))}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors border border-primary/20"
+          title="Xem lại hướng dẫn giao dịch"
+        >
+          <HelpCircle className="w-4 h-4" />
+          <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap">Hướng dẫn</span>
+        </button>
+      </div>
     </div>
   );
 });
+
+function StatItem({ label, value, prefix = '' }: { label: string; value: number; prefix?: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 leading-none">{label}</span>
+      <span className="text-[11px] font-mono font-bold text-foreground/90 tracking-tight leading-none">
+        {prefix}{value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      </span>
+    </div>
+  );
+}

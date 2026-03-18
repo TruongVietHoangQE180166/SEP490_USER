@@ -104,6 +104,9 @@ export interface Course {
   totalLessons?: number;
   totalDuration?: string;
   author?: CourseAuthor;
+  
+  courseLevel?: string | null;
+  countEnrolledStudents?: number | null;
 }
 
 export interface CourseApiResponse<T> {

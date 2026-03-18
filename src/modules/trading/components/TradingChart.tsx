@@ -12,6 +12,9 @@ import {
   ColorType,
   MouseEventParams,
 } from 'lightweight-charts';
+import { observer } from '@legendapp/state/react';
+import { tradingState$ } from '../store';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CandleType, PositionType, Timeframe } from '../types';
 import { cn } from '@/lib/utils';
 
@@ -41,7 +44,15 @@ function getChartColors(isDark: boolean) {
   };
 }
 
-export function TradingChart({ candles, positions, currentPrice, timeframe = '1m' }: TradingChartProps) {
+const TIMEFRAMES: { label: string; value: Timeframe }[] = [
+  { label: '1s', value: '1s' },
+  { label: '1m', value: '1m' },
+  { label: '1h', value: '1h' },
+  { label: '1D', value: '1d' },
+  { label: '1M', value: '1month' },
+];
+
+export const TradingChart = observer(function TradingChart({ candles, positions, currentPrice, timeframe = '1m', onTimeframeChange }: TradingChartProps & { onTimeframeChange?: (tf: Timeframe) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -50,6 +61,9 @@ export function TradingChart({ candles, positions, currentPrice, timeframe = '1m
 
   // State để hiển thị thông tin nến đang hover (OHLCV)
   const [hoveredCandle, setHoveredCandle] = useState<CandleType | null>(null);
+  
+  // Flag để cuộn chart đến cây nến mới nhất khi thay đổi timeframe
+  const shouldScrollToLatest = useRef<boolean>(true);
 
   // ──────────────────────────────────────────────
   // Init chart
@@ -92,7 +106,7 @@ export function TradingChart({ candles, positions, currentPrice, timeframe = '1m
       },
       rightPriceScale: {
         borderColor: colors.border,
-        scaleMargins: { top: 0.1, bottom: 0.1 },
+        scaleMargins: { top: 0.15, bottom: 0.1 },
         visible: true,
         alignLabels: true,
       },
@@ -204,6 +218,8 @@ export function TradingChart({ candles, positions, currentPrice, timeframe = '1m
         secondsVisible: timeframe === '1s',
       },
     });
+    // Đánh dấu cần cuộn lại sau khi tải xong mẻ dữ liệu mới
+    shouldScrollToLatest.current = true;
   }, [timeframe]);
 
   // ──────────────────────────────────────────────
@@ -233,8 +249,13 @@ export function TradingChart({ candles, positions, currentPrice, timeframe = '1m
     candleSeries.setData(cdData);
     volumeSeries.setData(volData);
     
-    // Smooth scroll to end
-    // chartRef.current?.timeScale().scrollToPosition(0, true);
+    if (shouldScrollToLatest.current) {
+      // Dùng setTimeout nhỏ để đảm bảo Lightweight Charts đã render xong mẻ data mới
+      setTimeout(() => {
+        chartRef.current?.timeScale().scrollToRealTime();
+      }, 50);
+      shouldScrollToLatest.current = false;
+    }
   }, [candles]);
 
   // ──────────────────────────────────────────────
@@ -301,67 +322,109 @@ export function TradingChart({ candles, positions, currentPrice, timeframe = '1m
   // Lấy nến hiện tại hoặc nến cuối cùng để hiển thị legend
   const currentCandle = hoveredCandle || (candles.length > 0 ? candles[candles.length - 1] : null);
   const isUp = currentCandle && currentCandle.close >= currentCandle.open;
+  const isLoading = tradingState$.isChartLoading.get();
 
   return (
-    <div className="relative w-full h-full group font-sans overflow-hidden">
-      {/* Legend: OHLCV Info */}
-      <div className="absolute top-3 left-3 z-20 flex flex-wrap items-center gap-3 text-[10px] pointer-events-none p-1.5 rounded bg-background/30 backdrop-blur-sm border border-border/10">
-        {/* Symbol Name & Gold Dot */}
-        <div className="flex items-center gap-1.5 mr-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
-          <span className="font-black text-foreground uppercase tracking-widest text-[10.5px]">XAUT / USDT</span>
-        </div>
+    <div className="relative w-full h-full group font-sans overflow-hidden flex flex-col bg-card">
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-background/60 backdrop-blur-[2px] flex items-center justify-center"
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">
+                Đang tải dữ liệu...
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <div className="h-3 w-px bg-border/30 mx-0.5" />
-
-        <div className="flex gap-1 items-center">
-          <span className="text-muted-foreground uppercase font-bold tracking-tighter opacity-70">O</span>
-          <span className="font-mono font-bold text-foreground">
-            {currentCandle ? currentCandle.open.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}
-          </span>
-        </div>
-        <div className="flex gap-1 items-center">
-          <span className="text-muted-foreground uppercase font-bold tracking-tighter opacity-70">H</span>
-          <span className="font-mono font-bold text-foreground">
-            {currentCandle ? currentCandle.high.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}
-          </span>
-        </div>
-        <div className="flex gap-1 items-center">
-          <span className="text-muted-foreground uppercase font-bold tracking-tighter opacity-70">L</span>
-          <span className="font-mono font-bold text-foreground">
-            {currentCandle ? currentCandle.low.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}
-          </span>
-        </div>
-        <div className="flex gap-1 items-center">
-          <span className="text-muted-foreground uppercase font-bold tracking-tighter opacity-70">C</span>
-          <span className={cn('font-mono font-bold', isUp ? 'text-emerald-500' : 'text-rose-500')}>
-            {currentCandle ? currentCandle.close.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}
-          </span>
-        </div>
-        <div className="flex gap-1 items-center">
-          <span className="text-muted-foreground uppercase font-bold tracking-tighter opacity-70">Vol</span>
-          <span className="font-mono font-bold text-foreground opacity-90">
-            {currentCandle ? currentCandle.volume.toLocaleString('en-US') : '-'}
-          </span>
-        </div>
+      {/* Timeframe Toolbar */}
+      <div id="tut-chart-timeframes" className="flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-border/40 bg-muted/5 h-9 shrink-0 px-3">
+         {TIMEFRAMES.map(t => (
+           <button
+             key={t.value}
+             onClick={() => onTimeframeChange?.(t.value)}
+             className={cn(
+               "px-3 h-6 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
+               timeframe === t.value 
+                 ? "bg-primary text-primary-foreground shadow-sm"
+                 : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
+             )}
+           >
+             {t.label}
+           </button>
+         ))}
+         <div className="h-4 w-px bg-border/40 mx-2" />
       </div>
 
-      <div
-        ref={containerRef}
-        className="w-full h-full"
-      />
-      
-      {/* Watermark */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.03] dark:opacity-[0.05] select-none">
-        <span className="text-7xl font-black tracking-tighter uppercase transform -rotate-12 translate-y-[-10%]">
-          XAUT / USDT
-        </span>
-      </div>
+      <div className="flex-1 relative min-h-0">
+        {/* Legend: OHLCV Info - Moved slightly down to compensate for toolbar */}
+        <div className="absolute top-2.5 left-2.5 z-20 flex flex-wrap items-center gap-2.5 text-[9px] pointer-events-none p-1.5 rounded bg-background/40 backdrop-blur-md border border-border/10 shadow-sm">
+          {/* Symbol Name & Gold Dot */}
+          <div className="flex items-center gap-1.5 mr-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
+            <span className="font-black text-foreground uppercase tracking-widest text-[10px]">XAUT/USDT</span>
+          </div>
 
-      {/* Pane divider label helper */}
-      <div className="absolute left-3 bottom-[21%] md:bottom-[15%] pointer-events-none z-10">
-          <span className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest select-none">Pane 1: Volume</span>
+          <div className="h-3 w-px bg-border/20 mx-0.5" />
+
+          <div className="flex gap-1 items-center">
+            <span className="text-muted-foreground uppercase font-black opacity-50">O</span>
+            <span className="font-mono font-bold text-foreground">
+              {currentCandle ? currentCandle.open.toFixed(2) : '-'}
+            </span>
+          </div>
+          <div className="flex gap-1 items-center">
+            <span className="text-muted-foreground uppercase font-black opacity-50">H</span>
+            <span className="font-mono font-bold text-foreground">
+              {currentCandle ? currentCandle.high.toFixed(2) : '-'}
+            </span>
+          </div>
+          <div className="flex gap-1 items-center">
+            <span className="text-muted-foreground uppercase font-black opacity-50">L</span>
+            <span className="font-mono font-bold text-foreground">
+              {currentCandle ? currentCandle.low.toFixed(2) : '-'}
+            </span>
+          </div>
+          <div className="flex gap-1 items-center">
+            <span className="text-muted-foreground uppercase font-black opacity-50">C</span>
+            <span className={cn('font-mono font-bold', isUp ? 'text-emerald-500' : 'text-rose-500')}>
+              {currentCandle ? currentCandle.close.toFixed(2) : '-'}
+            </span>
+          </div>
+          <div className="flex gap-1 items-center">
+            <span className="text-muted-foreground uppercase font-black opacity-50">Vol</span>
+            <span className="font-mono font-bold text-foreground/80">
+              {currentCandle ? currentCandle.volume.toFixed(0) : '-'}
+            </span>
+          </div>
+        </div>
+
+        {/* The Chart Container */}
+        <div
+          ref={containerRef}
+          className="w-full h-full absolute inset-0"
+        />
+        
+        {/* Watermark */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-[0.02] select-none">
+          <span className="text-6xl font-black tracking-tighter uppercase transform -rotate-12 translate-y-[-10%]">
+            XAUT / USDT
+          </span>
+        </div>
+
+        {/* Pane Divider Hint */}
+        <div className="absolute left-2.5 bottom-[18%] pointer-events-none z-10 opacity-30">
+            <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em] select-none">Volume</span>
+        </div>
       </div>
     </div>
   );
-}
+});

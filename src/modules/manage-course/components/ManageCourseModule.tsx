@@ -109,7 +109,7 @@ export const ManageCourseModule = () => {
   };
 
   const router = useRouter();
-  const openDetail = (course: AdminCourse) => router.push(`/admin/courses/${course.slug}`);
+  const openDetail = (course: AdminCourse) => router.push(`/admin/courses/${course.id}`);
 
   const currentStatusLabel =
     STATUS_OPTIONS.find((o) => o.value === filterStatus)?.label ?? 'Tất cả trạng thái';

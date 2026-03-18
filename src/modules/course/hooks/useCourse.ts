@@ -42,6 +42,7 @@ export const useCourseList = () => {
 
   // Filter States
   const [activeAssets, setActiveAssets] = useState<string[]>(['All']);
+  const [activeLevels, setActiveLevels] = useState<string[]>(['All']);
   const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [minRating, setMinRating] = useState(0);
   const [statusFilter, setStatusFilter] = useState<'all' | 'free' | 'enrolled' | 'not-enrolled'>('all');
@@ -53,7 +54,7 @@ export const useCourseList = () => {
     setCurrentPage(1); // Reset page when filters change
     const timer = setTimeout(() => setIsSearching(false), 400);
     return () => clearTimeout(timer);
-  }, [searchQuery, sortBy, activeAssets, priceRange, minRating, statusFilter]);
+  }, [searchQuery, sortBy, activeAssets, activeLevels, priceRange, minRating, statusFilter]);
 
   const toggleAsset = (asset: string) => {
     setActiveAssets(prev => {
@@ -65,6 +66,20 @@ export const useCourseList = () => {
         return filtered.length === 0 ? ['All'] : filtered;
       } else {
         return [...newAssets, asset];
+      }
+    });
+  };
+
+  const toggleLevel = (level: string) => {
+    setActiveLevels(prev => {
+      if (level === 'All') return ['All'];
+      
+      const newLevels = prev.filter(l => l !== 'All');
+      if (newLevels.includes(level)) {
+        const filtered = newLevels.filter(l => l !== level);
+        return filtered.length === 0 ? ['All'] : filtered;
+      } else {
+        return [...newLevels, level];
       }
     });
   };
@@ -104,6 +119,21 @@ export const useCourseList = () => {
       );
     }
 
+    // Level filter
+    if (activeLevels.length > 0 && !activeLevels.includes('All')) {
+      result = result.filter(c => {
+        const norm = c.courseLevel?.toLowerCase() || '';
+        return activeLevels.some(level => {
+          if (level === 'Level 1' && (norm.includes('1') || norm.includes('nhập') || norm.includes('nhap'))) return true;
+          if (level === 'Level 2' && (norm.includes('2') || norm.includes('nền') || norm.includes('nen'))) return true;
+          if (level === 'Level 3' && (norm.includes('3') || norm.includes('trung') || norm.includes('trung'))) return true;
+          if (level === 'Level 4' && (norm.includes('4') || norm.includes('thực') || norm.includes('thuc'))) return true;
+          if (level === 'Level 5' && (norm.includes('5') || norm.includes('nâng') || norm.includes('nang'))) return true;
+          return false;
+        });
+      });
+    }
+
     // Price range filter
     result = result.filter(c => c.price >= priceRange[0] && c.price <= priceRange[1]);
 
@@ -128,7 +158,7 @@ export const useCourseList = () => {
     }
 
     return result;
-  }, [courses, searchQuery, sortBy, activeAssets, priceRange, minRating, statusFilter]);
+  }, [courses, searchQuery, sortBy, activeAssets, activeLevels, priceRange, minRating, statusFilter]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredAndSortedCourses.length / ITEMS_PER_PAGE);
@@ -152,6 +182,7 @@ export const useCourseList = () => {
     setSearchQuery('');
     setSortBy('latest');
     setActiveAssets(['All']);
+    setActiveLevels(['All']);
     setPriceRange([0, 10000000]);
     setMinRating(0);
     setStatusFilter('all');
@@ -178,6 +209,8 @@ export const useCourseList = () => {
     filters: {
         activeAssets,
         toggleAsset,
+        activeLevels,
+        toggleLevel,
         priceRange,
         setPriceRange,
         minRating,

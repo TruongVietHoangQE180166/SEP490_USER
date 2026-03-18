@@ -192,12 +192,20 @@ export const CourseCard = ({
             </span>
           </div>
 
-          {/* Students count */}
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Users size={11} />
-            <span className="text-xs font-bold">
-              {course.totalStudents ?? course.totalRate ?? 0}
-            </span>
+          {/* Students count & Level */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Users size={11} />
+              <span className="text-xs font-bold">
+                {course.countEnrolledStudents != null ? course.countEnrolledStudents : (course.totalStudents ?? course.totalRate ?? 'Chưa có')}
+              </span>
+            </div>
+            <div className="h-3 w-px bg-border/40" />
+            <div className="flex items-center gap-1 text-indigo-500">
+              <span className="text-xs font-bold">
+                {course.courseLevel || 'Chưa có'}
+              </span>
+            </div>
           </div>
         </div>
 

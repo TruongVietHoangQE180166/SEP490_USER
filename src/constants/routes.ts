@@ -16,6 +16,7 @@ export const ROUTES = {
     DASHBOARD: '/dashboard',
     MY_COURSE: '/my-course',
     LEARN: '/learn',
+    WALLET: '/wallet',
   },
   ADMIN: {
     DASHBOARD: '/admin',

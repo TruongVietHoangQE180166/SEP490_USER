@@ -134,6 +134,26 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
     return result;
   }, [ratings, ratingSort, ratingFilter]);
 
+  const levelDetails = useMemo(() => {
+    const normLevel = currentCourse?.courseLevel?.toLowerCase() || '';
+    if (normLevel.includes('1') || normLevel.includes('nhập') || normLevel.includes('nhap')) {
+      return { label: 'Nhập môn', colorClass: 'bg-emerald-500/10 border-emerald-500/20', iconClass: 'text-emerald-500', innerClass: 'text-emerald-600 dark:text-emerald-400' };
+    }
+    if (normLevel.includes('2') || normLevel.includes('nền') || normLevel.includes('nen')) {
+      return { label: 'Nền tảng', colorClass: 'bg-blue-500/10 border-blue-500/20', iconClass: 'text-blue-500', innerClass: 'text-blue-600 dark:text-blue-400' };
+    }
+    if (normLevel.includes('3') || normLevel.includes('trung') || normLevel.includes('trung')) {
+      return { label: 'Trung cấp', colorClass: 'bg-amber-500/10 border-amber-500/20', iconClass: 'text-amber-500', innerClass: 'text-amber-600 dark:text-amber-400' };
+    }
+    if (normLevel.includes('4') || normLevel.includes('thực') || normLevel.includes('thuc')) {
+      return { label: 'Thực hành', colorClass: 'bg-orange-500/10 border-orange-500/20', iconClass: 'text-orange-500', innerClass: 'text-orange-600 dark:text-orange-400' };
+    }
+    if (normLevel.includes('5') || normLevel.includes('nâng') || normLevel.includes('nang')) {
+      return { label: 'Nâng cao', colorClass: 'bg-rose-500/10 border-rose-500/20', iconClass: 'text-rose-500', innerClass: 'text-rose-600 dark:text-rose-400' };
+    }
+    return { label: currentCourse?.courseLevel || 'Chưa phân loại', colorClass: 'bg-indigo-500/10 border-indigo-500/20', iconClass: 'text-indigo-500', innerClass: 'text-indigo-600 dark:text-indigo-400' };
+  }, [currentCourse?.courseLevel]);
+
   const handleRegistration = () => {
     if (!currentCourse) return;
 
@@ -357,7 +377,16 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                   <div className="h-1 w-1 rounded-full bg-foreground/20" />
                   <div className="flex items-center gap-1.5 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10">
                     <Users className="h-4 w-4 text-primary" />
-                    <span className="text-foreground/70 font-medium">{studentCount.toLocaleString()} học viên</span>
+                    <span className="text-foreground/70 font-medium">
+                      {typeof studentCount === 'number' ? `${studentCount.toLocaleString()} học viên` : 'Chưa có học viên'}
+                    </span>
+                  </div>
+                  <div className="h-1 w-1 rounded-full bg-foreground/20" />
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${levelDetails.colorClass}`}>
+                    <Award className={`h-4 w-4 ${levelDetails.iconClass}`} />
+                    <span className="text-foreground/70 font-medium">
+                      Trình độ: <span className={`font-bold ${levelDetails.innerClass}`}>{levelDetails.label}</span>
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     {(currentCourse.assets ?? []).map((asset, idx) => (

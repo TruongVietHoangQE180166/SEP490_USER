@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { AdminCourse, CourseStatus } from '../types';
+import { AdminCourse, CourseStatus, QuizQuestion } from '../types';
 import { manageCourseService } from '../services';
 import { manageCourseActions } from '../store';
 import { toast } from '@/components/ui/toast';
 
 /**
- * Hook to fetch full admin course detail by slug and manage status updates.
+ * Hook to fetch full admin course detail by courseId and manage status updates.
  */
-export const useAdminCourseDetail = (slug: string) => {
+export const useAdminCourseDetail = (courseId: string) => {
   const [course, setCourse] = useState<AdminCourse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,12 +23,31 @@ export const useAdminCourseDetail = (slug: string) => {
   const [pendingStatus, setPendingStatus] = useState<'PUBLISHED' | 'REJECT' | null>(null);
   const [isStatusUpdating, setIsStatusUpdating] = useState(false);
 
+  // ── Lesson preview dialog state ────────────────────────────────────────────
+  const [selectedLesson, setSelectedLesson] = useState<any | null>(null);
+
+  // ── Quiz Questions State ───────────────────────────────────────────────────
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [isQuizLoading, setIsQuizLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedLesson && selectedLesson.type === 'quiz' && selectedLesson.id) {
+      setIsQuizLoading(true);
+      manageCourseService.getQuizQuestionsByQuizId(selectedLesson.id)
+        .then((data) => setQuizQuestions(data))
+        .catch((err) => toast.error(err.message || 'Lỗi tải câu hỏi'))
+        .finally(() => setIsQuizLoading(false));
+    } else {
+      setQuizQuestions([]);
+    }
+  }, [selectedLesson]);
+
   const loadDetail = useCallback(async () => {
-    if (!slug) return;
+    if (!courseId) return;
     setIsLoading(true);
     setError(null);
     try {
-      const data = await manageCourseService.getCourseDetailBySlug(slug);
+      const data = await manageCourseService.getCourseDetailById(courseId);
       setCourse(data);
     } catch (err: any) {
       const msg = err.message || 'Không thể tải chi tiết khoá học';
@@ -37,7 +56,7 @@ export const useAdminCourseDetail = (slug: string) => {
     } finally {
       setIsLoading(false);
     }
-  }, [slug]);
+  }, [courseId]);
 
   useEffect(() => {
     loadDetail();
@@ -143,5 +162,9 @@ export const useAdminCourseDetail = (slug: string) => {
     requestStatusChange,
     handleStatusConfirm,
     cancelStatusChange,
+    selectedLesson,
+    setSelectedLesson,
+    quizQuestions,
+    isQuizLoading,
   };
 };

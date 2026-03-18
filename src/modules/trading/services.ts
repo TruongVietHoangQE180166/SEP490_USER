@@ -1,4 +1,4 @@
-import { CandleType, OrderType, PositionType, OrderSide } from './types';
+import { CandleType, OrderType, PositionType, OrderSide, PlaceOrderRequest } from './types';
 import { tradingActions, tradingState$ } from './store';
 import { ApiConfigService } from '@/services/apiConfig';
 
@@ -146,79 +146,47 @@ interface MarketOrderParams {
   stopLoss?: number;
 }
 
-/**
- * Execute a market order immediately at currentPrice.
- */
-export function executeMarketOrder(params: MarketOrderParams): PositionType {
-  const { symbol, side, quantity, currentPrice, balance, takeProfit, stopLoss } = params;
-  const cost = currentPrice * quantity;
-
-  if (cost > balance) {
-    throw new Error(
-      `Số dư không đủ. Cần: $${cost.toFixed(2)}, Hiện có: $${balance.toFixed(2)}`
-    );
+export async function fetchTradeOrders(page = 1, size = 1000, field = 'createdDate', direction = 'desc') {
+  try {
+    const response = await ApiConfigService.get<{
+      data?: {
+        content: OrderType[];
+      }
+    }>(`/api/v1/trade-orders?page=${page}&size=${size}&field=${field}&direction=${direction}`);
+    return response?.data?.content || [];
+  } catch (error) {
+    console.error('Lỗi lấy danh sách order:', error);
+    return [];
   }
-
-  const order: OrderType = {
-    id: generateId(),
-    symbol,
-    side,
-    kind: 'MARKET',
-    status: 'FILLED',
-    price: 0,
-    quantity,
-    createdAt: Date.now(),
-    filledAt: Date.now(),
-    filledPrice: currentPrice,
-  };
-
-  tradingActions.adjustBalance(-cost);
-  const currentHistory = tradingState$.orderHistory.get();
-  tradingState$.orderHistory.set([order, ...currentHistory]);
-
-  const position: PositionType = {
-    id: generateId(),
-    symbol,
-    side,
-    entryPrice: currentPrice,
-    quantity,
-    openedAt: Date.now(),
-    takeProfit,
-    stopLoss,
-  };
-
-  tradingActions.addPosition(position);
-  return position;
 }
 
-interface LimitOrderParams {
-  symbol: string;
-  side: OrderSide;
-  quantity: number;
-  limitPrice: number;
-  takeProfit?: number;
-  stopLoss?: number;
+export async function cancelTradeOrder(orderId: string) {
+  try {
+    const response = await ApiConfigService.delete<{
+      message?: { messageDetail: string };
+      success: boolean;
+    }>(`/api/v1/trade-orders/${orderId}/cancel`);
+    return response;
+  } catch (error) {
+    console.error('Lỗi hủy lệnh:', error);
+    throw error;
+  }
 }
 
-/**
- * Place a pending limit order.
- */
-export function executeLimitOrder(params: LimitOrderParams): OrderType {
-  const { symbol, side, quantity, limitPrice } = params;
-
-  const order: OrderType = {
-    id: generateId(),
-    symbol,
-    side,
-    kind: 'LIMIT',
-    status: 'PENDING',
-    price: limitPrice,
-    quantity,
-    createdAt: Date.now(),
-  };
-
-  tradingActions.addPendingOrder(order);
-  return order;
+export async function placeTradeOrder(params: PlaceOrderRequest) {
+  try {
+    const response = await ApiConfigService.post<{
+      message?: { messageCode: string; messageDetail: string };
+      success: boolean;
+      data?: OrderType;
+      errors?: Array<{ field: string; message: string }>;
+    }>(`/api/v1/trade-orders/place`, params);
+    
+    return response;
+  } catch (error) {
+    console.error('Lỗi đặt lệnh:', error);
+    throw error;
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -247,75 +215,7 @@ export function calculatePnL(position: PositionType, currentPrice: number): PnLR
   };
 }
 
-/**
- * Check and auto-fill pending limit orders at current price.
- */
-export function checkAndFillLimitOrders(
-  pendingOrders: OrderType[],
-  currentPrice: number,
-  balance: number
-): void {
-  pendingOrders.forEach(order => {
-    if (order.status !== 'PENDING') return;
-
-    const shouldFill =
-      (order.side === 'LONG' && currentPrice <= order.price) ||
-      (order.side === 'SHORT' && currentPrice >= order.price);
-
-    if (shouldFill) {
-      const cost = order.price * order.quantity;
-      if (cost > balance) {
-        tradingActions.cancelOrder(order.id);
-        return;
-      }
-
-      tradingActions.fillOrder(order.id, currentPrice);
-      tradingActions.adjustBalance(-cost);
-
-      const position: PositionType = {
-        id: generateId(),
-        symbol: order.symbol,
-        side: order.side,
-        entryPrice: currentPrice,
-        quantity: order.quantity,
-        openedAt: Date.now(),
-      };
-      tradingActions.addPosition(position);
-    }
-  });
-}
-
-/**
- * Close a position and return value to balance.
- */
-export function closePosition(position: PositionType, currentPrice: number): void {
-  const { unrealizedPnL } = calculatePnL(position, currentPrice);
-  tradingActions.adjustBalance(position.entryPrice * position.quantity + unrealizedPnL);
-  tradingActions.removePosition(position.id);
-}
-
-/**
- * Auto-close positions that hit TP or SL.
- */
-export function checkTakeProfitStopLoss(
-  positions: PositionType[],
-  currentPrice: number
-): void {
-  positions.forEach(pos => {
-    if (pos.takeProfit) {
-      const hit =
-        (pos.side === 'LONG' && currentPrice >= pos.takeProfit) ||
-        (pos.side === 'SHORT' && currentPrice <= pos.takeProfit);
-      if (hit) { closePosition(pos, currentPrice); return; }
-    }
-    if (pos.stopLoss) {
-      const hit =
-        (pos.side === 'LONG' && currentPrice <= pos.stopLoss) ||
-        (pos.side === 'SHORT' && currentPrice >= pos.stopLoss);
-      if (hit) closePosition(pos, currentPrice);
-    }
-  });
-}
+// (Backend handles limit orders and TP/SL execution)
 
 /**
  * Timeframe string → interval in seconds.

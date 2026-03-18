@@ -5,7 +5,26 @@ const initialTradingState: TradingState = {
   currentSymbol: 'BTC/USDT',
   timeframe: '1h',
   balance: 10000,
+  wallet: {
+    availableBalance: 10000,
+    lockedBalance: 0,
+    goldBalance: 0,
+    lockedGoldBalance: 0,
+  },
   currentPrice: 0,
+  previousPrice: 0,
+  basePrice24h: 0,
+  marketTicker: {
+    indexPrice: 0,
+    markPrice: 0,
+    tetherGoldPrice: 0,
+    high24h: 0,
+    low24h: 0,
+    vol24h: 0,
+    value24h: 0,
+    change24h: 0,
+    change24hPct: 0,
+  },
   chartData: [],
   openPositions: [],
   closedPositions: [],
@@ -18,11 +37,16 @@ const initialTradingState: TradingState = {
     speed: 1,
   },
   isRealtimeActive: true,
+  isChartLoading: false,
 };
 
 export const tradingState$ = observable<TradingState>(initialTradingState);
 
 export const tradingActions = {
+  // ─── Loading ──────────────────────────────────────────────
+  setIsChartLoading: (loading: boolean) => {
+    tradingState$.isChartLoading.set(loading);
+  },
   // ─── Symbol / Timeframe ───────────────────────────────────
   setSymbol: (symbol: string) => {
     tradingState$.currentSymbol.set(symbol);
@@ -32,9 +56,20 @@ export const tradingActions = {
     tradingState$.timeframe.set(tf);
   },
 
-  // ─── Price / Chart ────────────────────────────────────────
+  // ─── Price / Ticker / Chart ────────────────────────────────
   setCurrentPrice: (price: number) => {
-    tradingState$.currentPrice.set(price);
+    const current = tradingState$.currentPrice.get();
+    if (current !== price) {
+      tradingState$.previousPrice.set(current);
+      tradingState$.currentPrice.set(price);
+    }
+  },
+
+  setMarketTicker: (ticker: Partial<any>) => {
+    tradingState$.marketTicker.set({
+      ...tradingState$.marketTicker.get(),
+      ...ticker
+    } as any);
   },
 
   setChartData: (candles: CandleType[]) => {
@@ -54,14 +89,52 @@ export const tradingActions = {
     tradingState$.chartData.set(updated);
   },
 
-  // ─── Balance ──────────────────────────────────────────────
+  // ─── Balance / Wallet ────────────────────────────────────
+  setWalletData: (data: Partial<TradingState['wallet']>) => {
+    const current = tradingState$.wallet.get();
+    const newData = { ...current, ...data };
+    tradingState$.wallet.set(newData);
+    // Sync main balance convenience field
+    tradingState$.balance.set(newData.availableBalance);
+  },
+
   setBalance: (balance: number) => {
     tradingState$.balance.set(balance);
+    tradingState$.wallet.availableBalance.set(balance);
   },
 
   adjustBalance: (delta: number) => {
     const current = tradingState$.balance.get();
-    tradingState$.balance.set(Math.max(0, current + delta));
+    const next = Math.max(0, current + delta);
+    tradingState$.balance.set(next);
+    tradingState$.wallet.availableBalance.set(next);
+  },
+
+  refreshWalletData: async () => {
+    try {
+      const { WalletService } = await import('../wallet/services');
+      const [wallet, assets] = await Promise.all([
+        WalletService.getMyWallet('USDT'),
+        WalletService.getMyAssets()
+      ]);
+      
+      if (wallet) {
+        tradingActions.setWalletData({
+          availableBalance: wallet.availableBalance,
+          lockedBalance: wallet.lockedBalance,
+        });
+      }
+      
+      const goldAsset = assets.find(a => a.assetSymbol === 'XAUT');
+      if (goldAsset) {
+        tradingActions.setWalletData({
+          goldBalance: goldAsset.quantity,
+          lockedGoldBalance: goldAsset.lockedQuantity,
+        });
+      }
+    } catch (err) {
+      console.warn('[TradingStore] Failed to refresh wallet data', err);
+    }
   },
 
   // ─── Positions ────────────────────────────────────────────
@@ -109,27 +182,20 @@ export const tradingActions = {
   },
 
   // ─── Orders ───────────────────────────────────────────────
-  addPendingOrder: (order: OrderType) => {
-    const current = tradingState$.pendingOrders.get();
-    tradingState$.pendingOrders.set([...current, order]);
+  fetchAndSetOrders: async () => {
+    // Need to dynamically import to prevent cyclic dependency on store -> services -> store
+    const { fetchTradeOrders } = await import('./services');
+    const orders = await fetchTradeOrders(1, 1000, 'createdDate', 'desc');
+    
+    const pendingOrders = orders.filter(o => o.status === 'PENDING');
+    const historyOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED');
+    
+    tradingState$.pendingOrders.set(pendingOrders);
+    tradingState$.orderHistory.set(historyOrders);
   },
 
-  fillOrder: (orderId: string, filledPrice: number) => {
-    const pending = tradingState$.pendingOrders.get();
-    const order = pending.find(o => o.id === orderId);
-    if (!order) return;
-
-    const filledOrder: OrderType = {
-      ...order,
-      status: 'FILLED',
-      filledAt: Date.now(),
-      filledPrice,
-    };
-
-    tradingState$.pendingOrders.set(pending.filter(o => o.id !== orderId));
-    const history = tradingState$.orderHistory.get();
-    tradingState$.orderHistory.set([filledOrder, ...history]);
-  },
+  // Local mockup actions removed.
+  // We rely on fetchAndSetOrders or websocket events to update pending and filled orders.
 
   cancelOrder: (orderId: string) => {
     const pending = tradingState$.pendingOrders.get();

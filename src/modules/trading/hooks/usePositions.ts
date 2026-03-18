@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { tradingState$ } from '../store';
-import { calculatePnL, closePosition } from '../services';
+import { tradingState$, tradingActions } from '../store';
+import { calculatePnL } from '../services';
 import { PositionType } from '../types';
 
 export function usePositions() {
@@ -21,7 +21,7 @@ export function usePositions() {
   }, [positionsWithPnL]);
 
   const handleClose = (position: PositionType) => {
-    closePosition(position, currentPrice);
+    tradingActions.closePosition(position.id, currentPrice);
   };
 
   return {
