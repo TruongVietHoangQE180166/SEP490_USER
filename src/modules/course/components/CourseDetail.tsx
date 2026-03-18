@@ -17,6 +17,7 @@ import {
   FileText,
   Languages,
   Lock,
+  MessageSquare,
   Play,
   PlayCircle,
   Share2,
@@ -32,6 +33,9 @@ import { cn, getEmbedUrl } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import { RelatedCourses } from "./RelatedCourses";
 import { paymentActions } from '@/modules/payment/store';
+import { useCourseRatings } from '../hooks/useCourseRatings';
+import { useState, useMemo, useCallback, useRef } from 'react';
+import { authState$ } from '@/modules/auth/store';
 
 // ============================================================================
 // ANIMATION VARIANTS
@@ -86,6 +90,7 @@ import { CountdownTimer } from './CountdownTimer';
 
 export const CourseDetail = observer(({ slug }: { slug: string }) => {
   const router = useRouter();
+  const isAuthenticated = authState$.isAuthenticated.get();
   const { 
     course: currentCourse, 
     isLoading,
@@ -103,8 +108,39 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
     formatPrice
   } = useCourseDetail(slug);
 
+  const { ratings, isLoading: isRatingsLoading, averageRating, ratingDistribution, totalRatings } = useCourseRatings(currentCourse?.id);
+
+  const [ratingSort, setRatingSort] = useState<'newest' | 'lowest' | 'highest'>('newest');
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const filterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerFilter = useCallback((fn: () => void) => {
+    setIsFiltering(true);
+    fn();
+    if (filterTimerRef.current) clearTimeout(filterTimerRef.current);
+    filterTimerRef.current = setTimeout(() => setIsFiltering(false), 300);
+  }, []);
+
+  const displayedRatings = useMemo(() => {
+    let result = ratingFilter !== null ? ratings.filter(r => r.rating === ratingFilter) : [...ratings];
+    if (ratingSort === 'newest') {
+      result = result.sort((a, b) => new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime());
+    } else if (ratingSort === 'lowest') {
+      result = result.sort((a, b) => a.rating - b.rating);
+    } else {
+      result = result.sort((a, b) => b.rating - a.rating);
+    }
+    return result;
+  }, [ratings, ratingSort, ratingFilter]);
+
   const handleRegistration = () => {
     if (!currentCourse) return;
+
+    if (!authState$.isAuthenticated.get()) {
+      router.push('/login');
+      return;
+    }
     
     paymentActions.setPaymentInfo({
       courseId: currentCourse.id,
@@ -220,7 +256,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
             className="mb-8 space-y-6"
           >
             {/* Promotional Offer Card */}
-            {!currentCourse.isEnrolled && discountPercent > 0 && (
+            {!(isAuthenticated && currentCourse.isEnrolled) && discountPercent > 0 && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -281,7 +317,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                             className="relative h-14 px-8 rounded-full bg-gradient-to-r from-primary via-primary to-primary/80 text-primary-foreground border-none font-black text-lg shadow-2xl overflow-hidden"
                           >
                             <span className="relative z-10 flex items-center gap-2">
-                              Đăng ký học ngay
+                              {currentCourse.isFree ? 'Nhận khóa học ngay' : 'Đăng ký học ngay'}
                               <ArrowLeft className="h-5 w-5 rotate-180 transition-transform group-hover:translate-x-1" />
                             </span>
                             {/* Shimmer Effect */}
@@ -338,7 +374,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                   <Share2 className="h-5 w-5" />
                 </Button>
                 
-                {currentCourse.isEnrolled ? (
+                {(isAuthenticated && currentCourse.isEnrolled) ? (
                   <Link href={`/learn/${currentCourse.slug}`}>
                     <Button className="h-12 rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground min-w-[140px] font-bold transition-all">
                       Vào học ngay
@@ -354,7 +390,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                       <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-primary to-amber-500 opacity-60 blur group-hover:opacity-100 transition-opacity animate-pulse" />
                       <Button className="relative h-12 px-6 rounded-full bg-primary text-primary-foreground border-none font-bold shadow-xl overflow-hidden">
                         <span className="relative z-10">
-                          Đăng ký học ({formatPrice(currentCourse.salePrice || currentCourse.price)})
+                          {currentCourse.isFree ? 'Nhận khóa học' : `Đăng ký học (${formatPrice(currentCourse.salePrice || currentCourse.price)})`}
                         </span>
                         <motion.div
                           initial={{ x: '-100%' }}
@@ -462,7 +498,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
             </motion.div>
 
             {/* Learning Progress (Only for enrolled users) */}
-            {currentCourse.isEnrolled && (
+            {(isAuthenticated && currentCourse.isEnrolled) && (
               <motion.div 
                 variants={itemVariants} 
                 className="relative overflow-hidden rounded-xl border border-border/40 bg-background/40 p-5 backdrop-blur-sm"
@@ -489,7 +525,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                         />
                     </div>
 
-                    {currentCourse.progress === 100 && (
+                    {(isAuthenticated && currentCourse.progress === 100) && (
                         <div className="flex items-center gap-1.5 text-green-500 text-xs font-bold uppercase tracking-wider">
                             <CheckCircle2 className="h-3.5 w-3.5" />
                             Chúc mừng! Bạn đã hoàn thành khóa học
@@ -524,22 +560,35 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                               ...(mooc.documents || []).map(d => ({ ...d, type: 'document' }))
                           ].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
+                        const isEnrolled = isAuthenticated && currentCourse.isEnrolled;
+                        const isMoocLocked = !isEnrolled ? (mooc.isUnlocked !== true) : (mooc.isUnlocked === false);
+
                         return (
-                          <div key={mooc.id || mIndex} className="overflow-hidden rounded-xl border border-border/30 bg-background/30">
+                          <div key={mooc.id || mIndex} className={`overflow-hidden rounded-xl border bg-background/30 transition-all ${ isMoocLocked ? 'border-border/20' : 'border-border/30'}`}>
                             <button 
                               onClick={() => toggleSection(sectionKey)}
                               className="w-full p-4 text-left transition-colors hover:bg-background/50 flex items-center justify-between group/section"
                             >
                               <div className="flex-1">
-                                <h4 className="font-semibold text-foreground flex items-center gap-2">
-                                  <span className="bg-primary/10 text-primary h-6 w-6 rounded-full flex items-center justify-center text-xs">
+                                <h4 className={`font-semibold flex items-center gap-2 ${ isMoocLocked ? 'text-foreground/60' : 'text-foreground'}`}>
+                                  <span className="bg-primary/10 text-primary h-6 w-6 rounded-full flex items-center justify-center text-xs shrink-0">
                                     {mIndex + 1}
                                   </span>
                                   {mooc.title}
+                                  {isMoocLocked && (
+                                    <Lock className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+                                  )}
+                                  {isEnrolled && mooc.isCompleted && mooc.isUnlocked !== false && (
+                                    <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-green-500 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">
+                                      <CheckCircle2 className="h-3 w-3" /> Xong
+                                    </span>
+                                  )}
                                 </h4>
                                 <p className="text-xs text-foreground/60 ml-8">{lessons.length} bài học</p>
                               </div>
-                              <ChevronRight className={`h-5 w-5 text-foreground/40 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+                              <div className="flex items-center gap-2">
+                                <ChevronRight className={`h-5 w-5 text-foreground/40 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+                              </div>
                             </button>
 
                             <motion.div
@@ -549,24 +598,36 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                               className="overflow-hidden"
                             >
                               <div className="border-t border-border/20">
-                                {lessons.map((lesson: any, lIdx: number) => (
-                                  <div key={lesson.id || `${lesson.type}-${lIdx}`} className="group/lesson flex items-center justify-between p-4 hover:bg-background/40 transition-all border-b border-border/10 last:border-b-0">
-                                    <div className="flex items-center gap-3">
-                                      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/40 bg-background/50 text-foreground/60">
-                                        {lesson.type === 'video' ? <PlayCircle className="h-4 w-4" /> : lesson.type === 'quiz' ? <Timer className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
-                                      </div>
-                                      <div>
-                                        <p className="text-sm font-medium">{lesson.title}</p>
-                                        <div className="flex items-center gap-2">
-                                          <p className="text-xs text-foreground/50 capitalize">{lesson.type} {lesson.duration ? `· ${lesson.duration}` : ''}</p>
+                                {lessons.map((lesson: any, lIdx: number) => {
+                                  const isLessonLocked = isEnrolled 
+                                    ? (mooc.isUnlocked === false || lesson.isUnlocked === false)
+                                    : (mooc.isUnlocked !== true && lesson.isUnlocked !== true);
+
+                                  return (
+                                    <div key={lesson.id || `${lesson.type}-${lIdx}`} className="flex items-center justify-between p-4 border-b border-border/10 last:border-b-0">
+                                      <div className="flex items-center gap-3">
+                                        <div className={`flex h-8 w-8 items-center justify-center rounded-full border shrink-0 ${ isLessonLocked ? 'border-border/30 bg-background/30 text-foreground/30' : 'border-border/40 bg-background/50 text-foreground/60'}`}>
+                                          {lesson.type === 'video' ? <PlayCircle className="h-4 w-4" /> : lesson.type === 'quiz' ? <Timer className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                                        </div>
+                                        <div>
+                                          <p className={`text-sm font-medium ${ isLessonLocked ? 'text-foreground/50' : ''}`}>{lesson.title}</p>
+                                          <p className="text-xs text-foreground/40">{lesson.type === 'video' ? 'Video' : lesson.type === 'quiz' ? 'Bài kiểm tra' : 'Tài liệu'}</p>
                                         </div>
                                       </div>
+                                      <div className="flex items-center gap-2">
+                                        {isLessonLocked ? (
+                                          <Lock className="h-3.5 w-3.5 text-muted-foreground/40" />
+                                        ) : lesson.isCompleted ? (
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-500 shadow-sm shadow-green-500/40">
+                                            <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                                          </span>
+                                        ) : (
+                                          <PlayCircle className="h-4 w-4 text-primary opacity-0 group-hover/lesson:opacity-100 transition-opacity" />
+                                        )}
+                                      </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <PlayCircle className="h-4 w-4 text-primary opacity-0 group-hover/lesson:opacity-100 transition-opacity" />
-                                    </div>
-                                  </div>
-                                ))}
+                                  );
+                                })}
                               </div>
                             </motion.div>
                           </div>
@@ -607,7 +668,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                       </p>
 
 
-                      {currentCourse.isEnrolled ? (
+                      {(isAuthenticated && currentCourse.isEnrolled) ? (
                         <Link href={`/learn/${currentCourse.slug}`} className="block">
                           <Button className="w-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-bold transition-all">
                             Vào học ngay
@@ -623,7 +684,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                             <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 opacity-50 blur group-hover:opacity-100 transition-opacity animate-pulse" />
                             <Button className="relative w-full h-12 rounded-xl bg-primary text-primary-foreground border-none font-bold shadow-lg overflow-hidden">
                               <span className="relative z-10">
-                                Đăng ký học ({formatPrice(currentCourse.salePrice || currentCourse.price)})
+                                {currentCourse.isFree ? 'Nhận khóa học' : `Đăng ký học (${formatPrice(currentCourse.salePrice || currentCourse.price)})`}
                               </span>
                               <motion.div
                                 initial={{ x: '-100%' }}
@@ -641,6 +702,161 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
               </div>
             </div>
             
+            {/* Ratings Section */}
+            {(totalRatings > 0 || isRatingsLoading) && (
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={itemVariants}
+                className="mt-10 border-t border-border/40 pt-10"
+              >
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                    <Star className="h-4 w-4 fill-amber-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground">Đánh giá của học viên</h3>
+                  <span className="text-sm text-muted-foreground/60">({totalRatings} đánh giá)</span>
+                </div>
+
+                {isRatingsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}
+                  </div>
+                ) : (
+                  <div className="grid gap-6 lg:grid-cols-3">
+                    {/* Summary */}
+                    <div className="lg:col-span-1">
+                      <div className="rounded-2xl border border-border/40 bg-background/60 p-6 backdrop-blur sticky top-24">
+                        <div className="flex flex-col items-center gap-2 mb-6">
+                          <span className="text-6xl font-black text-foreground tabular-nums">{averageRating.toFixed(1)}</span>
+                          <div className="flex items-center gap-1">
+                            {[1,2,3,4,5].map(s => (
+                              <Star key={s} className={`h-5 w-5 ${ s <= Math.round(averageRating) ? 'fill-amber-500 text-amber-500' : 'text-border'}`} />
+                            ))}
+                          </div>
+                          <p className="text-sm text-muted-foreground">{totalRatings} đánh giá</p>
+                        </div>
+                        <div className="space-y-2">
+                          {ratingDistribution.map(({ star, count, percent }) => (
+                            <button
+                              key={star}
+                              onClick={() => setRatingFilter(ratingFilter === star ? null : star)}
+                              className={`w-full flex items-center gap-3 rounded-lg px-2 py-1 transition-colors ${
+                                ratingFilter === star ? 'bg-amber-500/10' : 'hover:bg-muted/50'
+                              }`}
+                            >
+                              <span className="text-xs font-bold text-muted-foreground w-3">{star}</span>
+                              <Star className={`h-3 w-3 shrink-0 ${ ratingFilter === star ? 'fill-amber-500 text-amber-500' : 'fill-amber-400 text-amber-400'}`} />
+                              <div className="flex-1 h-2 rounded-full bg-primary/10 overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  whileInView={{ width: `${percent}%` }}
+                                  viewport={{ once: true }}
+                                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                                  className={`h-full rounded-full ${ ratingFilter === star ? 'bg-amber-500' : 'bg-amber-400'}`}
+                                />
+                              </div>
+                              <span className="text-xs text-muted-foreground/60 w-7 text-right">{count}</span>
+                            </button>
+                          ))}
+                        </div>
+                        {ratingFilter !== null && (
+                          <button
+                            onClick={() => setRatingFilter(null)}
+                            className="mt-3 w-full text-[11px] font-bold text-primary hover:underline"
+                          >
+                            Xóa bộ lọc
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Review Cards */}
+                    <div className="lg:col-span-2">
+                      {/* Sort + filter bar */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 border border-border/30">
+                          {([['newest', 'Mới nhất'], ['highest', 'Cao → thấp'], ['lowest', 'Thấp → cao']] as const).map(([val, label]) => (
+                            <button
+                              key={val}
+                              onClick={() => triggerFilter(() => setRatingSort(val))}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                ratingSort === val
+                                  ? 'bg-background shadow text-foreground'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {[5,4,3,2,1].map(s => (
+                            <button
+                              key={s}
+                              onClick={() => triggerFilter(() => setRatingFilter(ratingFilter === s ? null : s))}
+                              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black border transition-all ${
+                                ratingFilter === s
+                                  ? 'bg-amber-500 text-white border-amber-500 shadow shadow-amber-500/30'
+                                  : 'border-border/40 text-muted-foreground hover:border-amber-400 hover:text-amber-500'
+                              }`}
+                            >
+                              <Star className={`h-2.5 w-2.5 ${ ratingFilter === s ? 'fill-white text-white' : 'fill-amber-400 text-amber-400'}`} />
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className={`space-y-3 max-h-[400px] overflow-y-auto pr-2 transition-opacity duration-200 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-muted/20 ${isFiltering ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+                        {isFiltering ? (
+                          <div className="space-y-3">
+                            {[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
+                          </div>
+                        ) : displayedRatings.length === 0 ? (
+                          <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground/50">
+                            <Star className="h-10 w-10" />
+                            <p className="text-sm font-medium">Không có đánh giá nào phù hợp</p>
+                          </div>
+                        ) : displayedRatings.map((review) => (
+                          <div
+                            key={review.id}
+                            className="group rounded-2xl border border-border/40 bg-background/60 p-5 backdrop-blur hover:border-border/60 hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-start gap-4">
+                              <img
+                                src={review.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${review.fullName}`}
+                                alt={review.fullName}
+                                className="h-10 w-10 rounded-full object-cover border-2 border-border/40 shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <p className="font-semibold text-sm text-foreground">{review.fullName}</p>
+                                  <span className="text-xs text-muted-foreground/50">
+                                    {new Date(review.createdDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 mt-1 mb-2">
+                                  {[1,2,3,4,5].map(s => (
+                                    <Star key={s} className={`h-3.5 w-3.5 ${ s <= review.rating ? 'fill-amber-500 text-amber-500' : 'text-border'}`} />
+                                  ))}
+                                  <span className="text-xs text-muted-foreground/60 ml-1 font-bold">{review.rating}.0</span>
+                                </div>
+                                {review.comment && (
+                                  <p className="text-sm text-muted-foreground/80 leading-relaxed">{review.comment}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
              {/* Related Courses Slider */}
              {relatedCourses.length > 0 ? (
                 <motion.div 

@@ -8,12 +8,16 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { authState$ } from '@/modules/auth/store';
+import { observer } from '@legendapp/state/react';
 
 interface CourseCardProps {
   course: Course;
 }
 
-export const CourseCard = ({ course }: CourseCardProps) => {
+export const CourseCard = observer(({ course }: CourseCardProps) => {
+  const isAuthenticated = authState$.isAuthenticated.get();
+  
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
@@ -41,7 +45,7 @@ export const CourseCard = ({ course }: CourseCardProps) => {
               className="flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-[10px] uppercase tracking-wider font-black text-primary-foreground shadow-lg shadow-primary/25 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300"
             >
               <BookOpen className="h-3.5 w-3.5" />
-              {course.isEnrolled ? 'Tiếp tục học' : 'Xem chi tiết'}
+              {(isAuthenticated && course.isEnrolled) ? 'Tiếp tục học' : 'Xem chi tiết'}
             </motion.div>
           </div>
 
@@ -52,7 +56,7 @@ export const CourseCard = ({ course }: CourseCardProps) => {
                 Miễn phí
               </div>
             )}
-            {course.isEnrolled && (
+            {(isAuthenticated && course.isEnrolled) && (
               <div className="bg-primary text-white font-black text-[10px] px-3 py-1.5 rounded-br-xl shadow-xl border-b border-r border-white/20 backdrop-blur-sm uppercase tracking-wider flex items-center gap-1.5">
                 <div className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                 Đang sở hữu
@@ -105,13 +109,13 @@ export const CourseCard = ({ course }: CourseCardProps) => {
 
           <div className="pt-3 flex items-center justify-between border-t border-border/50">
             <div className="flex flex-col justify-center min-h-[2.5rem]">
-              {course.isEnrolled ? (
+              {(isAuthenticated && course.isEnrolled) ? (
                 <div className="flex items-center gap-1.5 text-primary text-xs font-bold uppercase tracking-wider">
                   Vào học ngay
                 </div>
               ) : course.isFree ? (
                 <span className="text-xl font-black text-emerald-600 leading-none">
-                  FREE
+                  Miễn phí
                 </span>
               ) : course.discountPercent > 0 ? (
                 <>
@@ -130,12 +134,12 @@ export const CourseCard = ({ course }: CourseCardProps) => {
             </div>
 
             <div className="flex items-center gap-2">
-               {!course.isEnrolled && (
+               {!(isAuthenticated && course.isEnrolled) && (
                   <div className="rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
-                    Mua ngay
+                    {course.isFree ? 'Nhận ngay' : 'Mua ngay'}
                   </div>
                )}
-               {course.isEnrolled && (
+               {(isAuthenticated && course.isEnrolled) && (
                   <div className="rounded-full bg-primary/10 px-4 py-2 text-[10px] font-black uppercase text-primary transition-all group-hover:bg-primary group-hover:text-primary-foreground">
                     Học tiếp
                   </div>
@@ -146,4 +150,4 @@ export const CourseCard = ({ course }: CourseCardProps) => {
       </Card>
     </Link>
   );
-};
+});

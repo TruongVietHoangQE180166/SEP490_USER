@@ -1,35 +1,32 @@
 import { observable } from '@legendapp/state';
-import { HomeState, Post } from './types';
+import { HomeState } from './types';
+import { Course } from '../course/types';
 
 const initialHomeState: HomeState = {
-  posts: [],
-  stats: null,
+  freeCourses: [],
+  featuredCourses: [],
   isLoading: false,
+  error: null,
 };
 
 export const homeState$ = observable<HomeState>(initialHomeState);
 
 // Actions
 export const homeActions = {
-  setPosts: (posts: Post[]) => {
-    homeState$.posts.set(posts);
+  setFreeCourses: (courses: Course[]) => {
+    homeState$.freeCourses.set(courses);
   },
 
-  setStats: (stats: HomeState['stats']) => {
-    homeState$.stats.set(stats);
+  setFeaturedCourses: (courses: Course[]) => {
+    homeState$.featuredCourses.set(courses);
   },
 
   setLoading: (isLoading: boolean) => {
     homeState$.isLoading.set(isLoading);
   },
 
-  likePost: (postId: string) => {
-    const posts = homeState$.posts.peek();
-    const postIndex = posts.findIndex((p) => p.id === postId);
-    
-    if (postIndex !== -1) {
-      homeState$.posts[postIndex].likes.set(posts[postIndex].likes + 1);
-    }
+  setError: (error: string | null) => {
+    homeState$.error.set(error);
   },
 
   reset: () => {

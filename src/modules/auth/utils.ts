@@ -94,3 +94,18 @@ export const getUserInfoFromStorage = () => {
     avatar: localStorage.getItem('avatar'),
   };
 };
+/**
+ * Normalize user role to standard set: ADMIN, TEACHER, USER
+ * @param role - Original role string
+ * @returns Normalized role
+ */
+export const getNormalizedRole = (roleRaw: any): string => {
+  if (!roleRaw || typeof roleRaw !== 'string') return 'USER';
+  
+  const role = roleRaw.toUpperCase();
+  
+  if (role.includes('ADMIN')) return 'ADMIN';
+  if (role.includes('TEACHER') || role.includes('INSTRUCTOR')) return 'TEACHER';
+  
+  return 'USER';
+};

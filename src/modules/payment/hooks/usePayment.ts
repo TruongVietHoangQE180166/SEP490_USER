@@ -9,8 +9,33 @@ export const usePaymentOrder = () => {
   const paymentInfo = paymentState$.paymentInfo.get();
   const currentOrder = paymentState$.currentOrder.get();
   const isLoading = paymentState$.isLoading.get();
+  const isPaymentCompleted = paymentState$.isPaymentCompleted.get();
   const error = paymentState$.error.get();
   const router = useRouter();
+
+  // Polling effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (currentOrder && currentOrder.id && !isPaymentCompleted) {
+      interval = setInterval(async () => {
+        try {
+          const detail = await paymentService.getPaymentDetail(currentOrder.id);
+          if (detail.status === 'COMPLETED') {
+            paymentActions.setPaymentCompleted(true);
+            toast.success('Thanh toán thành công! Bạn đã có thể bắt đầu học.');
+            if (interval) clearInterval(interval);
+          }
+        } catch (err) {
+          console.error('Polling payment status failed:', err);
+        }
+      }, 5000); // Check every 5 seconds
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [currentOrder?.id, isPaymentCompleted]);
 
   const handleCreateOrder = async (method: string) => {
     if (!paymentInfo) return;
@@ -43,7 +68,8 @@ export const usePaymentOrder = () => {
   return { 
     paymentInfo, 
     currentOrder,
-    isLoading, 
+    isLoading,
+    isPaymentCompleted,
     error, 
     handleCreateOrder,
     resetOrder,

@@ -35,7 +35,7 @@ export const useCourseDetail = (slugName: string) => {
       setIsLoading(true);
       setError(null);
       const data = await courseService.getCourseBySlugName(slugName);
-      if (data) {
+      if (data && data.status === 'PUBLISHED') {
         setCourse(data);
         
         // Populate completed lessons from API response data
@@ -50,7 +50,7 @@ export const useCourseDetail = (slugName: string) => {
         const { courseActions } = await import('../store');
         courseActions.setCompletedLessons(completedIds);
       } else {
-        setError('Không tìm thấy khóa học');
+        setError('Khóa học này chưa được công khai hoặc không tồn tại');
       }
     } catch (err: any) {
       const message = err.message || 'Không thể tải chi tiết khóa học';

@@ -87,7 +87,7 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
         </div>
         
         <ScrollArea className="flex-1">
-          <div className="flex flex-col py-2">
+          <div className="flex flex-col">
             {(currentCourse?.moocs ?? []).length > 0 ? (
               [...(currentCourse?.moocs ?? [])]
                 .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
@@ -99,22 +99,26 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
                   ].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
                 return (
-                  <div key={mooc.id} className="border-b border-border/40 pb-2 mb-2">
+                  <div key={mooc.id} className="border-b border-border/40">
                     <button 
                       onClick={() => toggleMooc(mooc.id)}
                       className={`w-full flex items-center justify-between py-4 px-6 transition-colors group hover:bg-muted/50`}
                     >
                       <h3 className={`text-sm font-black uppercase tracking-widest transition-colors text-left flex-1 flex items-center gap-2 ${mooc.isUnlocked === false ? 'text-muted-foreground/80' : 'text-muted-foreground group-hover:text-primary'}`}>
                         {mIndex + 1}. {mooc.title}
-                        {mooc.isCompleted && mooc.isUnlocked !== false && <CheckCircle2 className="h-3 w-3 text-green-500 inline-block" />}
                       </h3>
                       <div className="flex items-center gap-2">
+                         {mooc.isCompleted && mooc.isUnlocked !== false && (
+                           <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-green-500 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">
+                             <CheckCircle2 className="h-3 w-3" /> Xong
+                           </span>
+                         )}
                          {mooc.isUnlocked === false && <Lock className="h-4 w-4 text-muted-foreground/50" />}
                          <ChevronLeft className={`h-4 w-4 text-muted-foreground transition-transform ${expandedMoocs[mooc.id] ? '-rotate-90' : 'rotate-180'}`} />
                       </div>
                     </button>
                     {expandedMoocs[mooc.id] && (
-                      <div className="flex flex-col pt-1">
+                      <div className="flex flex-col border-t border-border/20">
                         {lessons.map((lesson: any) => {
                           const isLocked = mooc.isUnlocked === false || lesson.isUnlocked === false;
                           const isActive = validLesson?.id === lesson.id;
@@ -138,8 +142,10 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
                             <span className={`text-sm flex-1 line-clamp-2 leading-tight ${isActive ? 'font-bold' : 'font-medium'}`}>
                                 {lesson.title}
                             </span>
-                            {isCompleted && (
-                              <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                            {isCompleted && !isLocked && (
+                              <span className="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-green-500 shadow-sm shadow-green-500/40">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                              </span>
                             )}
                             {isLocked && <Lock className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />}
                           </button>

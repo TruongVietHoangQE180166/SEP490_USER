@@ -60,21 +60,21 @@ export const ChangePasswordCard = observer(
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.28em] text-muted-foreground">
-              Security
+              Bảo mật
             </div>
             <h1
               id="change-password-settings-title"
               className="mt-3 text-2xl font-semibold text-foreground sm:text-3xl"
             >
-              Change Password
+              Đổi mật khẩu
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Update your password to keep your account secure.
+              Cập nhật mật khẩu để giữ tài khoản của bạn luôn an toàn.
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Lock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Password</span>
+            <span className="text-sm text-muted-foreground">Mật khẩu</span>
           </div>
         </div>
 
@@ -85,17 +85,17 @@ export const ChangePasswordCard = observer(
                 <Lock className="w-12 h-12 text-primary" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-foreground">Password Security</p>
+                <p className="text-sm font-medium text-foreground">Bảo mật mật khẩu</p>
                 <p className="text-xs text-muted-foreground">
-                  Keep your account secure
+                  Giữ tài khoản của bạn luôn an toàn
                 </p>
-                <div className="mt-4 text-xs text-muted-foreground space-y-1">
-                  <p>Password must contain:</p>
-                  <p>• At least 8 characters</p>
-                  <p>• One uppercase letter</p>
-                  <p>• One lowercase letter</p>
-                  <p>• One number</p>
-                  <p>• One special character</p>
+                <div className="mt-4 text-xs text-muted-foreground space-y-1 text-left">
+                  <p className="font-bold underline mb-2">Mật khẩu phải bao gồm:</p>
+                  <p>• Ít nhất 8 ký tự</p>
+                  <p>• Một chữ cái viết hoa</p>
+                  <p>• Một chữ cái viết thường</p>
+                  <p>• Một con số</p>
+                  <p>• Một ký tự đặc biệt</p>
                 </div>
               </div>
             </div>
@@ -104,7 +104,7 @@ export const ChangePasswordCard = observer(
           <div className="space-y-6 sm:col-span-3">
             <div className="space-y-2">
               <Label htmlFor="current-password">
-                Current Password <span className="text-destructive">*</span>
+                Mật khẩu hiện tại <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -113,7 +113,7 @@ export const ChangePasswordCard = observer(
                   value={formData.currentPassword}
                   onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                   className="h-11 rounded-2xl border-border/60 bg-background/60 px-4 pr-12"
-                  placeholder="Enter your current password"
+                  placeholder="Nhập mật khẩu hiện tại"
                   required
                 />
                 <button
@@ -128,7 +128,7 @@ export const ChangePasswordCard = observer(
 
             <div className="space-y-2">
               <Label htmlFor="new-password">
-                New Password <span className="text-destructive">*</span>
+                Mật khẩu mới <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -137,7 +137,7 @@ export const ChangePasswordCard = observer(
                   value={formData.newPassword}
                   onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                   className="h-11 rounded-2xl border-border/60 bg-background/60 px-4 pr-12"
-                  placeholder="Enter your new password"
+                  placeholder="Nhập mật khẩu mới"
                   required
                 />
                 <button
@@ -152,7 +152,7 @@ export const ChangePasswordCard = observer(
 
             <div className="space-y-2">
               <Label htmlFor="confirm-password">
-                Confirm New Password <span className="text-destructive">*</span>
+                Xác nhận mật khẩu mới <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -161,7 +161,7 @@ export const ChangePasswordCard = observer(
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   className="h-11 rounded-2xl border-border/60 bg-background/60 px-4 pr-12"
-                  placeholder="Confirm your new password"
+                  placeholder="Nhập lại mật khẩu mới"
                   required
                 />
                 <button
@@ -177,7 +177,7 @@ export const ChangePasswordCard = observer(
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Password Strength</span>
+                  <span className="font-bold">Độ mạnh mật khẩu</span>
                   <span className={`${passwordStrength.strengthColor.replace('bg-', 'text-')}`}>
                     {passwordStrength.strengthLabel}
                   </span>
@@ -198,20 +198,20 @@ export const ChangePasswordCard = observer(
                 </div>
               </div>
               <AlertDialog open={showPasswordConfirmation} onOpenChange={setShowPasswordConfirmation}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      Confirm Password Change
+                <AlertDialogContent className="rounded-[32px] border border-border/40 bg-background/80 backdrop-blur-2xl p-8">
+                  <AlertDialogHeader className="space-y-4">
+                    <AlertDialogTitle className="flex items-center gap-2 text-2xl font-black">
+                      <CheckCircle className="w-6 h-6 text-green-500" />
+                      Xác nhận đổi mật khẩu
                     </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to update your password? This action cannot be undone.
+                    <AlertDialogDescription className="text-base font-bold text-foreground/50">
+                      Bạn có chắc chắn muốn cập nhật mật khẩu mới không? Hành động này không thể hoàn tác.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={cancelPasswordChange} disabled={isLoading}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={confirmPasswordChange} disabled={isLoading}>
-                      {isLoading ? 'Updating...' : 'Update Password'}
+                  <AlertDialogFooter className="mt-8 gap-4 sm:gap-0">
+                    <AlertDialogCancel onClick={cancelPasswordChange} disabled={isLoading} className="h-12 rounded-2xl border-border/40 bg-background/40 font-black">Hủy bỏ</AlertDialogCancel>
+                    <AlertDialogAction onClick={confirmPasswordChange} disabled={isLoading} className="h-12 rounded-2xl bg-primary text-primary-foreground font-black shadow-xl shadow-primary/20">
+                      {isLoading ? 'Đang cập nhật...' : 'Cập nhật mật khẩu'}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -219,9 +219,9 @@ export const ChangePasswordCard = observer(
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
                 <Button
                   type="submit"
-                  className="rounded-full bg-primary px-6 py-3 text-primary-foreground shadow-[0_20px_60px_-30px_rgba(79,70,229,0.75)] transition-transform duration-300 hover:-translate-y-1"
+                  className="rounded-full bg-primary px-8 py-4 text-primary-foreground shadow-[0_20px_60px_-30px_rgba(var(--primary-rgb),0.75)] transition-transform duration-300 hover:-translate-y-1 font-black text-base"
                 >
-                  Update Password
+                  Cập nhật mật khẩu
                 </Button>
               </div>
             </div>

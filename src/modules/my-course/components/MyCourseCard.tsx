@@ -1,11 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BookOpen, Trophy, Clock, ArrowRight } from 'lucide-react';
+import { BookOpen, Trophy, Clock, ArrowRight, Star } from 'lucide-react';
 import { EnrolledCourse } from '../types';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { ReviewModal } from './ReviewModal';
 
 interface MyCourseCardProps {
   course: EnrolledCourse;
@@ -88,9 +89,24 @@ export const MyCourseCard = ({ course, index }: MyCourseCardProps) => {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-black text-[11px] uppercase tracking-wider shadow-lg shadow-primary/20 transition-all group-hover:translate-x-1">
-                  Học tiếp
-                  <ArrowRight className="h-4 w-4" />
+                <div className="flex items-center gap-3">
+                  <ReviewModal courseId={course.id} courseTitle={course.title}>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-foreground font-black text-[11px] uppercase tracking-wider border border-border/50 transition-all backdrop-blur-md"
+                    >
+                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                      Đánh giá
+                    </button>
+                  </ReviewModal>
+
+                  <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-black text-[11px] uppercase tracking-wider shadow-lg shadow-primary/20 transition-all group-hover:translate-x-1">
+                    Học tiếp
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
                 </div>
               </div>
 

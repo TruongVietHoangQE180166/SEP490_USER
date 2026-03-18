@@ -1,10 +1,18 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { TextEffect } from '@/components/ui/text-effect'
 import { AnimatedGroup } from '@/components/ui/animated-group'
+import { motion, AnimatePresence } from 'framer-motion'
+
+const DASHBOARD_IMAGES = [
+    "https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=2700&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2700&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2700&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2700&auto=format&fit=crop"
+];
 
 const transitionVariants = {
     item: {
@@ -27,6 +35,15 @@ const transitionVariants = {
 }
 
 export default function HeroSection() {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentImageIndex((prev) => (prev + 1) % DASHBOARD_IMAGES.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
     return (
         <div className="overflow-hidden relative pb-16">
             <div
@@ -78,7 +95,7 @@ export default function HeroSection() {
                             className="absolute inset-0 -z-10 size-full [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--color-background)_75%)]"
                         />
 
-                        <div className="mx-auto max-w-7xl px-6">
+                        <div className="mx-auto max-w-8xl px-6">
                             <div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
                                 <AnimatedGroup variants={transitionVariants}>
                                     <Link
@@ -165,21 +182,29 @@ export default function HeroSection() {
                                 ...transitionVariants,
                             }}>
                             <div className="mask-b-from-55% relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20">
-                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border p-4 shadow-lg shadow-zinc-950/15 ring-1">
-                                    <Image
-                                        className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block object-cover"
-                                        src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=2700&auto=format&fit=crop"
-                                        alt="VIC Teach Dashboard"
-                                        width="2700"
-                                        height="1440"
-                                    />
-                                    <Image
-                                        className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden object-cover"
-                                        src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=2700&auto=format&fit=crop"
-                                        alt="VIC Teach Dashboard"
-                                        width="2700"
-                                        height="1440"
-                                    />
+                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-8xl overflow-hidden rounded-2xl border p-2 shadow-lg shadow-zinc-950/15 ring-1">
+                                    <div className="relative overflow-hidden rounded-2xl aspect-15/8 bg-muted/20">
+                                        <AnimatePresence mode="wait">
+                                            <motion.div
+                                                key={currentImageIndex}
+                                                initial={{ opacity: 0, x: 20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -20 }}
+                                                transition={{ duration: 0.8, ease: "easeInOut" }}
+                                                className="absolute inset-0"
+                                            >
+                                                <Image
+                                                    src={DASHBOARD_IMAGES[currentImageIndex]}
+                                                    alt={`VIC Teach Dashboard ${currentImageIndex + 1}`}
+                                                    className="size-full object-cover"
+                                                    width={2700}
+                                                    height={1440}
+                                                />
+                                            </motion.div>
+                                        </AnimatePresence>
+                                        {/* Overlay to unify look */}
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
                         </AnimatedGroup>

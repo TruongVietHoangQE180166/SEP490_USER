@@ -19,20 +19,20 @@ import {
 
 const footerLinks = [
   {
-    title: "Product",
-    links: ["Features", "Pricing", "Documentation", "API Reference"],
+    title: "Sản phẩm",
+    links: ["Tính năng", "Bảng giá", "Tài liệu", "Tham chiếu API"],
   },
   {
-    title: "Company",
-    links: ["About Us", "Careers", "Blog", "Press Kivớit"],
+    title: "Công ty",
+    links: ["Về chúng tôi", "Tuyển dụng", "Blog", "Báo chí"],
   },
   {
-    title: "Resources",
-    links: ["Community", "Help Center", "Partners", "Status"],
+    title: "Tài nguyên",
+    links: ["Cộng đồng", "Trung tâm trợ giúp", "Đối tác", "Trạng thái"],
   },
   {
-    title: "Legal",
-    links: ["Privacy", "Terms", "Cookie Policy", "Licenses"],
+    title: "Pháp lý",
+    links: ["Quyền riêng tư", "Điều khoản", "Chính sách Cookie", "Giấy phép"],
   },
 ];
 
@@ -104,29 +104,28 @@ export function FooterBlock() {
               className="mb-4 inline-flex items-center gap-3"
             >
               <Card className="rounded-2xl border border-border/60 bg-card/80 px-3 py-1 text-xs uppercase tracking-[0.32em] text-muted-foreground shadow-[0_10px_30px_-20px_rgba(15,23,42,0.8)]">
-                Brand
+                VIC Teach
               </Card>
               <Badge
                 variant="outline"
                 className="text-xs text-muted-foreground"
               >
-                Since 2018
+                Từ 2024
               </Badge>
             </motion.div>
             <p className="mb-4 max-w-md text-sm text-muted-foreground">
-              Building amazing products with modern technologies. Join us on our
-              journey to create better user experiences.
+              Xây dựng trải nghiệm học tập tuyệt vời với công nghệ hiện đại. Hãy cùng chúng tôi nâng tầm trí thức Việt.
             </p>
 
             {/* Newsletter */}
             <div className="mb-4">
               <p className="mb-2 text-sm font-medium text-foreground">
-                Subscribe to our newsletter
+                Đăng ký nhận tin từ chúng tôi
               </p>
               <div className="flex gap-2">
                 <Input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Nhập email của bạn"
                   className="h-10 rounded-xl border-border/60 bg-background/60 backdrop-blur placeholder:text-muted-foreground"
                 />
                 <Button
@@ -146,21 +145,21 @@ export function FooterBlock() {
                 className="flex items-center gap-2"
               >
                 <MapPin className="h-4 w-4" aria-hidden />
-                <span>123 Business St, City 12345</span>
+                <span>Thạch Hòa, Thạch Thất, Hà Nội</span>
               </motion.div>
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { x: 5 }}
                 className="flex items-center gap-2"
               >
                 <Phone className="h-4 w-4" aria-hidden />
-                <span>+1 (555) 123-4567</span>
+                <span>+84 (37) 956 0xxx</span>
               </motion.div>
               <motion.div
                 whileHover={shouldReduceMotion ? undefined : { x: 5 }}
                 className="flex items-center gap-2"
               >
                 <Mail className="h-4 w-4" aria-hidden />
-                <span>hello@example.com</span>
+                <span>contact@victeach.id.vn</span>
               </motion.div>
             </div>
           </motion.div>
@@ -261,7 +260,7 @@ export function FooterBlock() {
             transition={{ delay: 0.6 }}
             className="flex items-center gap-2 text-sm text-muted-foreground"
           >
-            <span>© 2024 Brand. All rights reserved.</span>
+            <span>© 2024 VIC Teach. Bảo lưu mọi quyền.</span>
             <Badge variant="outline" className="text-xs">
               v1.0.0
             </Badge>

@@ -21,5 +21,15 @@ export const paymentService = {
     }
 
     return response.data;
+  },
+
+  async getPaymentDetail(paymentId: string): Promise<PaymentData> {
+    const response = await ApiConfigService.get<PaymentResponse>(`/api/payment/detail/${paymentId}`);
+    
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể lấy thông tin thanh toán');
+    }
+
+    return response.data;
   }
 };

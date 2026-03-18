@@ -14,15 +14,16 @@ export interface PaymentRequest {
 }
 
 export interface PaymentData {
+  id: string;
   amount: number;
   courseId: string;
   courseTitle: string;
   thumbnailUrl: string;
   voucherCode: string | null;
   discountValue: number | null;
-  status: 'PENDING' | 'SUCCESS' | 'FAILED';
+  status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'COMPLETED';
   qrCode: string | null;
-  createDate: string | null;
+  createdDate: string | null;
 }
 
 export interface PaymentResponse {
@@ -39,5 +40,6 @@ export interface PaymentState {
   paymentInfo: PaymentInfo | null;
   currentOrder: PaymentData | null;
   isLoading: boolean;
+  isPaymentCompleted: boolean;
   error: string | null;
 }
