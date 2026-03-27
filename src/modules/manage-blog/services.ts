@@ -1,4 +1,4 @@
-import { ApiConfigService } from '@/services/apiConfig';
+import { ApiConfigService, API_BASE_URL } from '@/services/apiConfig';
 import { BlogPost, BlogCategoryApiResponse } from '../blog/types';
 import {
   BlogApiResponse,
@@ -51,7 +51,7 @@ export const blogService = {
     formData.append('file', file);
 
     const response = await fetch(
-      `https://vict-beeab2c3akcqgyej.malaysiawest-01.azurewebsites.net/api/images/upload`,
+      `${API_BASE_URL}/api/images/upload`,
       {
         method: 'POST',
         headers: {

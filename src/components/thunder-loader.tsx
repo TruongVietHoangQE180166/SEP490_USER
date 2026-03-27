@@ -49,9 +49,9 @@ interface ThunderLoaderProps
 // Use theme primary color for default, keep original colors for other variants
 const variantColors = {
   default: {
-    shimmer: "oklch(0.6724 0.1308 38.7559)",  // Theme primary (light mode)
-    glow: "oklch(0.6171 0.1375 39.0427)",     // Theme primary darker
-    base: "oklch(0.5583 0.1276 42.9956)",     // Theme primary darkest
+    shimmer: "oklch(0.6723 0.1606 244.9955)",  // Theme primary (blue)
+    glow: "oklch(0.6692 0.1607 245.0110)",     // Theme primary darker
+    base: "oklch(0.5800 0.1550 244.0000)",     // Theme primary darkest
   },
   fire: {
     shimmer: "#fbbf24",

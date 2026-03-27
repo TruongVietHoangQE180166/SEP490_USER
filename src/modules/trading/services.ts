@@ -1,4 +1,4 @@
-import { CandleType, OrderType, PositionType, OrderSide, PlaceOrderRequest } from './types';
+import { CandleType, OrderType, PositionType, OrderSide, PlaceOrderRequest, PlaceFutureOrderRequest, FutureOrderType } from './types';
 import { tradingActions, tradingState$ } from './store';
 import { ApiConfigService } from '@/services/apiConfig';
 
@@ -185,6 +185,65 @@ export async function placeTradeOrder(params: PlaceOrderRequest) {
     return response;
   } catch (error) {
     console.error('Lỗi đặt lệnh:', error);
+    throw error;
+  }
+}
+
+export async function placeFutureOrder(params: PlaceFutureOrderRequest) {
+  try {
+    const response = await ApiConfigService.post<{
+      message?: { messageCode: string; messageDetail: string };
+      success: boolean;
+      data?: FutureOrderType;
+      errors?: Array<{ field: string; message: string }> | null;
+    }>(`/api/v1/futures`, params);
+    
+    return response;
+  } catch (error) {
+    console.error('Lỗi đặt lệnh Future:', error);
+    throw error;
+  }
+}
+
+export async function closeFuturePosition(futureId: string) {
+  try {
+    const response = await ApiConfigService.post<{
+      message?: { messageCode: string; messageDetail: string };
+      success: boolean;
+      data?: FutureOrderType;
+    }>(`/api/v1/futures/${futureId}/close`);
+    return response;
+  } catch (error) {
+    console.error('Lỗi đóng vị thế Future:', error);
+    throw error;
+  }
+}
+
+export async function fetchMyFuturePositions(page = 1, size = 1000, field = 'createdDate', direction = 'desc') {
+  try {
+    const response = await ApiConfigService.get<{
+      data?: {
+        content: FutureOrderType[];
+        totalElement?: number;
+      };
+      success?: boolean;
+    }>(`/api/v1/futures/my-positions?page=${page}&size=${size}&field=${field}&direction=${direction}`);
+    return response?.data?.content || [];
+  } catch (error) {
+    console.error('Lỗi lấy lịch sử vị thế Future:', error);
+    return [];
+  }
+}
+
+export async function cancelFutureOrder(futureId: string) {
+  try {
+    const response = await ApiConfigService.delete<{
+      message?: { messageDetail: string };
+      success: boolean;
+    }>(`/api/v1/futures/${futureId}/cancel`);
+    return response;
+  } catch (error) {
+    console.error('Lỗi hủy lệnh Future:', error);
     throw error;
   }
 }

@@ -4,12 +4,15 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, TrendingDown, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { WalletInfo, WalletPnL } from '../../types';
+import { WalletInfo } from '../../types';
 import { fmt } from '../../utils';
 
 interface WalletHeroProps {
   walletInfo: WalletInfo | null;
-  pnl: WalletPnL | null;
+  /** Lãi/lỗ ngày từ socket trading (USDT) */
+  dailyPnl: number;
+  /** % lãi/lỗ ngày từ socket trading */
+  dailyPnlPercent: number;
   totalDisplayBalance: number;
   isPnlConnected: boolean;
   usdtPct: number;
@@ -19,20 +22,21 @@ interface WalletHeroProps {
 
 export const WalletHero: React.FC<WalletHeroProps> = ({
   walletInfo,
-  pnl,
+  dailyPnl,
+  dailyPnlPercent,
   totalDisplayBalance,
   isPnlConnected,
   usdtPct,
   xautPct,
   lockPct,
 }) => {
-  const positive = (pnl?.dailyChange ?? 0) >= 0;
+  const positive = dailyPnl >= 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="lg:col-span-7 relative group"
+      className="relative group"
     >
       {/* ambient glow */}
       <div className="absolute -inset-px rounded-3xl bg-gradient-to-br from-primary/30 via-indigo-500/10 to-violet-500/20 blur-2xl opacity-40 group-hover:opacity-60 transition duration-700" />
@@ -98,7 +102,7 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
         {/* PnL badge */}
         <div className="flex items-center gap-6">
           <motion.div
-            key={pnl?.dailyChange}
+            key={dailyPnl}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className={cn(
@@ -113,12 +117,12 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
             </div>
             <span>
               {positive ? '+' : ''}
-              {fmt(pnl?.dailyChange ?? 0)} USDT
+              {fmt(dailyPnl)} USDT
             </span>
             <div className="w-px h-4 bg-current opacity-20 mx-1" />
             <span className="opacity-80 font-bold">
               {positive ? '+' : ''}
-              {(pnl?.dailyChangePercent ?? 0).toFixed(2)}%
+              {dailyPnlPercent.toFixed(2)}%
             </span>
           </motion.div>
 
@@ -143,7 +147,7 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 italic">
               Phân bổ tài sản
             </span>
-            <div className="flex gap-4">
+            <div className="flex gap-4 flex-wrap justify-end">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                 <span className="text-[10px] font-bold text-muted-foreground/40">{usdtPct.toFixed(0)}% USDT</span>
@@ -152,6 +156,12 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
                 <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                 <span className="text-[10px] font-bold text-muted-foreground/40">{xautPct.toFixed(0)}% XAUT</span>
               </div>
+              {lockPct > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                  <span className="text-[10px] font-bold text-rose-400/60">{lockPct.toFixed(0)}% Đang khóa</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="relative h-2 rounded-full bg-muted/20 overflow-hidden flex p-0.5 border border-white/5 shadow-inner">
@@ -176,7 +186,22 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
               />
             )}
           </div>
+          {/* Mô tả tài sản đang bị khóa */}
+          {lockPct > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-500/[0.06] border border-rose-500/20"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse shrink-0" />
+              <span className="text-[10px] font-bold text-rose-400/70 leading-relaxed">
+                <span className="text-rose-400 font-black">{lockPct.toFixed(1)}%</span> tài sản đang bị khóa — đang chờ lệnh limit khớp hoặc lệnh bán XAUT.
+              </span>
+            </motion.div>
+          )}
         </div>
+
 
       </div>
     </motion.div>

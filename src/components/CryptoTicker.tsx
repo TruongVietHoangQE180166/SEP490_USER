@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, Zap, Bell } from 'lucide-react';
+import { TrendingUp, Bell } from 'lucide-react';
 
 import { usePathname } from 'next/navigation';
 import { ROUTES } from '@/constants/routes';
@@ -24,7 +24,7 @@ export const CryptoTicker = () => {
   return (
     <div className="relative flex h-10 w-full items-center overflow-hidden border-b border-border/50 bg-muted/30 backdrop-blur-sm">
       <div className="z-10 flex h-full items-center bg-background px-4 text-xs font-bold uppercase tracking-wider text-primary shadow-lg border-r border-border/50">
-        <Zap className="mr-2 h-3.5 w-3.5 fill-primary" />
+        <Bell className="mr-2 h-3.5 w-3.5 fill-primary" />
         Breaking
       </div>
 

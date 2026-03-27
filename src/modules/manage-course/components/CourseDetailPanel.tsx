@@ -166,7 +166,7 @@ export const AdminCourseDetailPage = ({ courseId, onBack }: AdminCourseDetailPag
     course.thumbnailUrl || 'https://placehold.co/1280x720/1e1e2e/6366f1?text=VIC+Course';
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background py-8">
+    <main className="relative min-h-screen overflow-hidden bg-background pb-8 pt-2">
       {/* Background blobs */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-primary/[0.035] blur-[140px]" />

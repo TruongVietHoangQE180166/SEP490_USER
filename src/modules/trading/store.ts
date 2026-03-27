@@ -1,5 +1,5 @@
 import { observable } from '@legendapp/state';
-import { TradingState, CandleType, PositionType, OrderType, ReplaySpeed, Timeframe } from './types';
+import { TradingState, CandleType, PositionType, ClosedPositionType, OrderType, FutureOrderType, ReplaySpeed, Timeframe } from './types';
 
 const initialTradingState: TradingState = {
   currentSymbol: 'BTC/USDT',
@@ -29,6 +29,7 @@ const initialTradingState: TradingState = {
   openPositions: [],
   closedPositions: [],
   pendingOrders: [],
+  pendingFutureOrders: [],
   orderHistory: [],
   replayState: {
     isActive: false,
@@ -84,6 +85,17 @@ export const tradingActions = {
   updateLastCandle: (candle: CandleType) => {
     const current = tradingState$.chartData.get();
     if (current.length === 0) return;
+    const last = current[current.length - 1];
+    // Bail out early if nothing actually changed
+    if (
+      last &&
+      last.time === candle.time &&
+      last.open === candle.open &&
+      last.high === candle.high &&
+      last.low === candle.low &&
+      last.close === candle.close &&
+      last.volume === candle.volume
+    ) return;
     const updated = [...current];
     updated[updated.length - 1] = candle;
     tradingState$.chartData.set(updated);
@@ -155,43 +167,107 @@ export const tradingActions = {
     );
   },
 
-  closePosition: (positionId: string, exitPrice: number) => {
-    const current = tradingState$.openPositions.get();
-    const pos = current.find(p => p.id === positionId);
-    if (!pos) return;
+  closePosition: async (positionId: string, exitPrice: number) => {
+    try {
+      const { closeFuturePosition } = await import('./services');
+      const res = await closeFuturePosition(positionId);
+      
+      if (res && res.success && res.data) {
+        const current = tradingState$.openPositions.get();
+        const pos = current.find(p => p.id === positionId);
+        
+        const data = res.data;
+        const realExitPrice = data.closePrice || exitPrice || data.entryPrice;
+        const pnl = data.realizedPnl || 0;
 
-    const pnl = pos.side === 'LONG' 
-      ? (exitPrice - pos.entryPrice) * pos.quantity 
-      : (pos.entryPrice - exitPrice) * pos.quantity;
+        if (pos) {
+          const closedPos = {
+            ...pos,
+            exitPrice: realExitPrice,
+            closedAt: new Date(data.createdDate).getTime() || Date.now(),
+            pnl,
+          };
 
-    const closedPos = {
-      ...pos,
-      exitPrice,
-      closedAt: Date.now(),
-      pnl,
-    };
-
-    tradingState$.openPositions.set(current.filter(p => p.id !== positionId));
-    const history = tradingState$.closedPositions.get();
-    tradingState$.closedPositions.set([closedPos, ...history]);
-
-    // Trả lại ký quỹ + PnL (giả định ký quỹ là full giá trị cho đơn giản)
-    // Tùy mô hình thực tế mà logic cân bằng tiền sẽ khác
-    const delta = (pos.entryPrice * pos.quantity) + pnl;
-    tradingActions.adjustBalance(delta);
+          tradingState$.openPositions.set(current.filter(p => p.id !== positionId));
+          const history = tradingState$.closedPositions.get();
+          tradingState$.closedPositions.set([closedPos, ...history]);
+        }
+        
+        // Cân bằng tài sản & refresh list lệnh if any
+        tradingActions.refreshWalletData();
+        return { success: true, message: res.message?.messageDetail || 'Đóng vị thế thành công' };
+      }
+      
+      return { success: false, message: res?.message?.messageDetail || 'Đóng vị thế thất bại' };
+    } catch (error: any) {
+      console.error('Lỗi khi close position:', error);
+      return { success: false, message: error?.message || 'Lỗi gọi API đóng vị thế' };
+    }
   },
 
   // ─── Orders ───────────────────────────────────────────────
   fetchAndSetOrders: async () => {
     // Need to dynamically import to prevent cyclic dependency on store -> services -> store
-    const { fetchTradeOrders } = await import('./services');
-    const orders = await fetchTradeOrders(1, 1000, 'createdDate', 'desc');
+    const { fetchTradeOrders, fetchMyFuturePositions } = await import('./services');
     
-    const pendingOrders = orders.filter(o => o.status === 'PENDING');
-    const historyOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED');
+    // Fetch Spot & Future
+    const [orders, futures] = await Promise.all([
+      fetchTradeOrders(1, 1000, 'createdDate', 'desc'),
+      fetchMyFuturePositions(1, 1000, 'createdDate', 'desc')
+    ]);
     
-    tradingState$.pendingOrders.set(pendingOrders);
-    tradingState$.orderHistory.set(historyOrders);
+    // 1. Chờ khớp/Lịch sử (Spot Orders)
+    const spotPending = orders.filter(o => o.status === 'PENDING');
+    const spotHistory = orders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED');
+    
+    // 2. Phân loại Future
+    const futurePending = futures.filter(f => f.status === 'PENDING');
+    const futureOpen = futures.filter(f => f.status === 'OPEN');
+    // Lịch sử vị thế (Future Positions đã đóng, hủy hoặc thanh lý)
+    const futureHistory = futures.filter(f => f.status === 'CLOSED' || f.status === 'CANCELLED' || f.status === 'LIQUIDATED');
+
+    // 3. Mapping Future -> UI Types
+    const mappedPendingFutures: OrderType[] = futurePending.map(f => ({
+      id: f.id, userId: f.userId, username: f.username, email: f.email, symbol: f.symbol, currency: f.currency,
+      type: f.side === 'LONG' ? 'BUY' : 'SELL',
+      category: f.orderCategory,
+      limitPrice: f.entryPrice,
+      quantity: f.quantity,
+      totalMoney: f.margin,
+      status: 'PENDING',
+      avgPrice: null, closePrice: 0, takeProfit: f.takeProfit, stopLoss: f.stopLoss,
+      changeBalance: null, changePercent: null, createdDate: f.createdDate, completed: false
+    }));
+
+    const mappedOpenPositions: PositionType[] = futureOpen.map(f => ({
+      id: f.id, symbol: f.symbol, side: f.side, entryPrice: f.entryPrice, quantity: f.quantity,
+      openedAt: new Date(f.createdDate).getTime(),
+      takeProfit: f.takeProfit ?? undefined,
+      stopLoss: f.stopLoss ?? undefined,
+      margin: f.margin, leverage: f.leverage, liquidationPrice: f.liquidationPrice ?? undefined
+    }));
+
+    const mappedClosedPositions: ClosedPositionType[] = futureHistory.map(f => ({
+      id: f.id, symbol: f.symbol, side: f.side, entryPrice: f.entryPrice, quantity: f.quantity,
+      openedAt: new Date(f.createdDate).getTime(),
+      takeProfit: f.takeProfit ?? undefined,
+      stopLoss: f.stopLoss ?? undefined,
+      margin: f.margin, leverage: f.leverage, liquidationPrice: f.liquidationPrice ?? undefined,
+      exitPrice: f.closePrice || f.entryPrice,
+      closedAt: new Date(f.createdDate).getTime(),
+      pnl: f.realizedPnl || 0,
+      status: f.status,
+      orderCategory: f.orderCategory,
+      positionValue: f.positionValue,
+      currency: f.currency
+    }));
+
+    // 4. Cập nhật Store
+    tradingState$.pendingOrders.set(spotPending); // Trình diễn mỗi spot ở đây cho Clear
+    tradingState$.pendingFutureOrders.set(futurePending); 
+    tradingState$.orderHistory.set(spotHistory);
+    tradingState$.openPositions.set(mappedOpenPositions);
+    tradingState$.closedPositions.set(mappedClosedPositions);
   },
 
   // Local mockup actions removed.

@@ -1,9 +1,9 @@
-import { ApiConfigService } from '@/services/apiConfig';
+import { ApiConfigService, API_BASE_URL } from '@/services/apiConfig';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { WalletInfo, WalletPnL, WalletTransaction, UserAsset, TradeOrder } from './types';
 
-const BASE_URL = 'https://vict-beeab2c3akcqgyej.malaysiawest-01.azurewebsites.net';
+const BASE_URL = API_BASE_URL;
 
 interface ApiResponse<T> {
   message: { messageCode: string; messageDetail: string };
