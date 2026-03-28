@@ -674,7 +674,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                   
                   <div className="relative space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-foreground">Quản trị viên</h3>
+                      <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-foreground">Giảng viên</h3>
                       <Badge className="bg-primary/10 text-primary border-primary/20">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Xác minh
@@ -684,11 +684,11 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                     <div className="flex flex-col gap-6">
                       <div className="flex items-start gap-4">
                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-background">
-                          <img src={currentCourse.author?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Hoang"} alt={currentCourse.author?.name || "Instructor"} className="h-full w-full object-cover" />
+                          <img src={currentCourse.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentCourse.createdBy || 'Giangvien'}`} alt={currentCourse.author?.name || currentCourse.createdBy || "Giảng viên"} className="h-full w-full object-cover" />
                         </div>
                         <div className="flex-1 space-y-1.5">
-                          <h4 className="text-xl font-semibold text-foreground tracking-tight">{currentCourse.author?.name || "Trường Việt Hoàng"}</h4>
-                          <p className="text-sm text-foreground/70 font-medium">{currentCourse.author?.role || "Quản trị viên"}</p>
+                          <h4 className="text-xl font-semibold text-foreground tracking-tight">{currentCourse.createdBy || currentCourse.author?.name || "Giảng viên"}</h4>
+                          <p className="text-sm text-foreground/70 font-medium">{currentCourse.author?.role || "Giảng viên"}</p>
                         </div>
                       </div>
 

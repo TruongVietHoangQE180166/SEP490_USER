@@ -252,6 +252,68 @@ export const TradingTutorial = observer(function TradingTutorial() {
           },
         },
 
+        // ── 8.1: Spot ─────────────────────────────────────────────────────────
+        {
+          element: '#tut-mode-spot',
+          popover: {
+            title: `${ICONS.wallet} Giao dịch Spot`,
+            description: `
+              <p>Thị trường cơ sở (Giao ngay):</p>
+              <div style="margin-top:10px">
+                ${row(ICONS.check, 'Sở hữu thật', 'Bạn dùng USDT để mua XAUT. Mua bao nhiêu nắm giữ thật bấy nhiêu.')}
+                ${row(ICONS.shield, 'An toàn cao', 'Không có đòn bẩy. Giá trị tài sản có thể giảm khi thị trường xuống nhưng <b>chắc chắn không bao giờ cháy tài khoản</b>.')}
+              </div>
+            `,
+            side: 'left',
+            align: 'start',
+          },
+        },
+
+        // ── 8.2: Future ───────────────────────────────────────────────────────
+        {
+          element: '#tut-mode-future',
+          popover: {
+            title: `${ICONS.rocket} Giao dịch Future`,
+            description: `
+              <p>Khu vực giao dịch hợp đồng phái sinh cực kỳ linh hoạt:</p>
+              <div style="margin-top:10px">
+                ${row(ICONS.trendingUp, '<span style="color:#26a69a">Long (Mua lên)</span>', 'Dự đoán giá tăng để kiếm lời, giống cơ chế Spot.')}
+                ${row(ICONS.trendingDn, '<span style="color:#ef5350">Short (Bán khống)</span>', 'Dự đoán giá giảm để kiếm lời — bạn vay tài sản bán trước giá cao, sau đó chờ giá giảm mua lại giá rẻ trả sàn để ăn chênh lệch. <b>Kiếm tiền ngay cả khi thị trường sập!</b>')}
+              </div>
+              ${tip('Lệnh Future sử dụng USDT đễ làm tài sản ký quỹ (Margin).')}
+            `,
+            side: 'left',
+            align: 'start',
+            onNextClick: () => {
+              const futureBtn = document.getElementById('tut-mode-future');
+              if (futureBtn) futureBtn.click();
+              // Chờ UI render thanh trượt đòn bẩy (leverage slider)
+              setTimeout(() => { if (driverRef.current) driverRef.current.moveNext(); }, 150);
+            },
+          },
+        },
+
+        // ── 8.3: Leverage ─────────────────────────────────────────────────────
+        {
+          element: '#tut-leverage-slider',
+          popover: {
+            title: `${ICONS.sliders} Đòn bẩy (Leverage)`,
+            description: `
+              <p>Vũ khí mạnh nhất của chế độ Future — mượn vốn của sàn để đánh lớn hơn:</p>
+              <div style="margin-top:10px">
+                ${row(ICONS.cart, 'Khuếch đại', 'Ví dụ dùng đòn bẩy <b>x10</b>: Chỉ cần có 100$ tiền mặt, bạn có thể thiết lập lệnh lên đến 1,000$. Lãi sẽ gấp 10 lần bình thường.')}
+                ${row(ICONS.shieldX, 'Thanh lý (Cháy túi)', 'Lỗ cũng sẽ bị nhân 10. Ở đòn bẩy x10, nếu giá đi ngược hướng dự đoán chỉ <b>10%</b>, bạn sẽ mất toàn bộ 100$ tiền gốc ban đầu!')}
+              </div>
+              ${warn('Thị trường coin biên độ rất lớn. Hãy thật cẩn trọng và chỉ dùng đòn bẩy nhỏ khi mới bắt đầu.')}
+            `,
+            side: 'left',
+            align: 'start',
+            onNextClick: () => {
+              setTimeout(() => { if (driverRef.current) driverRef.current.moveNext(); }, 50);
+            },
+          },
+        },
+
         // ── 9: Chiều giao dịch ─────────────────────────────────────────────────
         {
           element: '#tut-order-side',
@@ -259,10 +321,10 @@ export const TradingTutorial = observer(function TradingTutorial() {
             title: `${ICONS.arrows} Chọn chiều giao dịch`,
             description: `
               <div style="margin-top:4px">
-                ${row(ICONS.trendingUp, '<span style="color:#26a69a">MUA (Buy)</span>', 'Dự đoán giá sẽ <b>tăng</b> → Mua XAUT bằng USDT, bán lại khi giá lên để kiếm lời')}
-                ${row(ICONS.trendingDn, '<span style="color:#ef5350">BÁN (Sell)</span>', 'Muốn <b>chốt lời / cắt lỗ</b> → Bán XAUT lấy USDT khi giá phù hợp')}
+                ${row(ICONS.trendingUp, '<span style="color:#26a69a">MUA (Buy/Long)</span>', 'Dự đoán giá sẽ <b>tăng</b> → Mua XAUT bằng USDT, bán lại khi giá lên để kiếm lời')}
+                ${row(ICONS.trendingDn, '<span style="color:#ef5350">BÁN (Sell/Short)</span>', 'Mua/bán để <b>chốt lời, cắt lỗ</b> hoặc <b>bán khống</b> ăn chênh lệch giá giảm.')}
               </div>
-              ${tip('Giao dịch Spot chỉ cho phép bán tài sản bạn thực sự đang sở hữu.')}
+              ${tip('Ở chế độ Spot, bạn CHỈ có thể bán khi thực sự đang cầm XAUT trong ví.')}
             `,
             side: 'left',
             align: 'start',

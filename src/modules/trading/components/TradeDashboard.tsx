@@ -5,7 +5,7 @@ import { observer } from '@legendapp/state/react';
 import { tradingState$, tradingActions } from '../store';
 import { cancelTradeOrder } from '../services';
 import { cn } from '@/lib/utils';
-import { OrderType, PositionType, ClosedPositionType } from '../types';
+import { OrderType, PositionType, ClosedPositionType, FutureOrderType } from '../types';
 import { toast } from '@/components/ui/toast';
 import { RefreshCcw } from 'lucide-react';
 import {
@@ -20,13 +20,14 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-type DashboardTab = 'orders' | 'orderHistory' | 'positions' | 'positionHistory';
+type DashboardTab = 'orders' | 'orderHistory' | 'positions' | 'positionHistory' | 'futureOrders';
 
 export const TradeDashboard = observer(function TradeDashboard() {
   const [activeTab, setActiveTab] = useState<DashboardTab>('positions');
   const [isReloading, setIsReloading] = useState(false);
 
   const pendingOrders = tradingState$.pendingOrders.get();
+  const pendingFutureOrders = tradingState$.pendingFutureOrders.get();
   const orderHistory = tradingState$.orderHistory.get();
   const openPositions = tradingState$.openPositions.get();
   const closedPositions = tradingState$.closedPositions.get();
@@ -36,7 +37,8 @@ export const TradeDashboard = observer(function TradeDashboard() {
 
   const tabs: { id: DashboardTab; label: string; count?: number }[] = [
     { id: 'positions', label: 'Vị thế mở', count: openPositions.length },
-    { id: 'orders', label: 'Lệnh chờ khớp', count: pendingOrders.length },
+    { id: 'futureOrders', label: 'Lệnh chờ khớp Future', count: pendingFutureOrders.length },
+    { id: 'orders', label: 'Lệnh chờ khớp Spot', count: pendingOrders.length },
     { id: 'orderHistory', label: 'Lịch sử lệnh' },
     { id: 'positionHistory', label: 'Lịch sử vị thế' },
   ];
@@ -102,7 +104,8 @@ export const TradeDashboard = observer(function TradeDashboard() {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-auto min-h-[200px]">
-        {activeTab === 'positions' && <OpenPositionsTable positions={openPositions} currentPrice={currentPrice} />}
+        {activeTab === 'positions' && <OpenPositionsTable positions={openPositions} currentPrice={currentPrice} isUp={isUp} />}
+        {activeTab === 'futureOrders' && <FuturePendingOrdersTable orders={pendingFutureOrders} currentPrice={currentPrice} isUp={isUp} />}
         {activeTab === 'orders' && <PendingOrdersTable orders={pendingOrders} currentPrice={currentPrice} isUp={isUp} />}
         {activeTab === 'orderHistory' && <OrderHistoryTable orders={orderHistory} />}
         {activeTab === 'positionHistory' && <ClosedPositionsTable positions={closedPositions} />}
@@ -124,57 +127,169 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-const OpenPositionsTable = observer(({ positions, currentPrice }: { positions: PositionType[], currentPrice: number }) => {
+const OpenPositionsTable = observer(({ positions, currentPrice, isUp }: { positions: PositionType[], currentPrice: number, isUp: boolean }) => {
+  const [closingId, setClosingId] = useState<string | null>(null);
+
+  const handleClose = async (positionId: string, currentPrice: number) => {
+    try {
+      setClosingId(positionId);
+      const res = await tradingActions.closePosition(positionId, currentPrice);
+      if (res && res.success) {
+        toast.success(res.message || 'Đã đóng vị thế thành công');
+      } else {
+        toast.error(res?.message || 'Đóng vị thế thất bại');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi khi đóng vị thế');
+    } finally {
+      setClosingId(null);
+    }
+  };
+
   if (positions.length === 0) return <EmptyState message="Không có vị thế mở" />;
 
   return (
     <table className="w-full text-left text-xs">
       <thead>
         <tr className="text-muted-foreground border-b border-border/50 bg-muted/5">
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Cặp giao dịch</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Loại</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Giá vào</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Giá hiện tại</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Số lượng</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">PnL (ROE%)</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter text-right">Hành động</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Cặp / Chiều</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Giá vào</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Giá thị trường</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Số lượng</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Ký quỹ</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter text-orange-500/80">Giá thanh lý</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">PnL (ROE%)</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">TP / SL</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter text-right">Hành động</th>
         </tr>
       </thead>
       <tbody>
-        {positions.map((pos) => {
-          const pnl = pos.side === 'LONG' 
-            ? (currentPrice - pos.entryPrice) * pos.quantity 
-            : (pos.entryPrice - currentPrice) * pos.quantity;
-          const roe = (pnl / (pos.entryPrice * pos.quantity)) * 100 * 10; // Giả định margin 10x
+        {positions.map((pos, i) => {
+          const isLong = pos.side === 'LONG';
+          // Ưu tiên dữ liệu từ WS; nếu chưa có thì tính local
+          const pnl = pos.unrealizedPnl ?? (
+            isLong
+              ? (currentPrice - pos.entryPrice) * pos.quantity
+              : (pos.entryPrice - currentPrice) * pos.quantity
+          );
+          const pnlPct = pos.pnlPercentage ?? (
+            pos.margin ? (pnl / pos.margin) * 100 : 0
+          );
+          const markPx = pos.markPrice || currentPrice;
           const isProfit = pnl >= 0;
 
           return (
-            <tr key={pos.id} className="border-b border-border/30 hover:bg-muted/5">
-              <td className="px-4 py-4 font-bold">{pos.symbol}</td>
-              <td className="px-4 py-4">
-                <span className={cn('px-2 py-0.5 rounded text-[10px] font-black', pos.side === 'LONG' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500')}>
-                  {pos.side}
-                </span>
-              </td>
-              <td className="px-4 py-4 font-mono font-medium">${pos.entryPrice.toLocaleString()}</td>
-              <td className="px-4 py-4 font-mono font-medium text-muted-foreground">${currentPrice.toLocaleString()}</td>
-              <td className="px-4 py-4 font-mono">{pos.quantity}</td>
-              <td className="px-4 py-4">
-                <div className={cn('font-mono font-bold flex flex-col', isProfit ? 'text-emerald-500' : 'text-rose-500')}>
-                  <span>{isProfit ? '+' : ''}{pnl.toFixed(2)} USDT</span>
-                  <span className="text-[10px] opacity-70">({isProfit ? '+' : ''}{roe.toFixed(2)}%)</span>
+            <tr key={pos.id ?? i} className="border-b border-border/30 hover:bg-muted/5 transition-colors">
+              {/* Cặp / Chiều / Đòn bẩy */}
+              <td className="px-3 py-3">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold text-foreground">{pos.symbol ?? 'XAUT'}/USDT</span>
+                  <div className="flex items-center gap-1">
+                    <span className={cn(
+                      'px-1.5 py-0.5 rounded text-[10px] font-black',
+                      isLong ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                    )}>
+                      {pos.side}
+                    </span>
+                    {pos.leverage && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-muted/40 text-muted-foreground">
+                        x{pos.leverage}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </td>
-              <td className="px-4 py-4 text-right">
-                <button 
-                  onClick={() => {
-                    tradingActions.closePosition(pos.id, currentPrice);
-                    toast.success('Đã đóng vị thế thành công');
-                  }}
-                  className="px-3 py-1 rounded bg-secondary text-[10px] font-black hover:bg-secondary/80 transition-colors uppercase"
-                >
-                  Đóng nhanh
-                </button>
+
+              {/* Giá vào */}
+              <td className="px-3 py-3 font-mono font-medium">
+                ${pos.entryPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+
+              {/* Giá thị trường */}
+              <td className={cn(
+                'px-3 py-3 font-mono font-semibold',
+                isUp ? 'text-emerald-500' : 'text-rose-500'
+              )}>
+                ${markPx.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </td>
+
+              {/* Số lượng */}
+              <td className="px-3 py-3 font-mono">{pos.quantity} oz</td>
+
+              {/* Ký quỹ */}
+              <td className="px-3 py-3 font-mono whitespace-nowrap">
+                {pos.margin != null
+                  ? `$${pos.margin.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : <span className="text-muted-foreground italic text-[10px]">Chưa có</span>
+                }
+              </td>
+
+              {/* Giá thanh lý */}
+              <td className="px-3 py-3 font-mono text-orange-500/90 whitespace-nowrap">
+                {pos.liquidationPrice != null
+                  ? `$${pos.liquidationPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : <span className="text-muted-foreground italic text-[10px]">Chưa có</span>
+                }
+              </td>
+
+              {/* PnL */}
+              <td className="px-3 py-3">
+                <div className={cn('font-mono font-bold flex flex-col', isProfit ? 'text-emerald-500' : 'text-rose-500')}>
+                  <span>{isProfit ? '+' : ''}{pnl.toFixed(2)} $</span>
+                  <span className="text-[10px] opacity-70">({isProfit ? '+' : ''}{pnlPct.toFixed(2)}%)</span>
+                </div>
+              </td>
+
+              {/* TP / SL */}
+              <td className="px-3 py-3">
+                <div className="flex flex-col gap-0.5 text-[10px] font-mono">
+                  <div className="flex items-center gap-1">
+                    <span className="font-black text-emerald-500/70 w-5">TP</span>
+                    {pos.takeProfit != null
+                      ? <span className="font-bold text-emerald-500">
+                          ${pos.takeProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      : <span className="text-muted-foreground/50 italic">Chưa có</span>
+                    }
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="font-black text-rose-500/70 w-5">SL</span>
+                    {pos.stopLoss != null
+                      ? <span className="font-bold text-rose-500">
+                          ${pos.stopLoss.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      : <span className="text-muted-foreground/50 italic">Chưa có</span>
+                    }
+                  </div>
+                </div>
+              </td>
+
+              {/* Hành động */}
+              <td className="px-3 py-3 text-right">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      disabled={closingId === pos.id}
+                      className="text-rose-500 hover:text-rose-600 font-bold transition-colors uppercase text-[10px] disabled:opacity-50"
+                    >
+                      {closingId === pos.id ? 'Đang đóng...' : 'Đóng vị thế'}
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Xác nhận đóng vị thế</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Bạn có chắc chắn muốn đóng vị thế {pos.symbol ?? 'XAUT'}/USDT ({pos.side}) ở giá thị trường không? Hành động này không thể hoàn tác.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Hủy</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleClose(pos.id ?? '', currentPrice)}>
+                        Xác nhận đóng
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </td>
             </tr>
           );
@@ -291,6 +406,121 @@ const PendingOrdersTable = observer(({ orders, currentPrice, isUp }: { orders: O
   );
 });
 
+const FuturePendingOrdersTable = observer(({ orders, currentPrice, isUp }: { orders: FutureOrderType[], currentPrice: number, isUp: boolean }) => {
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const handleCancel = async (orderId: string) => {
+    try {
+      const { cancelFutureOrder } = await import('../services');
+      setCancellingId(orderId);
+      const res = await cancelFutureOrder(orderId);
+      if (res && res.success) {
+        tradingActions.fetchAndSetOrders();
+        tradingActions.refreshWalletData();
+        toast.success(res.message?.messageDetail || 'Đã hủy lệnh Future thành công');
+      } else {
+        toast.error('Hủy lệnh Future thất bại');
+      }
+    } catch (err: any) {
+      toast.error('Lỗi khi hủy lệnh Future');
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  if (orders.length === 0) return <EmptyState message="Không có lệnh Future chờ" />;
+
+  return (
+    <table className="w-full text-left text-xs">
+      <thead>
+        <tr className="text-muted-foreground border-b border-border/50 bg-muted/5">
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Thời gian</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Cặp / Chiều / Loại</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Đòn bẩy / Ký quỹ</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Giá Đặt</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Giá Hiện Tại</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Số lượng</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">TP / SL</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter text-right">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {orders.map((order) => {
+          const isLong = order.side === 'LONG';
+          return (
+            <tr key={order.id} className="border-b border-border/30 hover:bg-muted/5 transition-colors">
+              <td className="px-3 py-3 text-muted-foreground font-mono">
+                {new Date(order.createdDate).toLocaleTimeString()}
+              </td>
+              <td className="px-3 py-3">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold">{order.symbol}/USDT</span>
+                  <div className="flex items-center gap-1">
+                    <span className={cn(
+                      'px-1.5 py-0.5 rounded text-[9px] font-black',
+                      isLong ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                    )}>
+                      {order.side}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-muted text-muted-foreground opacity-70">
+                      {order.orderCategory}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td className="px-3 py-3 font-mono leading-tight">
+                <div className="flex flex-col">
+                  <span className="font-bold">{order.leverage}x</span>
+                  <span className="text-muted-foreground opacity-80">${order.margin?.toLocaleString()}</span>
+                </div>
+              </td>
+              <td className="px-3 py-3 font-mono font-bold text-amber-500">
+                ${order.entryPrice.toLocaleString()}
+              </td>
+              <td className={cn("px-3 py-3 font-mono", isUp ? "text-emerald-500" : "text-rose-500")}>
+                ${currentPrice.toLocaleString()}
+              </td>
+              <td className="px-3 py-3 font-mono">{order.quantity} oz</td>
+              <td className="px-3 py-3">
+                <div className="flex flex-col gap-0.5 text-[9px] font-mono whitespace-nowrap opacity-70">
+                  <span className="text-emerald-500">TP: {order.takeProfit ? `$${order.takeProfit}` : 'Chưa có'}</span>
+                  <span className="text-rose-500">SL: {order.stopLoss ? `$${order.stopLoss}` : 'Chưa có'}</span>
+                </div>
+              </td>
+              <td className="px-3 py-3 text-right">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button 
+                      disabled={cancellingId === order.id}
+                      className="text-rose-500 hover:text-rose-600 font-bold transition-colors uppercase text-[10px] disabled:opacity-50"
+                    >
+                      {cancellingId === order.id ? 'Đang hủy...' : 'Hủy lệnh'}
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Xác nhận hủy lệnh Future</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Bạn có chắc chắn muốn hủy lệnh {order.side} {order.symbol} ở giá {order.entryPrice} không?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Không</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleCancel(order.id)}>
+                        Xác nhận hủy
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+});
+
 const OrderHistoryTable = observer(({ orders }: { orders: OrderType[] }) => {
   if (orders.length === 0) return <EmptyState message="Lịch sử trống" />;
 
@@ -361,34 +591,109 @@ const ClosedPositionsTable = observer(({ positions }: { positions: ClosedPositio
     <table className="w-full text-left text-xs">
       <thead>
         <tr className="text-muted-foreground border-b border-border/50 bg-muted/5">
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Thời gian đóng</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Cặp</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Giá vào/ra</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Số lượng</th>
-          <th className="px-4 py-3 font-medium uppercase tracking-tighter">Lợi nhuận (PnL)</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Thời gian đóng</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Cặp / Chiều / Loại</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Trạng thái</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Đòn bẩy / Ký quỹ</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Giá vào / Giá đóng</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">Qty / Quy mô</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter text-orange-500/80">Giá thanh lý</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter">PnL (Thực tế)</th>
+          <th className="px-3 py-3 font-medium uppercase tracking-tighter text-right">TP / SL</th>
         </tr>
       </thead>
       <tbody>
-        {positions.map((pos) => (
-          <tr key={pos.id} className="border-b border-border/30 hover:bg-muted/5">
-            <td className="px-4 py-4 text-muted-foreground font-mono">
-              {new Date(pos.closedAt).toLocaleTimeString()}
-            </td>
-            <td className="px-4 py-4 font-bold">{pos.symbol}</td>
-            <td className="px-4 py-4 leading-tight">
-              <div className="flex flex-col font-mono">
-                <span className="text-emerald-500 text-[10px] font-bold">In: ${pos.entryPrice.toLocaleString()}</span>
-                <span className="text-rose-500 text-[10px] font-bold">Out: ${pos.exitPrice.toLocaleString()}</span>
-              </div>
-            </td>
-            <td className="px-4 py-4 font-mono">{pos.quantity}</td>
-            <td className="px-4 py-4">
-              <span className={cn('font-mono font-black', pos.pnl >= 0 ? 'text-emerald-500' : 'text-rose-500')}>
-                {pos.pnl >= 0 ? '+' : ''}{pos.pnl.toFixed(2)} USDT
-              </span>
-            </td>
-          </tr>
-        ))}
+        {positions.map((pos) => {
+          const isLong = pos.side === 'LONG';
+          const isProfit = (pos.pnl || 0) >= 0;
+          
+          return (
+            <tr key={pos.id} className="border-b border-border/30 hover:bg-muted/5 transition-colors opacity-90">
+              {/* Thời gian đóng */}
+              <td className="px-3 py-3 text-muted-foreground font-mono">
+                {new Date(pos.closedAt).toLocaleTimeString()}
+                <span className="block text-[9px] opacity-60 font-sans">{new Date(pos.closedAt).toLocaleDateString()}</span>
+              </td>
+
+              {/* Cặp / Chiều / Loại */}
+              <td className="px-3 py-3">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold text-foreground">{pos.symbol ?? 'XAUT'}/{pos.currency ?? 'USDT'}</span>
+                  <div className="flex items-center gap-1">
+                    <span className={cn(
+                      'px-1.5 py-0.5 rounded text-[9px] font-black',
+                      isLong ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                    )}>
+                      {pos.side}
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black bg-muted text-muted-foreground opacity-70">
+                      {pos.orderCategory || 'MARKET'}
+                    </span>
+                  </div>
+                </div>
+              </td>
+
+              {/* Trạng thái */}
+              <td className="px-3 py-3">
+                <span className={cn(
+                  'px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-tight',
+                  pos.status === 'CLOSED'     ? 'bg-primary/10 text-primary' :
+                  pos.status === 'CANCELLED'  ? 'bg-zinc-500/15 text-zinc-400' :
+                  pos.status === 'LIQUIDATED' ? 'bg-rose-500/15 text-rose-500' :
+                  'bg-muted/30 text-muted-foreground'
+                )}>
+                  {pos.status}
+                </span>
+              </td>
+
+              {/* Đòn bẩy / Ký quỹ */}
+              <td className="px-3 py-3 font-mono leading-tight">
+                <div className="flex flex-col">
+                  <span className="text-foreground font-bold">{pos.leverage}x</span>
+                  <span className="text-muted-foreground opacity-80">${pos.margin?.toLocaleString()}</span>
+                </div>
+              </td>
+
+              {/* Giá vào / Giá đóng */}
+              <td className="px-3 py-3 leading-tight">
+                <div className="flex flex-col font-mono">
+                  <span className="text-emerald-500/80 text-[10px] font-bold">In: ${pos.entryPrice.toLocaleString()}</span>
+                  <span className={cn('text-[11px] font-black', isProfit ? 'text-emerald-500' : 'text-rose-500')}>
+                    Out: ${pos.exitPrice.toLocaleString()}
+                  </span>
+                </div>
+              </td>
+
+              {/* Qty / Quy mô */}
+              <td className="px-3 py-3 font-mono leading-tight">
+                <div className="flex flex-col">
+                  <span className="font-bold text-foreground">{pos.quantity} oz</span>
+                  <span className="text-[10px] text-muted-foreground font-medium opacity-70">Val: ${pos.positionValue?.toLocaleString()}</span>
+                </div>
+              </td>
+
+              {/* Giá thanh lý */}
+              <td className="px-3 py-3 font-mono text-orange-500/80 opacity-60">
+                {pos.liquidationPrice != null ? `$${pos.liquidationPrice.toLocaleString()}` : <span className="italic text-muted-foreground/50">Chưa có</span>}
+              </td>
+
+              {/* PnL */}
+              <td className="px-3 py-3 whitespace-nowrap">
+                <span className={cn('font-mono font-black', isProfit ? 'text-emerald-500' : 'text-rose-500')}>
+                  {isProfit ? '+' : ''}{pos.pnl?.toFixed(2)} USDT
+                </span>
+              </td>
+
+              {/* TP / SL */}
+              <td className="px-3 py-3 text-right whitespace-nowrap">
+                <div className="flex flex-col gap-0.5 text-[9px] font-mono opacity-60">
+                  <span className="text-emerald-500">TP: {pos.takeProfit != null ? `$${pos.takeProfit}` : 'Chưa có'}</span>
+                  <span className="text-rose-500">SL: {pos.stopLoss != null ? `$${pos.stopLoss}` : 'Chưa có'}</span>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

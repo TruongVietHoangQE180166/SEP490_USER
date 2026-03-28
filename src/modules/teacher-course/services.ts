@@ -1,7 +1,23 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse } from './types';
+import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse } from './types';
 
 export const teacherCourseService = {
+  /**
+   * Upload an image to the server and get back a URL.
+   */
+  async uploadThumbnail(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await ApiConfigService.post<ImageUploadResponse>('/api/images/upload', formData);
+    
+    // Based on user note: return URL even if success might be false, 
+    // but check if data exists as it contains the URL.
+    if (!response || !response.data) {
+        throw new Error(response?.message?.messageDetail || 'Không thể tải ảnh lên');
+    }
+    return response.data;
+  },
+
   /**
    * Fetch all courses for the teacher.
    * Modify the endpoint if the backend has a specific one for teacher courses.
@@ -39,7 +55,7 @@ export const teacherCourseService = {
   /**
    * Create a new course.
    */
-  async createCourse(data: Partial<TeacherCourse>): Promise<TeacherCourse> {
+  async createCourse(data: CreateCourseRequest): Promise<TeacherCourse> {
     const response = await ApiConfigService.post<TeacherCourseSingleResponse>('/api/course', data);
     if (!response || !response.success || !response.data) {
       throw new Error(response?.message?.messageDetail || 'Không thể tạo khoá học');
@@ -50,7 +66,7 @@ export const teacherCourseService = {
   /**
    * Update an existing course.
    */
-  async updateCourse(id: string, data: Partial<TeacherCourse>): Promise<TeacherCourse> {
+  async updateCourse(id: string, data: CreateCourseRequest): Promise<TeacherCourse> {
     const response = await ApiConfigService.put<TeacherCourseSingleResponse>(`/api/course/${id}`, data);
     if (!response || !response.success || !response.data) {
       throw new Error(response?.message?.messageDetail || 'Không thể cập nhật khoá học');

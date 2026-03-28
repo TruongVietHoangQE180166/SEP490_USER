@@ -20,7 +20,6 @@ const SYMBOL = 'XAU-USDT-SWAP';
 
 export const TradingView = observer(function TradingView() {
 
-  const candles      = tradingState$.chartData.get();
   const positions    = tradingState$.openPositions.get();
   const currentPrice = tradingState$.currentPrice.get();
   const timeframe    = tradingState$.timeframe.get();
@@ -95,6 +94,7 @@ export const TradingView = observer(function TradingView() {
 
   const handleTimeframeChange = (tf: Timeframe) => { 
     if (timeframe === tf) return;
+    tradingActions.setChartData([]); // Clear ghost candles immediately
     tradingActions.setTimeframe(tf);
     stopRealtime(); 
     loadData(tf); 
@@ -118,7 +118,6 @@ export const TradingView = observer(function TradingView() {
           <div id="tut-trading-chart" className="flex-1 min-w-0">
             <div className="rounded-md border border-border bg-card overflow-hidden" style={{ height: 800 }}>
               <TradingChart
-                candles={candles}
                 positions={positions}
                 currentPrice={currentPrice}
                 timeframe={timeframe}
@@ -154,7 +153,6 @@ export const TradingView = observer(function TradingView() {
         <div className="flex lg:hidden flex-col gap-4">
           <div className="rounded-md border border-border bg-card overflow-hidden h-[400px]">
              <TradingChart 
-               candles={candles} 
                positions={positions} 
                currentPrice={currentPrice} 
                timeframe={timeframe} 

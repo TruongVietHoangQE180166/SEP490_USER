@@ -1,4 +1,4 @@
-export const API_BASE_URL = 'https://vict-beeab2c3akcqgyej.malaysiawest-01.azurewebsites.net';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 import { isTokenExpired } from '@/modules/auth/utils';
 import { authActions } from '@/modules/auth/store';
 export class ApiConfigService {

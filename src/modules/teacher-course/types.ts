@@ -98,6 +98,27 @@ export interface TeacherCourseSingleResponse {
   success: boolean;
 }
 
+export interface CreateCourseRequest {
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  price: number;
+  discountPercent: number;
+  courseStatus: string;
+  assets: string[];
+  courseLevel: string;
+}
+
+export interface ImageUploadResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: string; // The URL of the uploaded image
+  success: boolean;
+}
+
 export interface QuizAnswer {
   id: string;
   content: string;

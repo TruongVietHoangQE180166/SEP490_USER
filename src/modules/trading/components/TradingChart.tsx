@@ -17,9 +17,9 @@ import { tradingState$ } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CandleType, PositionType, Timeframe } from '../types';
 import { cn } from '@/lib/utils';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface TradingChartProps {
-  candles: CandleType[];
   positions: PositionType[];
   currentPrice: number;
   timeframe?: Timeframe;
@@ -52,7 +52,9 @@ const TIMEFRAMES: { label: string; value: Timeframe }[] = [
   { label: '1M', value: '1month' },
 ];
 
-export const TradingChart = observer(function TradingChart({ candles, positions, currentPrice, timeframe = '1m', onTimeframeChange }: TradingChartProps & { onTimeframeChange?: (tf: Timeframe) => void }) {
+export const TradingChart = observer(function TradingChart({ positions, currentPrice, timeframe = '1m', onTimeframeChange }: TradingChartProps & { onTimeframeChange?: (tf: Timeframe) => void }) {
+  // Read chartData directly inside observer() — observer() auto-tracks this subscription
+  const candles = tradingState$.chartData.get();
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -61,7 +63,11 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
 
   // State để hiển thị thông tin nến đang hover (OHLCV)
   const [hoveredCandle, setHoveredCandle] = useState<CandleType | null>(null);
-  
+  // Vị trí con trỏ + giá thực tế tại con trỏ (theo tỏa độ Y)
+  const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number; price: number } | null>(null);
+  // Toggle hiển thị đường lệnh trên chart
+  const [showPositions, setShowPositions] = useState(true);
+
   // Flag để cuộn chart đến cây nến mới nhất khi thay đổi timeframe
   const shouldScrollToLatest = useRef<boolean>(true);
 
@@ -90,7 +96,7 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
         horzLines: { color: colors.grid, style: LineStyle.Solid },
       },
       crosshair: {
-        mode: 1, // Magnet
+        mode: 0, // Normal — horizontal line tracks exact cursor Y (shows price at any point)
         vertLine: { 
           color: colors.crosshair, 
           width: 1, 
@@ -108,18 +114,23 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
         borderColor: colors.border,
         scaleMargins: { top: 0.15, bottom: 0.1 },
         visible: true,
-        alignLabels: true,
+        alignLabels: false, // Tắt tự động sắp xếp nhãn để đường nối bị chéo, nhãn luôn thẳng hàng với line (dù có đè lên nhau xíu)
       },
       timeScale: {
         borderColor: colors.border,
         timeVisible: true,
         secondsVisible: timeframe === '1s',
         barSpacing: 10,
-        rightOffset: 12,
+        rightOffset: 30,    // khoảng trống bên phải cây nến cuối
         fixLeftEdge: true,
-        fixRightEdge: true,
+        // fixRightEdge: false (bỏ để có thể cuộn vượt chậu nến mới nhất)
       },
-      handleScroll: true,
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false, // Set false to capture vertical drag on touch devices instead of scrolling the page
+      },
       handleScale: true,
     });
 
@@ -165,8 +176,14 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
           close: candleData.close,
           volume: volData ? volData.value : 0,
         });
+        if (param.point) {
+          // coordinateToPrice: lấy giá thực tế tại toạ độ Y của con trỏ (thay đổi khi kéo dọc)
+          const price = candleSeries.coordinateToPrice(param.point.y) ?? 0;
+          setHoverPoint({ x: param.point.x, y: param.point.y, price });
+        }
       } else {
         setHoveredCandle(null);
+        setHoverPoint(null);
       }
     });
 
@@ -228,7 +245,13 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
   useEffect(() => {
     const candleSeries = candleSeriesRef.current;
     const volumeSeries = volumeSeriesRef.current;
-    if (!candleSeries || !volumeSeries || candles.length === 0) return;
+    if (!candleSeries || !volumeSeries) return;
+
+    if (candles.length === 0) {
+      candleSeries.setData([]);
+      volumeSeries.setData([]);
+      return;
+    }
 
     const cdData = candles.map(c => ({
       time: c.time as Time,
@@ -250,9 +273,14 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
     volumeSeries.setData(volData);
     
     if (shouldScrollToLatest.current) {
+      // Temporarily enable autoScale to perfectly fit the incoming data height
+      chartRef.current?.priceScale('right').applyOptions({ autoScale: true });
+      
       // Dùng setTimeout nhỏ để đảm bảo Lightweight Charts đã render xong mẻ data mới
       setTimeout(() => {
         chartRef.current?.timeScale().scrollToRealTime();
+        // Turn autoScale back off so user can freely drag the chart vertically
+        chartRef.current?.priceScale('right').applyOptions({ autoScale: false });
       }, 50);
       shouldScrollToLatest.current = false;
     }
@@ -265,13 +293,34 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
     const series = candleSeriesRef.current;
     if (!series) return;
 
-    const existingIds = new Set(priceLinesRef.current.keys());
+    // Clear and recreate so title stays fresh with latest PnL
+    priceLinesRef.current.forEach(pl => {
+      if (pl.entryLine) series.removePriceLine(pl.entryLine);
+      if (pl.tpLine) series.removePriceLine(pl.tpLine);
+      if (pl.slLine) series.removePriceLine(pl.slLine);
+    });
+    priceLinesRef.current.clear();
+
+    // Don't recreate if toggled off
+    if (!showPositions) return;
 
     positions.forEach(pos => {
-      existingIds.delete(pos.id);
-      if (priceLinesRef.current.has(pos.id)) return;
+      // Distinct colors: blue for LONG, purple for SHORT
+      const sideColor = pos.side === 'LONG' ? '#3b82f6' : '#a855f7';
 
-      const sideColor = pos.side === 'LONG' ? '#26a69a' : '#ef5350';
+      // Create base prefix for identification: "LONG x20 @4976"
+      const prefix = `${pos.side === 'LONG' ? 'LONG' : 'SHORT'}${pos.leverage ? ` x${pos.leverage}` : ''} @${pos.entryPrice}`;
+
+      // Build main title: "LONG x20 +123.45$ (+5.67%)"
+      const parts: string[] = [prefix];
+      if (pos.unrealizedPnl !== undefined) {
+        const sign = pos.unrealizedPnl >= 0 ? '+' : '';
+        parts.push(`${sign}${pos.unrealizedPnl.toFixed(2)}$`);
+        if (pos.pnlPercentage !== undefined) {
+          const pctSign = pos.pnlPercentage >= 0 ? '+' : '';
+          parts.push(`(${pctSign}${pos.pnlPercentage.toFixed(2)}%)`);
+        }
+      }
 
       const entryLine = series.createPriceLine({
         price: pos.entryPrice,
@@ -279,45 +328,36 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
         lineWidth: 2,
         lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
-        title: pos.side === 'LONG' ? 'ENTRY LONG' : 'ENTRY SHORT',
+        title: parts.join(' '),
       });
 
-      const pl: PositionLines = { positionId: pos.id, entryLine };
+      const pl: PositionLines = { positionId: pos.id ?? '', entryLine };
 
-      if (pos.takeProfit) {
+      if (pos.takeProfit != null) {
         pl.tpLine = series.createPriceLine({
           price: pos.takeProfit,
-          color: '#26a69a',
+          color: '#22d3ee',
           lineWidth: 1,
           lineStyle: LineStyle.Dashed,
           axisLabelVisible: true,
-          title: 'TP',
+          title: `${prefix} TP`,
         });
       }
 
-      if (pos.stopLoss) {
+      if (pos.stopLoss != null) {
         pl.slLine = series.createPriceLine({
           price: pos.stopLoss,
-          color: '#ef5350',
+          color: '#f97316',
           lineWidth: 1,
           lineStyle: LineStyle.Dashed,
           axisLabelVisible: true,
-          title: 'SL',
+          title: `${prefix} SL`,
         });
       }
 
-      priceLinesRef.current.set(pos.id, pl);
+      priceLinesRef.current.set(pos.id ?? '', pl);
     });
-
-    existingIds.forEach(id => {
-      const pl = priceLinesRef.current.get(id);
-      if (!pl) return;
-      if (pl.entryLine) series.removePriceLine(pl.entryLine);
-      if (pl.tpLine) series.removePriceLine(pl.tpLine);
-      if (pl.slLine) series.removePriceLine(pl.slLine);
-      priceLinesRef.current.delete(id);
-    });
-  }, [positions]);
+  }, [positions, showPositions]);
 
   // Lấy nến hiện tại hoặc nến cuối cùng để hiển thị legend
   const currentCandle = hoveredCandle || (candles.length > 0 ? candles[candles.length - 1] : null);
@@ -362,6 +402,40 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
            </button>
          ))}
          <div className="h-4 w-px bg-border/40 mx-2" />
+         {/* Toggle switch: Ẩn / Hiện lệnh */}
+         <button
+           onClick={() => setShowPositions(v => !v)}
+           className="flex items-center gap-2 h-6 group select-none outline-none"
+         >
+           {/* Label */}
+           <span className={cn(
+             'text-[10px] font-black tracking-wide transition-all duration-300 whitespace-nowrap',
+             showPositions ? 'text-primary' : 'text-muted-foreground/60'
+           )}>
+             {showPositions ? 'Ẩn lệnh' : 'Hiện lệnh'}
+           </span>
+
+           {/* Pill track */}
+           <div className={cn(
+             'relative w-10 h-[22px] rounded-full transition-all duration-300 flex-shrink-0',
+             showPositions
+               ? 'bg-primary shadow-[0_0_8px_rgba(var(--primary)/0.4)]'
+               : 'bg-muted-foreground/20'
+           )}>
+             {/* Thumb */}
+             <div className={cn(
+               'absolute top-[3px] w-4 h-4 rounded-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] flex items-center justify-center shadow-md',
+               showPositions
+                 ? 'left-[22px] bg-white shadow-primary/30'
+                 : 'left-[3px] bg-white/70'
+             )}>
+               {showPositions
+                 ? <Eye className="w-2.5 h-2.5 text-primary" />
+                 : <EyeOff className="w-2.5 h-2.5 text-muted-foreground" />
+               }
+             </div>
+           </div>
+         </button>
       </div>
 
       <div className="flex-1 relative min-h-0">
@@ -424,6 +498,79 @@ export const TradingChart = observer(function TradingChart({ candles, positions,
         <div className="absolute left-2.5 bottom-[18%] pointer-events-none z-10 opacity-30">
             <span className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.2em] select-none">Volume</span>
         </div>
+
+        {/* Floating OHLCV tooltip khi hover cây nến */}
+        <AnimatePresence>
+          {hoveredCandle && hoverPoint && (() => {
+            const c = hoveredCandle;
+            const cp = hoverPoint.price;
+            // Xác định giá nào trong OHLC gần con trỏ nhất
+            const diffs = [
+              { label: 'O', val: c.open },
+              { label: 'H', val: c.high },
+              { label: 'L', val: c.low },
+              { label: 'C', val: c.close },
+            ];
+            const closest = diffs.reduce((a, b) =>
+              Math.abs(a.val - cp) < Math.abs(b.val - cp) ? a : b
+            );
+            return (
+              <motion.div
+                key="hover-tooltip"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.08 }}
+                className="absolute z-30 pointer-events-none"
+                style={{
+                  left: hoverPoint.x + 16,
+                  top: Math.max(4, hoverPoint.y - 60),
+                  transform: hoverPoint.x > 260 ? 'translateX(-110%)' : 'translateX(0)',
+                }}
+              >
+                <div className="bg-background/95 backdrop-blur-md border border-border/40 rounded-lg shadow-xl overflow-hidden min-w-[148px]">
+                  {/* Giá tại con trỏ (thay đổi khi kéo dọc) */}
+                  <div className="px-3 py-1.5 bg-primary/10 border-b border-border/30 flex items-center justify-between gap-3">
+                    <span className="text-[9px] font-black text-primary uppercase tracking-widest">Giá con trỏ</span>
+                    <span className="text-[12px] font-mono font-black text-primary">{cp.toFixed(2)}</span>
+                  </div>
+                  {/* Thời gian */}
+                  <div className="px-3 pt-2 pb-1">
+                    <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
+                      {new Date((c.time as number) * 1000).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                    </span>
+                  </div>
+                  {/* OHLCV rows */}
+                  <div className="px-3 pb-2 flex flex-col gap-0.5 text-[11px] font-mono">
+                    {[
+                      { label: 'O', val: c.open, color: 'text-foreground' },
+                      { label: 'H', val: c.high, color: 'text-emerald-500' },
+                      { label: 'L', val: c.low,  color: 'text-rose-500' },
+                      { label: 'C', val: c.close, color: c.close >= c.open ? 'text-emerald-500' : 'text-rose-500' },
+                    ].map(row => (
+                      <div
+                        key={row.label}
+                        className={cn(
+                          'flex justify-between gap-4 px-1 rounded transition-colors',
+                          closest.label === row.label ? 'bg-primary/10' : ''
+                        )}
+                      >
+                        <span className={cn('font-black', closest.label === row.label ? 'text-primary' : 'text-muted-foreground')}>
+                          {row.label}
+                        </span>
+                        <span className={cn('font-bold', row.color)}>{row.val.toFixed(2)}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between gap-4 px-1 border-t border-border/20 pt-0.5 mt-0.5">
+                      <span className="font-black text-muted-foreground">Vol</span>
+                      <span className="font-bold text-foreground/60">{c.volume.toFixed(0)}</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })()}
+        </AnimatePresence>
       </div>
     </div>
   );

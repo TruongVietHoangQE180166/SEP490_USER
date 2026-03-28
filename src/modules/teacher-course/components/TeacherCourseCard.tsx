@@ -146,7 +146,8 @@ export const TeacherCourseCard = ({
 
         {/* Title */}
         <h3
-          className="text-sm font-bold text-foreground leading-snug line-clamp-2 cursor-pointer hover:text-primary transition-colors"
+          className="text-sm font-bold text-foreground leading-snug line-clamp-2 min-h-[2.5rem] overflow-hidden text-ellipsis cursor-pointer hover:text-primary transition-colors"
+          style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
           onClick={() => onView(course)}
         >
           {course.title}
@@ -225,7 +226,7 @@ export const TeacherCourseCard = ({
       </div>
 
       {/* ── Action bar — 3 buttons ── */}
-      <div className="border-t border-border/40 grid grid-cols-3 divide-x divide-border/40">
+      <div className="border-t border-border/40 grid grid-cols-2 divide-x divide-border/40">
         {/* View */}
         <button
           onClick={() => onView(course)}
@@ -244,16 +245,6 @@ export const TeacherCourseCard = ({
         >
           <Edit size={15} />
           <span className="text-[9px] font-bold uppercase tracking-wide">Sửa</span>
-        </button>
-
-        {/* Delete */}
-        <button
-          onClick={() => onDelete(course.id, course.title)}
-          title="Xoá khoá học"
-          className="flex flex-col items-center justify-center py-3 gap-1 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/5 transition-all duration-200 cursor-pointer"
-        >
-          <Trash2 size={15} />
-          <span className="text-[9px] font-bold uppercase tracking-wide">Xoá</span>
         </button>
       </div>
 

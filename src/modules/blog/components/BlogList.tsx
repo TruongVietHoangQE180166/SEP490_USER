@@ -31,6 +31,45 @@ const itemVariants: Variants = {
   },
 };
 
+// ─── Skeleton cho từng BlogCard ───────────────────────────────────────────────
+const BlogCardSkeleton = () => (
+  <div className="rounded-lg border border-border/50 bg-card overflow-hidden flex flex-col animate-pulse">
+    {/* Thumbnail skeleton */}
+    <div className="aspect-[16/9] bg-muted relative">
+      {/* Badge skeleton */}
+      <div className="absolute top-3 right-3 h-6 w-20 rounded-full bg-muted-foreground/20" />
+    </div>
+
+    {/* Content skeleton */}
+    <div className="flex flex-col gap-3 p-4 flex-grow">
+      {/* Title */}
+      <div className="space-y-2 flex-grow">
+        <div className="h-5 w-full rounded-md bg-muted" />
+        <div className="h-5 w-4/5 rounded-md bg-muted" />
+      </div>
+
+      {/* Excerpt */}
+      <div className="space-y-1.5 mt-1">
+        <div className="h-3.5 w-full rounded bg-muted" />
+        <div className="h-3.5 w-full rounded bg-muted" />
+        <div className="h-3.5 w-2/3 rounded bg-muted" />
+      </div>
+
+      {/* Footer: avatar + read time */}
+      <div className="flex items-center justify-between border-t border-border/50 pt-3 mt-2">
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-muted" />
+          <div className="space-y-1">
+            <div className="h-3 w-20 rounded bg-muted" />
+            <div className="h-3 w-14 rounded bg-muted" />
+          </div>
+        </div>
+        <div className="h-3 w-14 rounded bg-muted" />
+      </div>
+    </div>
+  </div>
+);
+
 export const BlogList = observer(() => {
   const { 
     posts, 
@@ -159,12 +198,11 @@ export const BlogList = observer(() => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="rounded-xl border border-border/50 bg-card/30 p-20 text-center"
+            className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3"
           >
-            <div className="flex flex-col items-center gap-4">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              <p className="text-muted-foreground font-medium animate-pulse">Đang tải bài viết...</p>
-            </div>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <BlogCardSkeleton key={i} />
+            ))}
           </motion.div>
         ) : posts.length > 0 ? (
           <motion.div

@@ -89,6 +89,7 @@ export interface Course {
   discountPercent: number;
   status: string;
   createdDate: string;
+  createdBy?: string;
   averageRate: number;
   totalRate: number;
   isEnrolled: boolean;

@@ -51,24 +51,70 @@ export interface PlaceOrderRequest {
   stopLoss: number | null;
 }
 
+export interface PlaceFutureOrderRequest {
+  side: "LONG" | "SHORT";
+  orderCategory: "LIMIT" | "MARKET";
+  margin: number;
+  leverage: number;
+  entryPrice: number | null;
+  takeProfit: number | null;
+  stopLoss: number | null;
+}
+
+export interface FutureOrderType {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  symbol: string;
+  currency: string;
+  side: string;
+  orderCategory: string;
+  status: string;
+  quantity: number;
+  entryPrice: number;
+  closePrice: number | null;
+  liquidationPrice: number | null;
+  leverage: number;
+  margin: number;
+  unrealizedPnl: number;
+  realizedPnl: number;
+  positionValue: number;
+  takeProfit: number | null;
+  stopLoss: number | null;
+  createdDate: string;
+}
+
 // ─────────────────────────────────────────────
 // Position
 // ─────────────────────────────────────────────
 export interface PositionType {
-  id: string;
+  id?: string;
   symbol: string;
-  side: OrderSide;
+  side: OrderSide | string;
   entryPrice: number;
   quantity: number;
-  openedAt: number;      // Unix ms
-  takeProfit?: number;
-  stopLoss?: number;
+  openedAt?: number;      // Unix ms
+  takeProfit?: number | null;
+  stopLoss?: number | null;
+  
+  // Realtime fields from WS
+  markPrice?: number;
+  margin?: number;
+  leverage?: number;
+  unrealizedPnl?: number;
+  pnlPercentage?: number;
+  liquidationPrice?: number;
 }
 
 export interface ClosedPositionType extends PositionType {
   exitPrice: number;
   closedAt: number;      // Unix ms
   pnl: number;
+  status?: string;
+  orderCategory?: string;
+  positionValue?: number;
+  currency?: string;
 }
 
 // ─────────────────────────────────────────────
@@ -108,6 +154,12 @@ export interface WalletTradingData {
   lockedBalance: number;    // USDT in pending buy orders
   goldBalance: number;      // Total XAUT
   lockedGoldBalance: number; // XAUT in pending sell orders
+
+  // Realtime fields from WS
+  originalWalletBalance?: number;
+  totalEquity?: number;
+  dailyPnl?: number;
+  dailyPnlPercent?: number;
 }
 
 export interface TradingState {
@@ -123,6 +175,7 @@ export interface TradingState {
   openPositions: PositionType[];
   closedPositions: ClosedPositionType[];
   pendingOrders: OrderType[];
+  pendingFutureOrders: FutureOrderType[];
   orderHistory: OrderType[];
   replayState: ReplayState;
   isRealtimeActive: boolean;

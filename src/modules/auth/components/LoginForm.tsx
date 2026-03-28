@@ -9,6 +9,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
+import { API_BASE_URL } from '@/services/apiConfig';
 
 export const LoginForm = () => {
   const { login, isLoading } = useLogin();
@@ -36,7 +37,7 @@ export const LoginForm = () => {
 
         {/* Social Login Buttons */}
         <div className="mt-6 grid grid-cols-2 gap-3">
-          <Button type="button" variant="outline" onClick={() => window.location.href = 'https://vict-beeab2c3akcqgyej.malaysiawest-01.azurewebsites.net/oauth2/authorization/google'}>
+          <Button type="button" variant="outline" onClick={() => window.location.href = `${API_BASE_URL}/oauth2/authorization/google`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="0.98em"
