@@ -129,7 +129,7 @@ export const TradingView = observer(function TradingView() {
         </div>
       )}
 
-      <TradingTutorial />
+      {user && <TradingTutorial />}
       {/* ── Khoảng cách trên ──────────────────────────────────────── */}
       <div className={cn("max-w-[1600px] mx-auto px-4 pt-6 flex flex-col gap-4", !user && "pointer-events-none")}>
 
