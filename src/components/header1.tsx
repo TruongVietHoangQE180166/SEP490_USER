@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { Logo } from '@/components/logo'
-import { Menu, X, LogIn, User, LogOut, Settings, BookOpen, LayoutDashboard } from 'lucide-react'
+import { Menu, X, LogIn, User, LogOut, Settings, BookOpen, LayoutDashboard, Wallet } from 'lucide-react'
 import { getNormalizedRole } from '@/modules/auth/utils'
 import { Button } from '@/components/ui/button'
 import React from 'react'
@@ -240,6 +240,17 @@ export const HeroHeader = observer(() => {
                                                                 <BookOpen className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                                             </div>
                                                             Khóa học của tôi
+                                                        </Link>
+
+                                                        <Link 
+                                                            href={ROUTES.PRIVATE.WALLET}
+                                                            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-accent hover:text-accent-foreground group"
+                                                            onClick={() => setDropdownOpen(false)}
+                                                        >
+                                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background/80 border border-border/50 group-hover:bg-background group-hover:border-primary/20 transition-colors shadow-sm">
+                                                                <Wallet className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                            </div>
+                                                            Ví của tôi
                                                         </Link>
 
                                                         {user && (getNormalizedRole(user.role) === 'ADMIN' || getNormalizedRole(user.role) === 'TEACHER') && (

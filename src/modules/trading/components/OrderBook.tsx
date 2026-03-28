@@ -16,7 +16,7 @@ export const OrderBook = observer(function OrderBook() {
     const generateInitialData = (basePrice: number) => {
       const askList = [];
       const bidList = [];
-      const count = 40; // Tạo nhiều data hơn để lấp đầy khoảng trống
+      const count = 60; // Tạo nhiều data hơn để lấp đầy khoảng trống (800px)
       const step = 0.5;
 
       for (let i = 1; i <= count; i++) {
@@ -62,8 +62,8 @@ export const OrderBook = observer(function OrderBook() {
 
   // Tính toán dữ liệu hiển thị dựa trên viewMode
   const { asks, bids, maxTotal } = useMemo(() => {
-    // Tăng giới hạn dòng để lấp đầy 600px chiều cao
-    const rowLimit = viewMode === 'both' ? 14 : 28;
+    // Tăng giới hạn dòng để lấp đầy 800px chiều cao
+    const rowLimit = viewMode === 'both' ? 20 : 40;
     
     let askTotal = 0;
     const processedAsks = [...orderData.asks]

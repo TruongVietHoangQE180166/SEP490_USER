@@ -1,5 +1,5 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { AdminCourse, AdminCourseApiResponse, AdminCourseSingleResponse, CourseStatusUpdateResponse } from './types';
+import { AdminCourse, AdminCourseApiResponse, AdminCourseSingleResponse, CourseStatusUpdateResponse, QuizQuestion, QuizQuestionsResponse } from './types';
 
 export const manageCourseService = {
   /**
@@ -34,12 +34,11 @@ export const manageCourseService = {
   },
 
   /**
-   * Fetch full course detail by slug (includes moocs, videos, quizzes, documents).
-   * Same endpoint as the user-facing getCourseBySlugName.
+   * Fetch full course detail by courseId (includes moocs, videos, quizzes, documents).
    */
-  async getCourseDetailBySlug(slug: string): Promise<AdminCourse> {
+  async getCourseDetailById(courseId: string): Promise<AdminCourse> {
     const response = await ApiConfigService.get<AdminCourseSingleResponse>(
-      `/api/course/${slug}/by-slug-name`
+      `/api/course/authorize/${courseId}`
     );
     if (!response || !response.data) {
       throw new Error(response?.message?.messageDetail || 'Không thể tải chi tiết khoá học');
@@ -91,5 +90,16 @@ export const manageCourseService = {
     if (!response || !response.success) {
       throw new Error(response?.message?.messageDetail || 'Không thể cập nhật trạng thái khoá học');
     }
+  },
+
+  /**
+   * Fetch quiz questions by quizId
+   */
+  async getQuizQuestionsByQuizId(quizId: string): Promise<QuizQuestion[]> {
+    const response = await ApiConfigService.get<QuizQuestionsResponse>(`/api/question/by-quiz?quizId=${quizId}`);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tải chi tiết câu hỏi');
+    }
+    return response.data;
   },
 };

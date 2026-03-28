@@ -3,7 +3,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { tradingState$, tradingActions } from '../store';
 import { CandleType } from '../types';
-import { checkAndFillLimitOrders, checkTakeProfitStopLoss } from '../services';
 
 /**
  * Hook that drives the replay mode.
@@ -49,9 +48,7 @@ export function useReplay(fullHistory: CandleType[]) {
       tradingActions.setCurrentPrice(candle.close);
       tradingActions.advanceReplayIndex();
 
-      // Side-effects
-      checkAndFillLimitOrders(s.pendingOrders, candle.close, s.balance);
-      checkTakeProfitStopLoss(s.openPositions, candle.close);
+      // Side-effects (Handled by backend in realtime, replay might not simulate accurately without backend mock)
     }, delay);
   }, [fullHistory, stop]);
 

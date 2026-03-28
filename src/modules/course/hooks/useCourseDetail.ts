@@ -76,11 +76,10 @@ export const useCourseDetail = (slugName: string) => {
   }, [course]);
 
   const studentCount = useMemo(() => {
-    // Generate a consistent random number based on course ID slug or title if ID is not available/numeric
-    const seed = (course?.id || course?.title || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const random = Math.floor((Math.abs(Math.sin(seed) * 10000) % 5000) + 500);
-    return course?.totalStudents || random;
-  }, [course?.id, course?.totalStudents, course?.title]);
+    if (course?.countEnrolledStudents != null) return course.countEnrolledStudents;
+    return course?.totalStudents ?? 'Chưa có';
+  }, [course?.countEnrolledStudents, course?.totalStudents]);
+
 
   const totalDurationText = useMemo(() => {
     let totalSeconds = 0;

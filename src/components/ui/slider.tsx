@@ -73,3 +73,42 @@ export const Slider = ({ min, max, step = 1, value, onValueChange, className }: 
     </div>
   );
 };
+
+export const SingleSlider = ({ min, max, step = 1, value, onValueChange, className }: {
+  min: number;
+  max: number;
+  step?: number;
+  value: number;
+  onValueChange: (value: number) => void;
+  className?: string;
+}) => {
+  const pos = ((value - min) / (max - min)) * 100;
+
+  return (
+    <div className={cn("relative w-full h-6 flex items-center group", className)}>
+      <div className="absolute w-full h-1 bg-muted rounded-full" />
+      <div 
+        className="absolute h-1 bg-primary rounded-full transition-all duration-300"
+        style={{ width: `${pos}%` }}
+      />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onValueChange(Number(e.target.value))}
+        className={cn(
+          "absolute w-full h-1 appearance-none bg-transparent cursor-pointer z-20",
+          "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform hover:[&::-webkit-slider-thumb]:scale-125 active:[&::-webkit-slider-thumb]:scale-110"
+        )}
+      />
+      {/* 4 dots for 25, 50, 75, 100% */}
+      <div className="absolute w-full flex justify-between px-0.5 pointer-events-none">
+        {[0, 25, 50, 75, 100].map(p => (
+          <div key={p} className={cn("w-1 h-1 rounded-full", value >= (p/100)*max ? "bg-primary" : "bg-muted-foreground/30")} />
+        ))}
+      </div>
+    </div>
+  );
+};

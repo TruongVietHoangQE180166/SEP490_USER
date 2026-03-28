@@ -1,0 +1,124 @@
+// ─── Teacher Course Management Types ───────────────────────────────────────────
+
+export type CourseStatus = 'DRAFT' | 'PUBLISHED' | 'REJECT';
+export type CourseLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+
+export interface TeacherCourseAuthor {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+}
+
+export interface TeacherCourse {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  videoPreview?: string;
+  price: number;
+  salePrice: number;
+  discountPercent: number;
+  status: CourseStatus;
+  level?: CourseLevel;
+  createdDate: string;
+  createdBy?: string;
+  updatedDate?: string;
+  averageRate: number;
+  totalRate: number;
+  totalStudents?: number;
+  totalLessons?: number;
+  totalDuration?: string;
+  isFree?: boolean;
+  isEnrolled?: boolean;
+  progress?: number;
+  assets?: string[];
+  author?: TeacherCourseAuthor;
+  categoryName?: string;
+  categoryId?: string; // used for creating/updating
+  moocs?: any[]; // for detailed view
+  
+  hasCourseLevel?: string;
+  countEnrolledStudents?: number | null;
+  courseLevel?: string | null;
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+
+export interface TeacherCourseState {
+  courses: TeacherCourse[];
+  isLoading: boolean;
+  error: string | null;
+  selectedCourse: TeacherCourse | null;
+  isModalOpen: boolean;
+  modalMode: 'create' | 'edit' | 'view';
+  // Pagination
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+  // Filters
+  filterStatus: string;
+  searchQuery: string;
+  // Misc
+  isDeleting: boolean;
+}
+
+// ─── API Shapes ───────────────────────────────────────────────────────────────
+
+export interface TeacherCourseApiResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: {
+    content: TeacherCourse[];
+    request: {
+      page: number;
+      size: number;
+      sortRequest: {
+        direction: string;
+        field: string;
+      };
+    };
+    totalElement: number;
+  };
+  success: boolean;
+}
+
+export interface TeacherCourseSingleResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: TeacherCourse;
+  success: boolean;
+}
+
+export interface QuizAnswer {
+  id: string;
+  content: string;
+  isCorrect: boolean;
+  questionId: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  content: string;
+  orderIndex: number;
+  quizId: string;
+  answers: QuizAnswer[];
+}
+
+export interface QuizQuestionsResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: QuizQuestion[];
+  success: boolean;
+}

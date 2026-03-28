@@ -80,7 +80,7 @@ export const courseService = {
 
   async getRatings(courseId: string, page = 1, size = 1000, field = 'createdDate', direction = 'desc'): Promise<Rating[]> {
     const response = await ApiConfigService.get<CourseApiResponse<RatingPaginationResponse>>(
-      `/api/rate?page=${page}&size=${size}&field=${field}&direction=${direction}&courseId=${courseId}`
+      `/api/rate?page=${page}&size=${size}&field=${field}&direction=${direction}&courseId=${courseId}&isCurrentUser=false`
     );
 
     if (!response || !response.success || !response.data) {

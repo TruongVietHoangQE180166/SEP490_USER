@@ -35,6 +35,9 @@ export interface AdminCourse {
   progress?: number;
   assets?: string[];            // tier strings: "GOLD", "SILVER", etc.
   author?: AdminCourseAuthor;
+  hasCourseLevel?: string;
+  countEnrolledStudents?: number | null;
+  courseLevel?: string | null;
   categoryName?: string;
 }
 
@@ -99,5 +102,30 @@ export interface CourseStatusUpdateResponse {
   };
   errors: any;
   data: null;
+  success: boolean;
+}
+
+export interface QuizAnswer {
+  id: string;
+  content: string;
+  isCorrect: boolean;
+  questionId: string;
+}
+
+export interface QuizQuestion {
+  id: string;
+  content: string;
+  orderIndex: number;
+  quizId: string;
+  answers: QuizAnswer[];
+}
+
+export interface QuizQuestionsResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: QuizQuestion[];
   success: boolean;
 }

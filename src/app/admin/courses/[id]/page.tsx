@@ -7,11 +7,11 @@ import { AdminCourseDetailPage } from '@/modules/manage-course/components/Course
 export default function AdminCourseDetailRoute() {
   const router = useRouter();
   const params = useParams();
-  const slug = params.slug as string;
+  const id = params.id as string;
 
   return (
     <AdminCourseDetailPage
-      slug={slug}
+      courseId={id}
       onBack={() => router.push('/admin/courses')}
     />
   );

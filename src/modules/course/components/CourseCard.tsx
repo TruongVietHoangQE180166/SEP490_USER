@@ -23,8 +23,29 @@ export const CourseCard = observer(({ course }: CourseCardProps) => {
   };
 
   const studentCount = useMemo(() => {
-    return course.totalStudents || Math.floor(Math.random() * 5000) + 500;
-  }, [course.id, course.totalStudents]);
+    if (course.countEnrolledStudents != null) return course.countEnrolledStudents;
+    return course.totalStudents ?? 'Chưa có';
+  }, [course.countEnrolledStudents, course.totalStudents]);
+
+  const levelDetails = useMemo(() => {
+    const normLevel = course.courseLevel?.toLowerCase() || '';
+    if (normLevel.includes('1') || normLevel.includes('nhập') || normLevel.includes('nhap')) {
+      return { label: 'Nhập môn', colorClass: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' };
+    }
+    if (normLevel.includes('2') || normLevel.includes('nền') || normLevel.includes('nen')) {
+      return { label: 'Nền tảng', colorClass: 'text-blue-500 bg-blue-500/10 border-blue-500/20' };
+    }
+    if (normLevel.includes('3') || normLevel.includes('trung') || normLevel.includes('trung')) {
+      return { label: 'Trung cấp', colorClass: 'text-amber-500 bg-amber-500/10 border-amber-500/20' };
+    }
+    if (normLevel.includes('4') || normLevel.includes('thực') || normLevel.includes('thuc')) {
+      return { label: 'Thực hành', colorClass: 'text-orange-500 bg-orange-500/10 border-orange-500/20' };
+    }
+    if (normLevel.includes('5') || normLevel.includes('nâng') || normLevel.includes('nang')) {
+      return { label: 'Nâng cao', colorClass: 'text-rose-500 bg-rose-500/10 border-rose-500/20' };
+    }
+    return { label: course.courseLevel || 'Chưa phân loại', colorClass: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20' };
+  }, [course.courseLevel]);
 
   return (
     <Link href={`/course/${course.slug}`} className="group">
@@ -87,7 +108,14 @@ export const CourseCard = observer(({ course }: CourseCardProps) => {
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground bg-muted/30 px-2.5 py-1 rounded-full border border-border/50">
               <Users className="h-3 w-3" />
-              <span className="text-[10px] font-bold">{studentCount.toLocaleString()}</span>
+              <span className="text-[10px] font-bold">
+                {typeof studentCount === 'number' ? studentCount.toLocaleString() : 'Chưa có HV'}
+              </span>
+            </div>
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${levelDetails.colorClass}`}>
+              <span className="text-[10px] font-bold">
+                {levelDetails.label}
+              </span>
             </div>
           </div>
 

@@ -26,6 +26,10 @@ import {
   RefreshCw,
   Clapperboard,
   ClipboardList,
+  Target,
+  Award,
+  Eye,
+  ArrowDownToLine,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -89,16 +93,14 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-// ── Props ─────────────────────────────────────────────────────────────────────
-
 interface AdminCourseDetailPageProps {
-  slug: string;
+  courseId: string;
   onBack: () => void;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const AdminCourseDetailPage = ({ slug, onBack }: AdminCourseDetailPageProps) => {
+export const AdminCourseDetailPage = ({ courseId, onBack }: AdminCourseDetailPageProps) => {
   const {
     course,
     isLoading,
@@ -118,7 +120,11 @@ export const AdminCourseDetailPage = ({ slug, onBack }: AdminCourseDetailPagePro
     requestStatusChange,
     handleStatusConfirm,
     cancelStatusChange,
-  } = useAdminCourseDetail(slug);
+    selectedLesson,
+    setSelectedLesson,
+    quizQuestions,
+    isQuizLoading,
+  } = useAdminCourseDetail(courseId);
 
   if (isLoading) {
     return (
@@ -227,9 +233,9 @@ export const AdminCourseDetailPage = ({ slug, onBack }: AdminCourseDetailPagePro
                   <Badge variant="outline" className="inline-flex items-center gap-1.5 rounded-full border-border/50 bg-background/55 px-4 py-1.5 text-xs uppercase tracking-[0.2em] text-foreground/70 backdrop-blur">
                     <BookOpen className="h-3.5 w-3.5" /> KHÓA HỌC TRỰC TUYẾN
                   </Badge>
-                  {course.level && (
+                  {(course.courseLevel || course.level) && (
                     <Badge variant="secondary" className="rounded-full text-xs">
-                      {LEVEL_MAP[course.level] ?? course.level}
+                      {course.courseLevel || (course.level && LEVEL_MAP[course.level]) || course.level}
                     </Badge>
                   )}
                   {course.categoryName && (
@@ -257,7 +263,9 @@ export const AdminCourseDetailPage = ({ slug, onBack }: AdminCourseDetailPagePro
                   <div className="flex items-center gap-1.5 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10">
                     <Users className="h-4 w-4 text-primary" />
                     <span className="text-foreground/70 font-medium">
-                      {(course.totalStudents ?? 0).toLocaleString()} học viên
+                      {course.countEnrolledStudents != null 
+                        ? `${course.countEnrolledStudents.toLocaleString()} học viên` 
+                        : (course.totalStudents != null ? `${course.totalStudents.toLocaleString()} học viên` : 'Chưa có học viên')}
                     </span>
                   </div>
                   {course.assets && course.assets.length > 0 && (
@@ -371,11 +379,12 @@ export const AdminCourseDetailPage = ({ slug, onBack }: AdminCourseDetailPagePro
             </motion.div>
 
             {/* ── Stats grid ── */}
-            <motion.div variants={itemVariants} className="grid gap-4 sm:grid-cols-3">
+            <motion.div variants={itemVariants} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Số chương', value: `${moocs.length} chương`, icon: <BookOpen className="h-5 w-5" /> },
                 { label: 'Số tài nguyên', value: `${totalLessonsCount} tài nguyên`, icon: <PlayCircle className="h-5 w-5" /> },
-                { label: 'Học viên', value: (course.totalStudents ?? 0).toLocaleString(), icon: <Users className="h-5 w-5" /> },
+                { label: 'Học viên', value: course.countEnrolledStudents != null ? course.countEnrolledStudents.toLocaleString() : (course.totalStudents != null ? course.totalStudents.toLocaleString() : 'Chưa có'), icon: <Users className="h-5 w-5" /> },
+                { label: 'Trình độ', value: course.courseLevel || (course.level && LEVEL_MAP[course.level]) || course.level || 'Chưa có', icon: <Award className="h-5 w-5" /> },
               ].map((stat, i) => (
                 <div key={i} className="group relative overflow-hidden rounded-2xl border border-border/40 bg-background/60 p-6 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg">
                   <div className="flex items-start gap-4">
@@ -469,21 +478,25 @@ export const AdminCourseDetailPage = ({ slug, onBack }: AdminCourseDetailPagePro
                                     {lessons.map((lesson: any, lIdx: number) => (
                                       <div
                                         key={lesson.id || `${lesson.type}-${lIdx}`}
-                                        className="flex items-center justify-between p-4 border-b border-border/10 last:border-b-0 hover:bg-background/40 transition-colors"
+                                        className="flex items-center justify-between p-4 border-b border-border/10 last:border-b-0 hover:bg-background/40 transition-colors cursor-pointer group/lesson"
+                                        onClick={() => setSelectedLesson(lesson)}
                                       >
                                         <div className="flex items-center gap-3">
-                                          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/40 bg-background/50 text-foreground/60 shrink-0">
+                                          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-border/40 bg-background/50 text-foreground/60 shrink-0 group-hover/lesson:bg-primary/10 group-hover/lesson:text-primary transition-colors">
                                             {lesson.type === 'video' ? <PlayCircle className="h-4 w-4" />
                                               : lesson.type === 'quiz' ? <Timer className="h-4 w-4" />
                                               : <FileText className="h-4 w-4" />}
                                           </div>
                                           <div>
-                                            <p className="text-sm font-medium text-foreground">{lesson.title}</p>
+                                            <p className="text-sm font-medium text-foreground group-hover/lesson:text-primary transition-colors">{lesson.title}</p>
                                             <p className="text-xs text-foreground/40">
                                               {lesson.type === 'video' ? 'Video' : lesson.type === 'quiz' ? 'Bài kiểm tra' : 'Tài liệu'}
                                             </p>
                                           </div>
                                         </div>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover/lesson:opacity-100 transition-opacity text-primary">
+                                          <Eye className="h-4 w-4" />
+                                        </Button>
                                       </div>
                                     ))}
                                   </div>
@@ -660,6 +673,129 @@ export const AdminCourseDetailPage = ({ slug, onBack }: AdminCourseDetailPagePro
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ── Lesson Preview Modal ── */}
+      {selectedLesson && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative w-full max-w-4xl bg-background rounded-2xl border border-border/40 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-border/20 bg-muted/20">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  {selectedLesson.type === 'video' ? <PlayCircle className="h-5 w-5" /> : selectedLesson.type === 'quiz' ? <Timer className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground text-lg line-clamp-1">{selectedLesson.title}</h3>
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest">{selectedLesson.type === 'video' ? 'Video Bài Giảng' : selectedLesson.type === 'quiz' ? 'Bài Kiểm Tra' : 'Tài Liệu'}</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-rose-500/10 hover:text-rose-500" onClick={() => setSelectedLesson(null)}>
+                <XCircle className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 bg-muted/5">
+              {selectedLesson.type === 'video' && (
+                 <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-inner border border-border/10">
+                   {selectedLesson.videoUrl && getEmbedUrl(selectedLesson.videoUrl) ? (
+                     <iframe width="100%" height="100%" src={getEmbedUrl(selectedLesson.videoUrl)} frameBorder="0" allowFullScreen />
+                   ) : (
+                     <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-3">
+                       <AlertTriangle className="h-10 w-10 opacity-50 text-rose-500" />
+                       <p className="font-medium text-sm">Video không khả dụng hoặc định dạng không hỗ trợ</p>
+                       <p className="text-xs break-all max-w-md text-center opacity-60 px-4">{selectedLesson.videoUrl || 'Không có URL'}</p>
+                     </div>
+                   )}
+                 </div>
+              )}
+              {selectedLesson.type === 'document' && (
+                 <div className="flex flex-col items-center justify-center p-10 bg-background rounded-xl border border-border/20 text-center gap-4">
+                   <FileText className="h-16 w-16 text-primary/40" />
+                   <p className="text-muted-foreground max-w-sm">Tài liệu "{selectedLesson.title}" có thể được xem trực tiếp hoặc tải về máy.</p>
+                   <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
+                     {selectedLesson.viewUrl && (
+                       <a href={selectedLesson.viewUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-all text-sm">
+                         <Eye size={16} /> Xem trực tuyến
+                       </a>
+                     )}
+                     {selectedLesson.downloadUrl && (
+                       <a href={selectedLesson.downloadUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-secondary text-secondary-foreground font-bold hover:bg-secondary/80 outline outline-1 outline-border transition-all text-sm">
+                         <ArrowDownToLine size={16} /> Tải tài liệu
+                       </a>
+                     )}
+                   </div>
+                 </div>
+              )}
+              {selectedLesson.type === 'quiz' && (
+                 <div className="space-y-6 mt-4 pb-8">
+                   <div className="grid gap-4 sm:grid-cols-2 max-w-2xl mx-auto">
+                     <div className="p-6 rounded-xl border border-border/20 bg-background flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                       <Timer className="h-8 w-8 text-amber-500 mb-2" />
+                       <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Thời gian làm bài</p>
+                       <p className="text-2xl font-black text-foreground">{selectedLesson.timeLimit ? `${Math.floor(selectedLesson.timeLimit / 60)} phút` : 'Không giới hạn'}</p>
+                     </div>
+                     <div className="p-6 rounded-xl border border-border/20 bg-background flex flex-col items-center justify-center text-center gap-2 shadow-sm">
+                       <CheckCircle2 className="h-8 w-8 text-emerald-500 mb-2" />
+                       <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold">Điểm đỗ yêu cầu</p>
+                       <p className="text-2xl font-black text-foreground">{selectedLesson.passingScore ? `${selectedLesson.passingScore}%` : 'Không xác định'}</p>
+                     </div>
+                   </div>
+
+                   {/* Quiz Questions List */}
+                   <div className="max-w-4xl mx-auto space-y-4 pt-4 border-t border-border/20">
+                     <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5 text-primary" />
+                        Danh sách câu hỏi 
+                        {quizQuestions.length > 0 && <Badge variant="secondary" className="ml-2 bg-primary/10 text-primary">{quizQuestions.length} câu</Badge>}
+                     </h4>
+                     
+                     {isQuizLoading ? (
+                       <div className="py-12 flex flex-col items-center justify-center gap-3">
+                         <ThunderLoader size="lg" animate="thunder" />
+                         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">Đang tải câu hỏi...</p>
+                       </div>
+                     ) : quizQuestions.length > 0 ? (
+                       <div className="space-y-4">
+                         {[...quizQuestions]
+                            .sort((a, b) => a.orderIndex - b.orderIndex)
+                            .map((q, idx) => (
+                           <div key={q.id} className="p-5 bg-background/50 border border-border/20 rounded-2xl shadow-sm space-y-4 hover:border-border/40 transition-colors">
+                             <div className="flex items-start gap-3">
+                               <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
+                                 {idx + 1}
+                               </div>
+                               <p className="font-semibold text-foreground mt-1 leading-relaxed">{q.content}</p>
+                             </div>
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-11">
+                               {[...q.answers]
+                                  .map((a, aIdx) => (
+                                 <div key={a.id} className={`p-3 rounded-xl border flex items-start gap-3 transition-colors ${a.isCorrect ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm shadow-emerald-500/5' : 'bg-muted/30 border-border/20'}`}>
+                                   <div className={`mt-0.5 shrink-0 h-5 w-5 rounded-full flex items-center justify-center border shadow-sm ${a.isCorrect ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-border bg-background text-transparent'}`}>
+                                      <CheckCircle2 className={`h-3.5 w-3.5 ${a.isCorrect ? 'opacity-100' : 'opacity-0'}`} />
+                                   </div>
+                                   <span className={`text-sm ${a.isCorrect ? 'font-bold text-emerald-700 dark:text-emerald-400' : 'text-foreground/80 font-medium'}`}>{a.content}</span>
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     ) : (
+                       <div className="py-16 flex flex-col items-center justify-center text-muted-foreground bg-background/50 rounded-2xl border border-dashed border-border/40">
+                         <Target className="h-12 w-12 opacity-20 mb-4" />
+                         <p className="font-medium">Chưa có câu hỏi nào trong bài kiểm tra này.</p>
+                       </div>
+                     )}
+                   </div>
+                 </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </main>
   );
 };

@@ -9,6 +9,8 @@ import { Slider } from '@/components/ui/slider';
 interface CourseFiltersProps {
   activeAssets: string[];
   toggleAsset: (asset: string) => void;
+  activeLevels: string[];
+  toggleLevel: (level: string) => void;
   priceRange: number[];
   setPriceRange: (range: number[]) => void;
   minRating: number;
@@ -21,6 +23,8 @@ interface CourseFiltersProps {
 export const CourseFilters = ({
   activeAssets,
   toggleAsset,
+  activeLevels,
+  toggleLevel,
   priceRange,
   setPriceRange,
   minRating,
@@ -44,6 +48,14 @@ export const CourseFilters = ({
     { label: 'Đã mua', value: 'enrolled' },
     { label: 'Chưa mua', value: 'not-enrolled' },
   ] as const;
+
+  const levels = [
+    { name: 'Level 1', label: 'Nhập môn', colorClass: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500 hover:text-white', activeClass: 'bg-emerald-500 text-white shadow-emerald-500/30 font-black' },
+    { name: 'Level 2', label: 'Nền tảng', colorClass: 'text-blue-500 bg-blue-500/10 border-blue-500/20 hover:bg-blue-500 hover:text-white', activeClass: 'bg-blue-500 text-white shadow-blue-500/30 font-black' },
+    { name: 'Level 3', label: 'Trung cấp', colorClass: 'text-amber-500 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500 hover:text-white', activeClass: 'bg-amber-500 text-white shadow-amber-500/30 font-black' },
+    { name: 'Level 4', label: 'Thực hành', colorClass: 'text-orange-500 bg-orange-500/10 border-orange-500/20 hover:bg-orange-500 hover:text-white', activeClass: 'bg-orange-500 text-white shadow-orange-500/30 font-black' },
+    { name: 'Level 5', label: 'Nâng cao', colorClass: 'text-rose-500 bg-rose-500/10 border-rose-500/20 hover:bg-rose-500 hover:text-white', activeClass: 'bg-rose-500 text-white shadow-rose-500/30 font-black' },
+  ];
 
   return (
     <div className="sticky top-24 space-y-6">
@@ -71,6 +83,42 @@ export const CourseFilters = ({
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+             <BookOpen className="h-4 w-4" /> Trình độ
+          </h3>
+          <div className="space-y-2">
+            <button
+              onClick={() => toggleLevel('All')}
+              className={`
+                px-4 py-2 rounded-xl transition-all font-bold text-xs text-center w-full
+                ${activeLevels.includes('All') 
+                  ? 'bg-primary text-primary-foreground shadow-md' 
+                  : 'bg-muted/30 text-muted-foreground hover:bg-muted'}
+              `}
+            >
+              Tất cả các cấp độ
+            </button>
+            <div className="grid grid-cols-2 gap-2">
+              {levels.map((level) => {
+                const isActive = activeLevels.includes(level.name);
+                return (
+                  <button
+                    key={level.name}
+                    onClick={() => toggleLevel(level.name)}
+                    className={`
+                      px-2 py-2 rounded-xl border transition-all text-xs flex items-center justify-center text-center w-full
+                      ${isActive ? level.activeClass : level.colorClass + ' font-bold'}
+                    `}
+                  >
+                    <span>{level.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 

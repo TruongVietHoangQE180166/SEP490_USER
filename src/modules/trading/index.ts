@@ -7,7 +7,7 @@ export type {
   ReplayState,
   OrderSide,
   OrderKind,
-  OrderStatus,
+  OrderTypeStatus,
   ReplaySpeed,
   Timeframe,
 } from './types';
@@ -19,12 +19,10 @@ export { tradingState$, tradingActions } from './store';
 export {
   generateMockCandles,
   simulateRealtimeTick,
-  executeMarketOrder,
-  executeLimitOrder,
   calculatePnL,
-  checkAndFillLimitOrders,
-  closePosition,
-  checkTakeProfitStopLoss,
+  fetchTradeOrders,
+  cancelTradeOrder,
+  placeTradeOrder,
   timeframeToSeconds,
 } from './services';
 export type { PnLResult } from './services';

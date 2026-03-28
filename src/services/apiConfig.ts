@@ -1,5 +1,6 @@
-const API_BASE_URL = 'https://vict-beeab2c3akcqgyej.malaysiawest-01.azurewebsites.net';
-
+export const API_BASE_URL = 'https://vict-beeab2c3akcqgyej.malaysiawest-01.azurewebsites.net';
+import { isTokenExpired } from '@/modules/auth/utils';
+import { authActions } from '@/modules/auth/store';
 export class ApiConfigService {
   static async execute<T>(
     endpoint: string,
@@ -9,6 +10,14 @@ export class ApiConfigService {
     let token = null;
     if (typeof window !== 'undefined') {
       token = localStorage.getItem('accessToken');
+      
+      // Chặn nếu token hết hạn (Method 3)
+      if (token && isTokenExpired(token)) {
+        console.warn('[ApiConfig] Token expired intercepted. Forcing logout...');
+        authActions.clearAuth();
+        window.location.href = '/login';
+        throw new Error('Token is expired. Forcing logout...');
+      }
     }
     
     const url = `${API_BASE_URL}${endpoint}`;

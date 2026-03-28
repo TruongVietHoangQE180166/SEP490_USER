@@ -3,9 +3,10 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { observer } from '@legendapp/state/react';
 import { usePathname, useRouter } from 'next/navigation';
-import { authState$ } from '@/modules/auth/store';
-import { getNormalizedRole } from '@/modules/auth/utils';
+import { authState$, authActions } from '@/modules/auth/store';
+import { getNormalizedRole, decodeJWT } from '@/modules/auth/utils';
 import { ROUTES, PRIVATE_ROUTES, AUTH_ROUTES } from '@/constants/routes';
+import { socketService } from '@/services/socketService';
 
 
 interface RouteGuardProps {
@@ -23,6 +24,58 @@ export const RouteGuard = observer(({ children }: RouteGuardProps) => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Monitor token expiration (Method 1)
+  useEffect(() => {
+    if (!mounted || !isAuthenticated) return;
+    
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    const decoded = decodeJWT(token);
+    if (!decoded || !decoded.exp) {
+       authActions.clearAuth();
+       router.replace(ROUTES.AUTH.LOGIN);
+       return;
+    }
+
+    const currentTime = Date.now() / 1000;
+    const timeRemaining = decoded.exp - currentTime;
+
+    if (timeRemaining <= 0) {
+      console.log('[RouteGuard] Token already expired on load. Logging out.');
+      authActions.clearAuth();
+      router.replace(ROUTES.AUTH.LOGIN);
+      return;
+    }
+
+    console.log(`[RouteGuard] Token expires in ${Math.round(timeRemaining)}s. Setting auto-logout.`);
+    // Set timeout to log out when token expires
+    const timeoutId = setTimeout(() => {
+      console.log('[RouteGuard] Token expired. Auto-logging out.');
+      authActions.clearAuth();
+      router.replace(ROUTES.AUTH.LOGIN);
+    }, timeRemaining * 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [mounted, isAuthenticated, router]);
+
+  // Manage Global Socket Connection
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (isAuthenticated && user?.userId) {
+       console.log('[RouteGuard] Người dùng trực tuyến. Đang kết nối Socket...');
+       socketService.connect(user.userId);
+    } else {
+       console.log('[RouteGuard] Không có thông tin người dùng hợp lệ. Hủy Socket...');
+       socketService.disconnect();
+    }
+
+    return () => {
+       socketService.disconnect();
+    };
+  }, [mounted, isAuthenticated, user?.userId]);
 
   // Check if current route is private
   const isPrivateRoute = pathname && PRIVATE_ROUTES.some((route) =>
