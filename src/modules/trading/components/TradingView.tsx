@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { observer } from '@legendapp/state/react';
 import { tradingState$, tradingActions } from '../store';
 import { TradingChart } from './TradingChart';
@@ -15,6 +15,9 @@ import { WalletService } from '../../wallet/services';
 import { CandleType, Timeframe } from '../types';
 import { cn } from '@/lib/utils';
 import { toast } from '@/components/ui/toast';
+import { authState$ } from '@/modules/auth/store';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 const SYMBOL = 'XAU-USDT-SWAP';
 
@@ -25,6 +28,9 @@ export const TradingView = observer(function TradingView() {
   const timeframe    = tradingState$.timeframe.get();
   const balance      = tradingState$.balance.get();
   const pendingCount = tradingState$.pendingOrders.get().length;
+
+  const user = authState$.user.get();
+  const router = useRouter();
 
   const { start: startRealtime, stop: stopRealtime } = useRealtimeFeed();
 
@@ -86,14 +92,15 @@ export const TradingView = observer(function TradingView() {
 
   useEffect(() => {
     tradingActions.setSymbol(SYMBOL);
+    if (!user) return;
     loadData(timeframe);
     startRealtime();
     return () => { stopRealtime(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   const handleTimeframeChange = (tf: Timeframe) => { 
-    if (timeframe === tf) return;
+    if (timeframe === tf || !user) return;
     tradingActions.setChartData([]); // Clear ghost candles immediately
     tradingActions.setTimeframe(tf);
     stopRealtime(); 
@@ -103,9 +110,28 @@ export const TradingView = observer(function TradingView() {
 
   return (
     <div className="min-h-screen bg-background pb-8 relative">
+      {!user && (
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-background/60 backdrop-blur-md px-4">
+          <div className="bg-card p-8 rounded-xl border border-border flex flex-col items-center gap-6 text-center max-w-sm shadow-2xl">
+            <h2 className="text-2xl font-bold tracking-tight">Yêu cầu đăng nhập</h2>
+            <p className="text-muted-foreground text-sm">
+              Bạn cần đăng nhập để xem dữ liệu thị trường trực tuyến và tham gia mô phỏng giao dịch crypto.
+            </p>
+            <div className="flex gap-3 w-full">
+              <Button onClick={() => router.push('/')} variant="outline" className="flex-1">
+                Trang chủ
+              </Button>
+              <Button onClick={() => router.push('/login')} className="flex-1">
+                Đăng nhập
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <TradingTutorial />
       {/* ── Khoảng cách trên ──────────────────────────────────────── */}
-      <div className="max-w-[1600px] mx-auto px-4 pt-6 flex flex-col gap-4">
+      <div className={cn("max-w-[1600px] mx-auto px-4 pt-6 flex flex-col gap-4", !user && "pointer-events-none")}>
 
         {/* ── MarketHeader ──────────────────────────────────────────── */}
         <div id="tut-market-header" className="rounded-md border border-border bg-card overflow-hidden">

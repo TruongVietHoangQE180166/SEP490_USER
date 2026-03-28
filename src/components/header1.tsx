@@ -30,9 +30,9 @@ const menuItems = [
     { name: 'Khóa học', href: '/course' },
     { name: 'Blog', href: '/blog' },
     { name: 'Giao Dịch', href: '/trading' },
-    { name: 'Features', href: '#link' },
-    { name: 'About', href: '#link' },
-    { name: 'Speech to text', href: '/speech-to-text' },
+    // { name: 'Features', href: '#link' },
+    // { name: 'About', href: '#link' },
+    // { name: 'Speech to text', href: '/speech-to-text' },
 ]
 
 export const HeroHeader = observer(() => {
