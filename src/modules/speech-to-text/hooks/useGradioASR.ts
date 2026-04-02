@@ -1,6 +1,18 @@
 import { useState, useRef, useCallback } from 'react';
 import { Client } from '@gradio/client';
 
+// Model tiếng Việt mặc định (int8 - nhẹ, nhanh)
+const VIETNAMESE_MODEL = 'csukuangfj2/sherpa-onnx-zipformer-vi-30M-int8-2026-02-09';
+
+// Danh sách model Vietnamese hợp lệ (lấy từ API k2-fsa với language=Vietnamese)
+const VALID_VI_MODELS = [
+    'csukuangfj2/sherpa-onnx-zipformer-vi-30M-int8-2026-02-09',
+    'csukuangfj2/sherpa-onnx-zipformer-vi-30M-2026-02-09',
+    'csukuangfj/sherpa-onnx-zipformer-vi-int8-2025-04-20',
+    'csukuangfj/sherpa-onnx-zipformer-vi-2025-04-20',
+    'moonshine_base-vi',
+];
+
 export const useGradioASR = () => {
     const [isListening, setIsListening] = useState(false);
     const [isTranscribing, setIsTranscribing] = useState(false);
@@ -10,12 +22,11 @@ export const useGradioASR = () => {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
 
-    const startListening = useCallback(async (modelId: string = "hynt/sherpa-onnx-zipformer-vi-int8-2025-10-16") => {
+    const startListening = useCallback(async (preferredModelId?: string) => {
         try {
             setError(null);
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
-            // Dùng định dạng âm thanh cơ bản phù hợp với web
+
             mediaRecorderRef.current = new MediaRecorder(stream);
             audioChunksRef.current = [];
 
@@ -28,47 +39,58 @@ export const useGradioASR = () => {
             mediaRecorderRef.current.onstop = async () => {
                 setIsTranscribing(true);
                 try {
-                    // Gradio audio thường nhận diện tốt dưới dạng Blob wav hoặc webm
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-                    
-                    // Phân nhánh logic xử lý theo Model
-                    let client, result;
-                    if (modelId === "hf-audio/whisper-large-v3-turbo") {
-                        // Kết nối tới Hệ thống server riêng khủng nhất của Hugging Face Audio Team (Đọc từ File .env)
-                        const whisperEndpoint = process.env.NEXT_PUBLIC_HF_WHISPER_URL || "hf-audio/whisper-large-v3-turbo";
-                        client = await Client.connect(whisperEndpoint as string);
-                        // Gửi File thẳng cho Whisper V3 Turbo (Với tham số Transcribe)
-                        result = await client.predict("/predict_1", [
-                            audioBlob,     // Audio file
-                            "transcribe",  // Task
-                        ]);
-                    } else {
-                        // Kết nối tới HuggingFace Space Model K2 (Server gốc lấy từ File .env)
-                        const zipformerEndpoint = process.env.NEXT_PUBLIC_HF_ZIPFORMER_URL || "hynt/k2-automatic-speech-recognition-demo";
-                        client = await Client.connect(zipformerEndpoint as string);
-                        
-                        // Gọi API Endpoint /process_microphone của Model K2
-                        result = await client.predict("/process_microphone", [
-                            "Vietnamese",          // language
-                            modelId,               // Thay đổi Model linh hoạt do user chọn
-                            "modified_beam_search", // Decoding method
-                            15,                    // Active paths
-                            "No",                 // Add punctuation (No/Yes)
-                            audioBlob              // Dữ liệu thu âm
-                        ]);
-                    }
 
-                    const data = result.data as string[];
-                    // Index [0] là textbox văn bản trả về, [1] là đoạn HTML info của server
-                    if (data && typeof data[0] === 'string') {
-                        setTranscript(prev => prev + (prev ? ' ' : '') + data[0].trim());
+                    if (preferredModelId === 'hf-audio/whisper-large-v3-turbo') {
+                        // ── Whisper V3 Turbo ──────────────────────────────────────
+                        const whisperEndpoint = process.env.NEXT_PUBLIC_HF_WHISPER_URL || 'hf-audio/whisper-large-v3-turbo';
+                        const client = await Client.connect(whisperEndpoint);
+                        const result = await client.predict('/predict_1', [audioBlob, 'transcribe']);
+                        const data = result.data as string[];
+                        if (data && typeof data[0] === 'string') {
+                            setTranscript(prev => prev + (prev ? ' ' : '') + data[0].trim());
+                        }
+                    } else {
+                        // ── k2-fsa/automatic-speech-recognition ───────────────────
+                        // QUAN TRỌNG: Gradio validate repo_id theo SESSION STATE của dropdown.
+                        // Session mặc định là "English" → phải gọi /update_model_dropdown('Vietnamese')
+                        // TRƯỚC để cập nhật session state, rồi mới gọi /process_microphone.
+                        const zipformerEndpoint = process.env.NEXT_PUBLIC_HF_ZIPFORMER_URL || 'k2-fsa/automatic-speech-recognition';
+
+                        // Tạo MỘT client dùng chung session (session_hash giống nhau)
+                        const client = await Client.connect(zipformerEndpoint);
+
+                        // Bước 1: Cập nhật dropdown state sang "Vietnamese" trong session này
+                        // (không cần dùng return value, chỉ cần gọi để update state bên server)
+                        await client.predict('/update_model_dropdown', ['Vietnamese']);
+
+                        // Bước 2: Xác định model sẽ dùng
+                        const modelToUse =
+                            preferredModelId && VALID_VI_MODELS.includes(preferredModelId)
+                                ? preferredModelId
+                                : VIETNAMESE_MODEL;
+
+                        // Bước 3: Gọi /process_microphone — server đã biết đây là Vietnamese session
+                        const result = await client.predict('/process_microphone', [
+                            'Vietnamese',    // language
+                            modelToUse,      // repo_id — hợp lệ vì dropdown đã ở Vietnamese state
+                            'greedy_search', // decoding_method
+                            4,               // num_active_paths
+                            'No',            // add_punct
+                            audioBlob,       // in_filename (audio blob)
+                        ]);
+
+                        const data = result.data as string[];
+                        // data[0] = transcript text, data[1] = HTML info
+                        if (data && typeof data[0] === 'string') {
+                            setTranscript(prev => prev + (prev ? ' ' : '') + data[0].trim());
+                        }
                     }
                 } catch (err: any) {
-                    console.error("Gradio API Error:", err);
-                    setError("Lỗi xử lý API từ Hệ thống Máy chủ HF: " + err.message);
+                    console.error('Gradio API Error:', err);
+                    setError('Lỗi xử lý API: ' + err.message);
                 } finally {
                     setIsTranscribing(false);
-                    // Tắt hẳn quyền truy cập Micro
                     stream.getTracks().forEach(track => track.stop());
                 }
             };
@@ -100,6 +122,6 @@ export const useGradioASR = () => {
         error,
         startListening,
         stopListening,
-        resetTranscript
+        resetTranscript,
     };
 };

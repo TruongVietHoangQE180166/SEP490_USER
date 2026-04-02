@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { driver, Driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { observer } from '@legendapp/state/react';
+import * as googleTTS from 'google-tts-api';
 
 // ─── Lucide SVG helper ─────────────────────────────────────────────────────────
 // driver.js renders plain HTML strings — React components cannot be used directly.
@@ -43,6 +44,7 @@ const ICONS = {
   check:      icon('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>'),
   alert:      icon('<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>'),
   pin:        icon('<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>'),
+  bot:        icon('<rect width="18" height="14" x="3" y="7" rx="2"/><path d="M12 7V3"/><path d="M9 3h6"/><path d="M15 11v2"/><path d="M9 11v2"/>'),
 };
 
 // ─── Layout helpers ────────────────────────────────────────────────────────────
@@ -70,8 +72,30 @@ export const TradingTutorial = observer(function TradingTutorial() {
       : false;
 
   const driverRef = useRef<Driver | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const startTutorial = () => {
+    if (!audioRef.current && typeof window !== 'undefined') {
+      audioRef.current = new Audio();
+      if ('referrerPolicy' in audioRef.current) {
+        (audioRef.current as any).referrerPolicy = 'no-referrer';
+      }
+    }
+
+    const clearTimerAndAudio = () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.onloadedmetadata = null;
+        audioRef.current.onended = null;
+        audioRef.current.onerror = null;
+      }
+    };
+
     const driverObj = driver({
       showProgress: true,
       animate: true,
@@ -81,6 +105,130 @@ export const TradingTutorial = observer(function TradingTutorial() {
       prevBtnText: '← Quay lại',
       progressText: 'Bước {{current}} / {{total}}',
       popoverClass: 'driverjs-theme',
+      onPopoverRender: (popover, { config, state }) => {
+        clearTimerAndAudio();
+        const wrapper = popover.wrapper;
+        
+        // --- Fix Cors / Referrer ---
+        let metaReferrer = document.querySelector('meta[name="referrer"]') as HTMLMetaElement;
+        if (!metaReferrer) {
+          metaReferrer = document.createElement('meta');
+          metaReferrer.name = "referrer";
+          metaReferrer.content = "no-referrer";
+          document.head.appendChild(metaReferrer);
+        } else {
+          metaReferrer.content = "no-referrer";
+        }
+
+        let bar = wrapper.querySelector('.tut-auto-progress') as HTMLElement;
+        if (!bar) {
+          bar = document.createElement('div');
+          bar.className = 'tut-auto-progress';
+          bar.style.position = 'absolute';
+          bar.style.bottom = '0';
+          bar.style.left = '0';
+          bar.style.height = '4px';
+          bar.style.backgroundColor = 'var(--primary, #3b82f6)';
+          bar.style.width = '0%';
+          bar.style.borderBottomLeftRadius = '8px';
+          bar.style.borderBottomRightRadius = '8px';
+          bar.style.zIndex = '100';
+          wrapper.appendChild(bar);
+        }
+
+        // Dừng autoplay ở bước cuối
+        if (state.activeIndex === config.steps!.length - 1) {
+          bar.style.display = 'none';
+          return;
+        }
+
+        // Reset animation display
+        bar.style.transition = 'none';
+        bar.style.width = '0%';
+        void bar.offsetWidth; // force reflow
+
+        // Trích xuất văn bản thuần tự động từ cấu hình
+        const activeIdx = state.activeIndex ?? 0;
+        const stepConfig = config.steps![activeIdx].popover;
+        const rawTitle = stepConfig?.title || '';
+        const rawDesc = stepConfig?.description || '';
+        const textToSpeak = `${rawTitle}. ${rawDesc}`.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+
+        // Lấy url text-to-speech qua google-tts-api
+        const audioItems = googleTTS.getAllAudioUrls(textToSpeak, {
+          lang: 'vi',
+          slow: false,
+          host: 'https://translate.googleapis.com',
+        });
+
+        if (audioItems.length > 0 && audioRef.current) {
+          let currentChunkIndex = 0;
+          let baseDuration = 0; // Để cộng dồn nếu có nhiều chunks
+
+          const playNext = () => {
+            if (currentChunkIndex >= audioItems.length) {
+              // Kết thúc Voice -> Tự động chuyển qua bước tiếp theo
+              if (popover.nextButton && popover.nextButton.style.display !== 'none' && !popover.nextButton.disabled) {
+                popover.nextButton.click();
+              } else {
+                driverRef.current?.moveNext();
+              }
+              return;
+            }
+
+            const url = audioItems[currentChunkIndex].url;
+            audioRef.current!.src = url;
+            audioRef.current!.playbackRate = 1.15; // Tăng tốc độ đọc lên 15%
+
+            // Khi metadata (bao gồm thời lượng audio) đã load xong
+            audioRef.current!.onloadedmetadata = () => {
+              const dur = audioRef.current!.duration;
+              // Set progress bar đồng bộ chính xác với audio
+              if (bar && currentChunkIndex === 0 && audioItems.length === 1) {
+                // Nếu chỉ có 1 đoạn audio (đa phần là vậy vì tutorial ngắn)
+                bar.style.transition = `width ${dur}s linear`;
+                bar.style.width = '100%';
+              } else if (bar) {
+                 // Nếu văn bản siêu dài bị bế ra thành nhiều chunks, fallback ước tính ~14 kí tự / s
+                 if (currentChunkIndex === 0) {
+                     const estimatedTotalDur = Math.max(textToSpeak.length / 14, 5);
+                     bar.style.transition = `width ${estimatedTotalDur}s linear`;
+                     bar.style.width = '100%';
+                 }
+              }
+              audioRef.current!.play().catch(console.error);
+            };
+
+            audioRef.current!.onended = () => {
+              currentChunkIndex++;
+              playNext();
+            };
+
+            audioRef.current!.onerror = () => {
+              currentChunkIndex++;
+              playNext();
+            };
+          };
+
+          playNext();
+        } else {
+          // Fallback nếu không kích hoạt được audio
+          setTimeout(() => {
+            if (bar) {
+              bar.style.transition = 'width 12s linear';
+              bar.style.width = '100%';
+            }
+          }, 50);
+
+          timerRef.current = setTimeout(() => {
+            if (popover.nextButton && popover.nextButton.style.display !== 'none' && !popover.nextButton.disabled) {
+              popover.nextButton.click();
+            } else {
+              driverRef.current?.moveNext();
+            }
+          }, 12000);
+        }
+      },
       steps: [
         // ── 0: Giới thiệu ──────────────────────────────────────────────────────
         {
@@ -469,9 +617,10 @@ export const TradingTutorial = observer(function TradingTutorial() {
               <p>Phía dưới màn hình — nơi <b>theo dõi và quản lý</b> toàn bộ hoạt động giao dịch:</p>
               <div style="margin-top:10px">
                 ${row(ICONS.crosshair, 'Vị thế mở',      'Lệnh đã khớp, đang giữ và theo dõi PnL')}
-                ${row(ICONS.orders,    'Lệnh chờ khớp',  'Lệnh Limit/TP/SL chưa được thực thi')}
-                ${row(ICONS.scroll,    'Lịch sử lệnh',   'Tất cả lệnh từ trước đến nay')}
-                ${row(ICONS.history,   'Lịch sử vị thế', 'Các vị thế đã đóng và lãi/lỗ thực tế')}
+                ${row(ICONS.rocket,    'Chờ khớp Future','Lệnh Limit/TP/SL của hợp đồng Future')}
+                ${row(ICONS.orders,    'Chờ khớp Spot',  'Lệnh chờ mua/bán giao ngay')}
+                ${row(ICONS.scroll,    'Lịch sử lệnh',   'Tất cả lệnh Spot từ trước đến nay')}
+                ${row(ICONS.history,   'Lịch sử vị thế', 'Các vị thế Future đã đóng và lãi/lỗ')}
               </div>
             `,
             side: 'top',
@@ -499,7 +648,26 @@ export const TradingTutorial = observer(function TradingTutorial() {
           },
         },
 
-        // ── 18: Tab lệnh chờ ───────────────────────────────────────────────────
+        // ── 17.5: Tab lệnh chờ Future ──────────────────────────────────────────
+        {
+          element: '#tut-dashboard-tab-futureOrders',
+          popover: {
+            title: `${ICONS.rocket} Tab: Lệnh chờ khớp Future`,
+            description: `
+              <p>Danh sách các <b>lệnh Limit / TP / SL</b> của giao dịch phái sinh chưa được thực thi:</p>
+              <div style="margin-top:10px">
+                ${row(ICONS.sliders, 'Đòn bẩy & Ký quỹ', 'Hiển thị mức đòn bẩy và số vốn dự kiến')}
+                ${row(ICONS.tag,     'Giá mục tiêu', 'Giá để kích hoạt mở hoặc đóng vị thế')}
+                ${row(ICONS.hash,    'Số lượng',     'Khối lượng tài sản cơ sở')}
+              </div>
+              ${tip('Bạn có thể hủy lệnh bất cứ lúc nào trước khi lệnh đạt mức giá mục tiêu.')}
+            `,
+            side: 'top',
+            align: 'start',
+          },
+        },
+
+        // ── 18: Tab lệnh chờ Spot ──────────────────────────────────────────────
         {
           element: '#tut-dashboard-tab-orders',
           popover: {
@@ -559,7 +727,26 @@ export const TradingTutorial = observer(function TradingTutorial() {
           },
         },
 
-        // ── 21: Kết thúc ───────────────────────────────────────────────────────
+        // ── 21: Trợ lý AI ──────────────────────────────────────────────────────
+        {
+          element: '#tut-ai-chat',
+          popover: {
+            title: `${ICONS.bot} Trợ lý AI thông minh`,
+            description: `
+              <p>Một tính năng mới vô cùng hữu ích đặt biệt dành cho bạn:</p>
+              <div style="margin-top:10px">
+                ${row(ICONS.book,   'Phân tích nhanh', 'Hỏi AI về mã tiền điện tử, dự đoán xu hướng')}
+                ${row(ICONS.chart,  'Chỉ báo kỹ thuật', 'Nhờ AI coi các chỉ số mà không cần xem biểu đồ')}
+                ${row(ICONS.rocket, 'Hỗ trợ tức thời', 'Luôn sẵn sàng trả lời ở góc màn hình')}
+              </div>
+              ${tip('Bấm vào biểu tượng robot để mở khung trao đổi trực tiếp với AI.')}
+            `,
+            side: 'top',
+            align: 'end',
+          },
+        },
+
+        // ── 22: Kết thúc ───────────────────────────────────────────────────────
         {
           popover: {
             title: `${ICONS.party} Bạn đã sẵn sàng giao dịch!`,
@@ -571,7 +758,7 @@ export const TradingTutorial = observer(function TradingTutorial() {
                 ${row(ICONS.check, 'Phân tích sổ lệnh Order Book', '')}
                 ${row(ICONS.check, 'Đặt lệnh Market và Limit', '')}
                 ${row(ICONS.check, 'Thiết lập Take Profit & Stop Loss', '')}
-                ${row(ICONS.check, 'Quản lý và theo dõi lệnh hiệu quả', '')}
+                ${row(ICONS.check, 'Trò chuyện cùng AI thông minh', '')}
               </div>
               ${tip('Bạn có thể xem lại hướng dẫn bất cứ lúc nào qua menu Trợ giúp.')}
               <p style="margin-top:12px;text-align:center;font-size:15px">Chúc bạn giao dịch thành công! ${ICONS.rocket}</p>
@@ -582,6 +769,7 @@ export const TradingTutorial = observer(function TradingTutorial() {
       ],
 
       onDestroyStarted: () => {
+        clearTimerAndAudio();
         localStorage.setItem('trading-tutorial-completed', 'true');
         driverObj.destroy();
       },
