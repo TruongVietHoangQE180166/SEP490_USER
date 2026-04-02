@@ -4,7 +4,7 @@ import { tradingState$, tradingActions } from '../store';
 import { Timeframe } from '../types';
 import { cn } from '@/lib/utils';
 import { observer } from '@legendapp/state/react';
-import { HelpCircle } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 
 // Chỉ dùng XAUT
 const SYMBOL = 'XAU-USDT-SWAP';
@@ -64,11 +64,10 @@ export const MarketHeader = observer(function MarketHeader() {
       <div className="ml-auto pl-4 shrink-0">
         <button
           onClick={() => window.dispatchEvent(new Event('start-trading-tutorial'))}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors border border-primary/20"
+          className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors border border-primary/20"
           title="Xem lại hướng dẫn giao dịch"
         >
-          <HelpCircle className="w-4 h-4" />
-          <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap">Hướng dẫn</span>
+          <BookOpen className="w-5 h-5" />
         </button>
       </div>
     </div>
