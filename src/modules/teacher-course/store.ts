@@ -11,10 +11,11 @@ const INITIAL_STATE: TeacherCourseState = {
   totalElements: 0,
   totalPages: 0,
   currentPage: 1,
-  pageSize: 12, // match admin
+  pageSize: 12,
   filterStatus: 'ALL',
   searchQuery: '',
   isDeleting: false,
+  isUploadingVideo: false,
 };
 
 export const teacherCourseState$ = observable<TeacherCourseState>(INITIAL_STATE);
@@ -70,6 +71,25 @@ export const teacherCourseActions = {
 
   setDeleting: (isDeleting: boolean) => {
     teacherCourseState$.isDeleting.set(isDeleting);
+  },
+
+  setUploadingVideo: (isUploadingVideo: boolean) => {
+    teacherCourseState$.isUploadingVideo.set(isUploadingVideo);
+  },
+
+  /**
+   * Cập nhật videoPreview của một course trong danh sách và selectedCourse (nếu đang chọn).
+   * Gọi sau khi upload video preview thành công để phản ánh ngay trên UI.
+   */
+  updateCourseVideoPreview: (courseId: string, videoUrl: string) => {
+    const courses = teacherCourseState$.courses.get();
+    teacherCourseState$.courses.set(
+      courses.map((c) => (c.id === courseId ? { ...c, videoPreview: videoUrl } : c))
+    );
+    const selected = teacherCourseState$.selectedCourse.get();
+    if (selected && selected.id === courseId) {
+      teacherCourseState$.selectedCourse.set({ ...selected, videoPreview: videoUrl });
+    }
   },
 
   reset: () => {

@@ -45,6 +45,12 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
     setSelectedLesson,
     quizQuestions,
     isQuizLoading,
+    handleCreateMooc,
+    isCreatingMooc,
+    handleUpdateMooc,
+    isUpdatingMooc,
+    handleDeleteMooc,
+    isDeletingMooc,
   } = useTeacherCourseDetail(courseId);
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -211,10 +217,11 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
 
           <div className="relative">
             {activeTab === 'overview' ? (
-                <div key="overview" className="space-y-10">
+                <div className="space-y-10">
                     <div className="grid gap-8 lg:grid-cols-3">
                         <div className="lg:col-span-2 space-y-8">
-                            <CourseVideoPlayer course={course} isPlaying={isPlaying} setIsPlaying={setIsPlaying} />
+                            <CourseVideoPlayer course={course} isPlaying={isPlaying} setIsPlaying={setIsPlaying} onReload={reload} />
+
                             <CourseStatsTable course={course} moocsLength={initialMoocs.length} totalLessonsCount={totalLessonsCount} />
 
                             {/* Course Description Section */}
@@ -243,7 +250,7 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
                     </div>
                 </div>
             ) : (
-                <div key="curriculum" className="space-y-8">
+                <div className="space-y-8">
                     <CourseCurriculumEditor 
                         moocs={localMoocs} 
                         onUpdateMoocs={setLocalMoocs}
@@ -252,6 +259,12 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
                             console.log('Edit/Add lesson:', lesson, 'for mooc:', moocId);
                             setSelectedLesson({ ...lesson, isEditing: true, targetMoocId: moocId });
                         }}
+                        onCreateMooc={handleCreateMooc}
+                        isCreatingMooc={isCreatingMooc}
+                        onUpdateMooc={handleUpdateMooc}
+                        isUpdatingMooc={isUpdatingMooc}
+                        onDeleteMooc={handleDeleteMooc}
+                        isDeletingMooc={isDeletingMooc}
                     />
                 </div>
             )}
@@ -259,12 +272,14 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
         </div>
       </div>
 
-      <LessonPreviewModal
-        selectedLesson={selectedLesson}
-        setSelectedLesson={setSelectedLesson}
-        quizQuestions={quizQuestions}
-        isQuizLoading={isQuizLoading}
-      />
+      {selectedLesson && (
+        <LessonPreviewModal
+          selectedLesson={selectedLesson}
+          setSelectedLesson={setSelectedLesson}
+          quizQuestions={quizQuestions}
+          isQuizLoading={isQuizLoading}
+        />
+      )}
     </main>
   );
 };
