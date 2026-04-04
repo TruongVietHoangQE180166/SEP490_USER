@@ -1,5 +1,5 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse, VideoUploadResponse, DocumentUploadResponse, CreateQuizRequest, CreateQuizResponse, ChartDemoApiResponse, CreateChartDemoRequest } from './types';
+import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse, VideoUploadResponse, DocumentUploadResponse, CreateQuizRequest, CreateQuizResponse, ChartDemoApiResponse, CreateChartDemoRequest, UpdateChartDemoRequest } from './types';
 
 export const teacherCourseService = {
   /**
@@ -315,6 +315,38 @@ export const teacherCourseService = {
       throw new Error(response?.message?.messageDetail || 'Không thể tạo Chart Demo');
     }
     return response.data;
+  },
+  /**
+   * Update Chart Demo
+   * PUT /api/chart-demo/by-video/{videoId}?ts=...&startTradeTs=...&closeTs=...&limitTs=...&provideMoney=...&objectDone=...&description=...
+   */
+  async updateChartDemo(videoId: string, payload: UpdateChartDemoRequest): Promise<ChartDemoApiResponse['data']> {
+    const params = new URLSearchParams({
+      ts: payload.ts.toString(),
+      startTradeTs: payload.startTradeTs.toString(),
+      closeTs: payload.closeTs.toString(),
+      limitTs: payload.limitTs.toString(),
+      provideMoney: payload.provideMoney.toString(),
+      objectDone: payload.objectDone.toString(),
+      description: payload.description
+    });
+    const url = `/api/chart-demo/by-video/${videoId}?${params.toString()}`;
+    const response = await ApiConfigService.put<ChartDemoApiResponse>(url, null);
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Không thể cập nhật Chart Demo');
+    }
+    return response.data;
+  },
+
+  /**
+   * Delete Chart Demo
+   * DELETE /api/chart-demo/by-video/{videoId}
+   */
+  async deleteChartDemo(videoId: string): Promise<void> {
+    const response = await ApiConfigService.delete<{ message: any; errors: any; data: any; success: boolean }>(`/api/chart-demo/by-video/${videoId}`);
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Không thể xóa Chart Demo');
+    }
   }
 };
 

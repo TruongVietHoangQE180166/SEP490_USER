@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction, AlertDialogDescription } from '@/components/ui/alert-dialog';
-import { BarChart3, Plus, Minus, DollarSign, Calendar, Clock, Activity, Loader2, Eye, X, FileText, Target } from 'lucide-react';
+import { BarChart3, Plus, Minus, Pencil, Trash2, DollarSign, Calendar, Clock, Activity, Loader2, Eye, X, FileText, Target } from 'lucide-react';
 import { DemoChart } from './DemoChart';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -13,11 +13,14 @@ interface VideoChartDemoProps {
 }
 
 export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
-  const { chartDemo, isLoading, isCreating, createChartDemo } = useChartDemo(videoId);
+  const { chartDemo, isLoading, isCreating, isUpdating, isDeleting, createChartDemo, updateChartDemo, deleteChartDemo } = useChartDemo(videoId);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+
+  const EMPTY_FORM = {
     provideMoney: 10000,
     description: '',
     ts: '',
@@ -25,7 +28,16 @@ export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
     closeTs: '',
     limitTs: '',
     objectDone: 50,
-  });
+  };
+
+  // Convert unix timestamp (ms) to YYYY-MM-DD date string for date inputs
+  const tsToDateStr = (ts: number | undefined) => {
+    if (!ts) return '';
+    return new Date(ts).toISOString().slice(0, 10);
+  };
+
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
 
   const { isStepValid, validationError } = useMemo(() => {
     if (currentStep === 1) {
@@ -67,6 +79,29 @@ export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
     return { isStepValid: false, validationError: '' };
   }, [formData, currentStep]);
 
+  const handleOpenEdit = () => {
+    if (!chartDemo) return;
+    setFormData({
+      provideMoney: chartDemo.provideMoney ?? 10000,
+      description: chartDemo.description ?? '',
+      ts: tsToDateStr(chartDemo.ts),
+      startTradeTs: tsToDateStr(chartDemo.startTradeTs),
+      closeTs: tsToDateStr(chartDemo.closeTs),
+      limitTs: tsToDateStr(chartDemo.limitTs),
+      objectDone: chartDemo.objectDone ?? 50,
+    });
+    setIsEditMode(true);
+    setCurrentStep(1);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenCreate = () => {
+    setFormData(EMPTY_FORM);
+    setIsEditMode(false);
+    setCurrentStep(1);
+    setIsModalOpen(true);
+  };
+
   if (videoId.startsWith('temp-')) {
     return null; // Cannot create chart demo for a temporary unsaved video
   }
@@ -92,7 +127,7 @@ export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsModalOpen(true)}
+              onClick={handleOpenCreate}
               className="h-8 px-3 text-[10px] font-black uppercase tracking-wider text-primary border-primary/20 hover:bg-primary hover:text-white"
             >
               <Plus size={14} className="mr-1" /> Tạo Chart Demo
@@ -107,6 +142,22 @@ export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
                 <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">
                   {chartDemo.candles?.length || 0} Nến
                 </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleOpenEdit}
+                  className="h-6 px-2 text-[10px] font-bold text-amber-500 hover:bg-amber-500/10 gap-1 rounded-md"
+                >
+                  <Pencil size={12} /> Sửa
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                  className="h-6 px-2 text-[10px] font-bold text-rose-500 hover:bg-rose-500/10 gap-1 rounded-md"
+                >
+                  <Trash2 size={12} /> Xóa
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -166,7 +217,7 @@ export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
 
       <AlertDialog open={isModalOpen} onOpenChange={(val) => {
           setIsModalOpen(val);
-          if (!val) setCurrentStep(1);
+          if (!val) { setCurrentStep(1); setIsEditMode(false); }
       }}>
         <AlertDialogContent className="max-w-3xl p-0 gap-0 border border-border/50 shadow-2xl bg-background overflow-hidden flex flex-col rounded-2xl">
           <AlertDialogHeader className="hidden sr-only">
@@ -182,11 +233,11 @@ export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded-sm font-bold uppercase tracking-widest border border-primary/20 flex items-center">
-                            THÊM MỚI
+                            {isEditMode ? 'CHỈNH SỬA' : 'THÊM MỚI'}
                         </span>
                     </div>
                     <h2 className="text-lg font-bold text-foreground tracking-tight italic">
-                        Tạo đoạn Chart Demo
+                        {isEditMode ? 'Cập nhật Chart Demo' : 'Tạo đoạn Chart Demo'}
                     </h2>
                 </div>
             </div>
@@ -394,23 +445,29 @@ export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
               ) : (
                 <Button 
                   onClick={() => {
-                    const payload = {
+                    const tsPayload = {
                       ...formData,
                       ts: new Date(formData.ts).getTime(),
                       startTradeTs: new Date(formData.startTradeTs).getTime(),
                       closeTs: new Date(formData.closeTs).getTime(),
                       limitTs: new Date(formData.limitTs).getTime(),
                     };
-                    createChartDemo(payload).then(() => {
+                    const done = () => {
                       setIsModalOpen(false);
                       setCurrentStep(1);
-                    });
+                      setIsEditMode(false);
+                    };
+                    if (isEditMode) {
+                      updateChartDemo(tsPayload).then(done);
+                    } else {
+                      createChartDemo(tsPayload).then(done);
+                    }
                   }} 
-                  disabled={isCreating || !isStepValid}
+                  disabled={isCreating || isUpdating || !isStepValid}
                   className="h-10 px-8 rounded-xl font-black uppercase text-[11px] tracking-widest bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
                 >
-                  {isCreating ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                  Hoàn thành
+                  {(isCreating || isUpdating) ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+                  {isEditMode ? 'Lưu thay đổi' : 'Hoàn thành'}
                 </Button>
               )}
             </div>
@@ -523,6 +580,55 @@ export const VideoChartDemo: React.FC<VideoChartDemoProps> = ({ videoId }) => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <AlertDialogContent className="max-w-md p-0 gap-0 border border-border/50 shadow-2xl bg-background overflow-hidden rounded-2xl">
+          <AlertDialogHeader className="hidden sr-only">
+            <AlertDialogTitle>Xác nhận xóa Chart Demo</AlertDialogTitle>
+            <AlertDialogDescription>Hành động này không thể hoàn tác</AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="p-6 flex flex-col items-center gap-4 text-center">
+            <div className="h-16 w-16 rounded-full bg-rose-500/10 border-2 border-rose-500/20 flex items-center justify-center text-rose-500 shadow-inner">
+              <Trash2 size={28} />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-foreground">Xóa Chart Demo?</h3>
+              <p className="text-sm text-muted-foreground mt-1 font-medium">
+                Toàn bộ dữ liệu nến và cấu hình của Chart Demo này sẽ bị <span className="text-rose-500 font-bold">xóa vĩnh viễn</span> và không thể khôi phục.
+              </p>
+            </div>
+          </div>
+          <div className="px-6 pb-6 flex items-center justify-end gap-3">
+            <AlertDialogCancel
+              onClick={() => setIsDeleteConfirmOpen(false)}
+              disabled={isDeleting}
+              className="h-10 px-6 font-bold text-[11px] uppercase tracking-widest rounded-xl border-border hover:bg-muted m-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Hủy bỏ
+            </AlertDialogCancel>
+            <Button
+              onClick={() => {
+                deleteChartDemo().then(() => setIsDeleteConfirmOpen(false));
+              }}
+              disabled={isDeleting}
+              className="h-10 px-8 rounded-xl font-black uppercase text-[11px] tracking-widest bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-500/20 flex items-center gap-2"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="animate-spin" size={16} />
+                  <span>Đang xóa...</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 size={14} />
+                  <span>Xác nhận xóa</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
