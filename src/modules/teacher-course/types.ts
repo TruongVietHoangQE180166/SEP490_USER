@@ -63,6 +63,7 @@ export interface TeacherCourseState {
   searchQuery: string;
   // Misc
   isDeleting: boolean;
+  isUploadingVideo: boolean;
 }
 
 // ─── API Shapes ───────────────────────────────────────────────────────────────
@@ -119,6 +120,16 @@ export interface ImageUploadResponse {
   success: boolean;
 }
 
+export interface VideoUploadResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: Array<{ field: string; message: string }> | null;
+  data: Record<string, unknown>;
+  success: boolean;
+}
+
 export interface QuizAnswer {
   id: string;
   content: string;
@@ -142,4 +153,36 @@ export interface QuizQuestionsResponse {
   errors: any;
   data: QuizQuestion[];
   success: boolean;
+}
+
+export interface Mooc {
+  id: string;
+  title: string;
+  description: string;
+  orderIndex: number;
+  isPreview: boolean;
+  videos: any[];
+  quizzes: any[];
+  documents: any[];
+  createdDate: string;
+  createdBy: string | null;
+  courseId: string;
+  isCompleted: boolean;
+  isUnlocked: boolean;
+}
+
+export interface MoocApiResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: Mooc;
+  success: boolean;
+}
+
+export interface CreateMoocRequest {
+  title: string;
+  description: string;
+  isPreview: boolean;
 }

@@ -68,6 +68,12 @@ export const TradingView = observer(function TradingView() {
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isAiThinking]);
+
   // --- Voice Recording State ---
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);

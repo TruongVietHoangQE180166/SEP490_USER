@@ -13,7 +13,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Video, FileText, ListChecks, UploadCloud, ChevronDown, ChevronUp, Clock, Target, GripVertical, BookPlus, Sparkles, LayoutGrid, Settings2, Eye, LayoutList, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, Video, FileText, ListChecks, UploadCloud, ChevronDown, ChevronUp, Clock, Target, GripVertical, BookPlus, Sparkles, LayoutGrid, Settings2, Eye, LayoutList, AlertTriangle, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // We'll define local types that map to the API structure or use a consistent one
@@ -36,6 +36,12 @@ interface CourseCurriculumEditorProps {
   onUpdateMoocs: (moocs: Mooc[]) => void;
   onLessonPreview: (lesson: any) => void;
   onLessonEdit: (lesson: any, moocId?: string) => void;
+  onCreateMooc?: (title: string) => Promise<void>;
+  isCreatingMooc?: boolean;
+  onUpdateMooc?: (moocId: string, title: string) => Promise<void>;
+  isUpdatingMooc?: boolean;
+  onDeleteMooc?: (moocId: string) => Promise<void>;
+  isDeletingMooc?: boolean;
 }
 
 const TYPE_CONFIG = {
@@ -44,8 +50,31 @@ const TYPE_CONFIG = {
   quiz: { icon: ListChecks, color: "text-primary", bg: "bg-primary/10", border: "border-primary/20", label: "Kiểm tra" }
 };
 
-export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, onLessonEdit }: CourseCurriculumEditorProps) => {
+export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, onLessonEdit, onCreateMooc, isCreatingMooc, onUpdateMooc, isUpdatingMooc, onDeleteMooc, isDeletingMooc }: CourseCurriculumEditorProps) => {
   const [expandedMooc, setExpandedMooc] = React.useState<string | null>(moocs[0]?.id || null);
+  const [editingMoocId, setEditingMoocId] = React.useState<string | null>(null);
+  const [editDraftTitle, setEditDraftTitle] = React.useState<string>('');
+
+  const handleStartEdit = (id: string, currentTitle: string) => {
+    setEditingMoocId(id);
+    setEditDraftTitle(currentTitle);
+  };
+
+  const handleSaveEdit = async () => {
+    if (editingMoocId) {
+      if (onUpdateMooc) {
+        await onUpdateMooc(editingMoocId, editDraftTitle);
+      } else {
+        onUpdateMoocs(moocs.map(m => m.id === editingMoocId ? { ...m, title: editDraftTitle } : m));
+      }
+    }
+    setEditingMoocId(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMoocId(null);
+  };
+
 
   const [isAddingMooc, setIsAddingMooc] = React.useState(false);
   const [newMoocTitle, setNewMoocTitle] = React.useState('');
@@ -54,7 +83,7 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
     isOpen: boolean,
     title: string,
     description: string,
-    onAction: () => void
+    onAction: () => Promise<void> | void
   }>({
     isOpen: false,
     title: '',
@@ -66,24 +95,38 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
     setConfirmState({ isOpen: true, title, description, onAction });
   };
 
-  const handleAddMooc = () => {
+  const handleAddMooc = async () => {
     if (!newMoocTitle.trim()) return;
-    const newMooc: Mooc = {
-      id: `new-mooc-${Date.now()}`,
-      title: newMoocTitle,
-      lessons: [],
-    };
-    onUpdateMoocs([...moocs, newMooc]);
-    setExpandedMooc(newMooc.id);
-    setNewMoocTitle('');
-    setIsAddingMooc(false);
+    
+    if (onCreateMooc) {
+      await onCreateMooc(newMoocTitle);
+      setNewMoocTitle('');
+      setIsAddingMooc(false);
+    } else {
+      const newMooc: Mooc = {
+        id: `new-mooc-${Date.now()}`,
+        title: newMoocTitle,
+        lessons: [],
+      };
+      onUpdateMoocs([...moocs, newMooc]);
+      setExpandedMooc(newMooc.id);
+      setNewMoocTitle('');
+      setIsAddingMooc(false);
+    }
   };
 
   const handleDeleteMooc = (id: string) => {
     showConfirm(
         'Xóa chương học?',
         'Tất cả bài giảng trong chương này sẽ bị xóa vĩnh viễn. Bạn có chắc không?',
-        () => onUpdateMoocs(moocs.filter(m => m.id !== id))
+        async () => {
+            if (onDeleteMooc) {
+                await onDeleteMooc(id);
+            } else {
+                onUpdateMoocs(moocs.filter(m => m.id !== id));
+            }
+            setConfirmState(prev => ({ ...prev, isOpen: false }));
+        }
     );
   };
 
@@ -109,6 +152,7 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
                 }
                 return m;
             }));
+            setConfirmState(prev => ({ ...prev, isOpen: false }));
         }
     );
   };
@@ -160,10 +204,10 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
                   <div className="flex gap-2">
                     <Button 
                         onClick={handleAddMooc} 
-                        disabled={!newMoocTitle.trim()}
+                        disabled={!newMoocTitle.trim() || isCreatingMooc}
                         className="h-14 px-8 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-primary/20"
                     >
-                        Lưu chương
+                        {isCreatingMooc ? 'Đang lưu...' : 'Lưu chương'}
                     </Button>
                     <Button 
                         variant="ghost" 
@@ -221,24 +265,80 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
                   <div className="font-black text-[10px] uppercase tracking-[0.25em] bg-background border-2 border-border/60 px-4 py-1.5 rounded-lg text-muted-foreground shadow-sm shrink-0">
                     Chương {index + 1}
                   </div>
-                  <Input 
-                    value={mooc.title} 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      onUpdateMoocs(moocs.map(m => m.id === mooc.id ? { ...m, title: e.target.value } : m));
-                    }}
-                    className="h-12 font-black bg-transparent border-none focus-visible:ring-0 shadow-none text-xl placeholder:text-muted-foreground/30 py-0 flex-1" 
-                    placeholder="Tên chương học..." 
-                  />
+                  {editingMoocId === mooc.id ? (
+                     <Input 
+                      autoFocus
+                      value={editDraftTitle} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditDraftTitle(e.target.value)}
+                      onBlur={handleSaveEdit}
+                      disabled={isUpdatingMooc}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          (e.target as HTMLInputElement).blur();
+                        } else if (e.key === 'Escape') {
+                          handleCancelEdit();
+                        }
+                      }}
+                      className="h-10 font-black bg-background border-2 border-primary rounded-lg focus-visible:ring-0 shadow-lg shadow-primary/10 text-lg placeholder:text-muted-foreground/30 py-0 flex-1 px-3" 
+                      placeholder="Nhập tên chương học..." 
+                    />
+                  ) : (
+                    <span 
+                      className="flex-1 font-black text-xl px-1 truncate cursor-pointer hover:text-primary transition-colors" 
+                      onDoubleClick={() => handleStartEdit(mooc.id, mooc.title)}
+                    >
+                      {mooc.title || 'Chưa có tên chương'}
+                    </span>
+                  )}
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {editingMoocId === mooc.id ? (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          disabled={isUpdatingMooc}
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Ngăn ô input bị mất focus trước khi chạy hàm save
+                            handleSaveEdit();
+                          }}
+                          className="h-10 w-10 text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20 hover:text-emerald-600 rounded-lg transition-colors border border-emerald-500/20"
+                        >
+                          {isUpdatingMooc ? <Loader2 size={20} className="animate-spin" /> : <Check size={20} strokeWidth={3} />}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Ngăn ô input bị mất focus trước khi chạy hàm cancel để khỏi lưu bậy
+                            handleCancelEdit();
+                          }}
+                          title="Hủy (Phím Esc)"
+                          className="h-10 w-10 text-rose-500 bg-rose-500/10 hover:bg-rose-500/20 hover:text-rose-600 rounded-lg transition-colors border border-rose-500/20"
+                        >
+                          <X size={20} strokeWidth={3} />
+                        </Button>
+                      </>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleStartEdit(mooc.id, mooc.title)} 
+                        className="h-10 w-10 text-muted-foreground hover:bg-amber-500/10 hover:text-amber-500 rounded-lg transition-colors"
+                      >
+                        <Pencil size={18} />
+                      </Button>
+                    )}
                     <Button 
                       variant="ghost" 
                       size="icon" 
+                      disabled={isDeletingMooc}
                       onClick={() => handleDeleteMooc(mooc.id)} 
-                      className="h-10 w-10 hover:bg-rose-500/10 hover:text-rose-500 rounded-lg shrink-0 transition-colors"
+                      className="h-10 w-10 hover:bg-rose-500/10 hover:text-rose-500 rounded-lg transition-colors text-muted-foreground/40"
                     >
                       <Trash2 size={20} />
                     </Button>
+                    <div className="w-px h-6 bg-border/60 mx-1" />
                     <Button 
                       variant="outline" 
                       size="icon" 
@@ -384,14 +484,16 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
             <AlertDialogDescription className="text-sm font-medium text-muted-foreground leading-relaxed text-center">{confirmState.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 gap-3 flex flex-col sm:flex-row">
-            <AlertDialogCancel className="h-12 flex-1 font-bold text-[11px] uppercase tracking-widest rounded-xl border-border hover:bg-muted transition-all">Quay lại</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeletingMooc} className="h-12 flex-1 font-bold text-[11px] uppercase tracking-widest rounded-xl border-border hover:bg-muted transition-all">Quay lại</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 confirmState.onAction();
-                setConfirmState(prev => ({ ...prev, isOpen: false }));
               }}
+              disabled={isDeletingMooc}
               className="h-12 flex-1 font-black text-[11px] uppercase tracking-widest rounded-xl bg-rose-500 hover:bg-rose-600 shadow-xl shadow-rose-500/20 text-white transition-all active:scale-95"
             >
+              {isDeletingMooc ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
               Tôi chắc chắn
             </AlertDialogAction>
           </AlertDialogFooter>

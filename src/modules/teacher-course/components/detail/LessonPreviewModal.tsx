@@ -17,11 +17,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
     PlayCircle, Timer, FileText, CheckCircle2, ClipboardList, Target, 
-    UploadCloud, Plus, Trash2, Settings2, GripVertical, AlertTriangle 
+    UploadCloud, Plus, Trash2, Settings2, GripVertical, AlertTriangle, Eye
 } from 'lucide-react';
 import { ThunderLoader } from '@/components/thunder-loader';
 import { getEmbedUrl, cn } from '@/lib/utils';
 import { QuizQuestion } from '../../types';
+
+// We must define formatting properties
+export interface LessonPreviewModalProps {
+    selectedLesson: any;
+    setSelectedLesson: (lesson: any) => void;
+    quizQuestions: QuizQuestion[];
+    isQuizLoading?: boolean;
+}
 
 // Separate Question Item Component for stability
 const QuizQuestionItem = ({ q, idx, onReorder, onDelete, onQuestionChange, onAnswerChange, onToggleCorrect }: any) => {
@@ -109,9 +117,10 @@ export const LessonPreviewModal = ({
     quizQuestions, 
     isQuizLoading 
 }: LessonPreviewModalProps) => {
-    if (!selectedLesson) return null;
-
     const [localQuestions, setLocalQuestions] = useState<QuizQuestion[]>(quizQuestions);
+    const [fakeDocUploaded, setFakeDocUploaded] = useState(false);
+    const [selectedDocFile, setSelectedDocFile] = useState<File | null>(null);
+    const docInputRef = useRef<HTMLInputElement>(null);
     const [confirmState, setConfirmState] = useState<{
         isOpen: boolean,
         title: string,
@@ -127,6 +136,13 @@ export const LessonPreviewModal = ({
     });
 
     const questionsEndRef = useRef<HTMLDivElement>(null);
+
+    const handleDocFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setSelectedDocFile(e.target.files[0]);
+            setFakeDocUploaded(true);
+        }
+    };
 
     useEffect(() => {
         setLocalQuestions(quizQuestions);
@@ -229,10 +245,10 @@ export const LessonPreviewModal = ({
     };
 
     return (
-        <div key="lp-modal-overlay" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div key="lp-modal-body" className="relative w-full max-w-[1400px] h-[90vh] bg-background rounded-lg border border-border shadow-2xl overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="relative w-full max-w-[1400px] h-[90vh] bg-background rounded-lg border border-border shadow-2xl overflow-hidden flex flex-col">
                 {/* Header */}
-                <div key="lp-header" className="px-8 py-6 border-b border-border flex items-center justify-between bg-card shrink-0">
+                <div className="px-8 py-6 border-b border-border flex items-center justify-between bg-card shrink-0">
                     <div className="flex items-center gap-6">
                         <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
                             {selectedLesson.type === 'video' ? <PlayCircle size={28} /> : 
@@ -256,7 +272,7 @@ export const LessonPreviewModal = ({
                     </div>
 
                     {selectedLesson.type === 'quiz' && (
-                        <div key="lp-actions" className="flex items-center gap-3">
+                        <div className="flex items-center gap-3">
                             <Button 
                                 variant="ghost"
                                 onClick={handleDeleteAll}
@@ -277,10 +293,10 @@ export const LessonPreviewModal = ({
                 </div>
 
                 {/* Main Content */}
-                <div key="lp-main" className="p-8 overflow-y-auto flex-1 bg-muted/5 custom-scrollbar">
+                <div className="p-8 overflow-y-auto flex-1 bg-muted/5 custom-scrollbar">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 max-w-6xl mx-auto">
                         {selectedLesson.type === 'quiz' ? (
-                            <div key="lp-quiz-grid" className="lg:col-span-12 space-y-10">
+                            <div className="lg:col-span-12 space-y-10">
                                 <div className="bg-primary/5 border border-primary/20 rounded-md p-8 relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-8 opacity-5"><Target size={100} /></div>
                                     <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
@@ -315,7 +331,7 @@ export const LessonPreviewModal = ({
                                         </div>
                                     </div>
                                 </div>
-                                <div key="lp-question-bank" className="space-y-6 relative pb-20">
+                                <div className="space-y-6 relative pb-20">
                                     <div className="flex items-center justify-between border-b border-border pb-6">
                                         <div className="flex items-center gap-4">
                                             <div className="h-10 w-10 rounded-sm bg-muted flex items-center justify-center text-muted-foreground/40 border border-border"><ClipboardList size={20} /></div>
@@ -323,12 +339,12 @@ export const LessonPreviewModal = ({
                                         </div>
                                     </div>
                                     {isQuizLoading ? (
-                                        <div key="lp-loading" className="py-20 flex flex-col items-center justify-center gap-4">
+                                        <div className="py-20 flex flex-col items-center justify-center gap-4">
                                             <ThunderLoader size="lg" animate="thunder" />
                                             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Đang tải...</p>
                                         </div>
                                     ) : (
-                                        <div key="lp-reorder-container">
+                                        <div>
                                             <Reorder.Group axis="y" values={localQuestions} onReorder={setLocalQuestions} className="space-y-8">
                                                 {localQuestions.map((q, idx) => (
                                                     <QuizQuestionItem 
@@ -348,14 +364,14 @@ export const LessonPreviewModal = ({
                                 </div>
                             </div>
                         ) : (
-                            <div key="lp-standard-grid" className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
-                                <div className="lg:col-span-12 xl:col-span-7 space-y-8">
+                            <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
+                                <div className={cn("space-y-8", selectedLesson.type === 'video' ? "lg:col-span-12 xl:col-span-7" : "lg:col-span-12")}>
                                     <div className="space-y-4">
                                         <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Thông tin bài học</Label>
                                         <Input defaultValue={selectedLesson.title} placeholder="Tên bài giảng..." className="h-12 text-lg font-bold bg-background border border-border focus:border-primary rounded-sm px-6" />
                                     </div>
                                     {selectedLesson.type === 'video' && (
-                                        <div key="lp-video" className="space-y-6">
+                                        <div className="space-y-6">
                                             <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Dữ liệu Video</Label>
                                             <div className="border border-dashed border-primary/30 rounded-md p-12 bg-primary/[0.01] hover:bg-primary/[0.03] transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-4 group">
                                                 <div className="h-14 w-14 rounded-md bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-all"><UploadCloud size={32} /></div>
@@ -364,17 +380,84 @@ export const LessonPreviewModal = ({
                                         </div>
                                     )}
                                     {selectedLesson.type === 'document' && (
-                                        <div key="lp-doc" className="space-y-6">
-                                            <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Tệp tài liệu</Label>
-                                            <div className="border border-dashed border-amber-500/30 rounded-md p-16 bg-amber-500/[0.01] hover:bg-amber-500/[0.03] transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-4 group">
-                                                <div className="h-14 w-14 rounded-md bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-105 transition-all"><FileText size={32} /></div>
-                                                <p className="text-xs font-bold uppercase tracking-widest">Tải PDF / Word</p>
+                                        <div className="space-y-8 pt-2 border-t border-border/40">
+                                            {/* Old Document Preview */}
+                                            {(selectedLesson.documentUrl || (!selectedLesson.isNew && selectedLesson.type === 'document')) && (
+                                                <div className="space-y-4">
+                                                    <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Tài liệu hiện tại</Label>
+                                                    <div className="border border-border/80 rounded-xl p-5 bg-muted/10 flex items-center justify-between shadow-sm hover:border-border transition-colors">
+                                                        <div className="flex items-center gap-5 flex-1 overflow-hidden">
+                                                            <div className="h-12 w-12 rounded-lg bg-foreground/5 border border-border/60 flex items-center justify-center text-foreground shrink-0 shadow-inner">
+                                                                <FileText size={22} className="opacity-80" />
+                                                            </div>
+                                                            <div className="flex-1 overflow-hidden">
+                                                                <p className="font-bold text-sm truncate text-foreground">{selectedLesson.documentUrl ? "tai_lieu.pdf" : "tai_lieu_chuong_cu.pdf"}</p>
+                                                                <p className="text-[10px] text-muted-foreground uppercase mt-1 tracking-widest font-bold">Dữ liệu gốc đang sử dụng</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Button variant="secondary" size="sm" className="h-10 rounded-lg font-bold text-[10px] uppercase tracking-widest gap-2 bg-background border border-border/80 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all shadow-sm" onClick={() => window.open(selectedLesson.documentUrl || '#', '_blank')}>
+                                                                <Eye size={16} /> Xem
+                                                            </Button>
+                                                            <Button variant="secondary" size="sm" className="h-10 rounded-lg font-bold text-[10px] uppercase tracking-widest gap-2 bg-background border border-border/80 hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm" onClick={() => window.open(selectedLesson.documentUrl || '#', '_blank')}>
+                                                                <UploadCloud size={16} className="rotate-180" /> Tải về
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Upload / New Draft Preview */}
+                                            <div className="space-y-5">
+                                                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                                                    {(selectedLesson.documentUrl || (!selectedLesson.isNew && selectedLesson.type === 'document')) ? "Tải lên Tệp mới (Thay thế gốc)" : "Tải lên Tệp tài liệu"}
+                                                </Label>
+                                                {fakeDocUploaded ? (
+                                                    <div className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-300">
+                                                        <div className="border-2 border-amber-500/40 rounded-xl p-6 bg-amber-500/5 flex items-center justify-between shadow-sm relative overflow-hidden">
+                                                            <div className="absolute top-0 right-0 p-4 opacity-5"><FileText size={80} /></div>
+                                                            <div className="flex items-center gap-5 flex-1 relative z-10">
+                                                                <div className="h-12 w-12 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+                                                                    <FileText size={22} />
+                                                                </div>
+                                                                <div className="flex-1 overflow-hidden">
+                                                                    <p className="font-bold text-sm truncate text-foreground">{selectedDocFile?.name || "tài_liệu_bản_nháp_mới.pdf"}</p>
+                                                                    <p className="text-[10px] text-amber-600 uppercase mt-1 tracking-widest font-black">Chờ lưu lại • {selectedDocFile ? (selectedDocFile.size / 1024 / 1024).toFixed(2) : "2.4"} MB</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 relative z-10">
+                                                                <Button variant="outline" size="sm" className="h-10 rounded-lg font-bold text-[10px] uppercase tracking-widest gap-2 bg-background border-amber-500/30 text-amber-600 hover:bg-amber-500 hover:border-amber-500 hover:text-white shadow-sm transition-all" onClick={() => window.open('#', '_blank')}>
+                                                                    <Eye size={16} /> Xem thử
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                        <Button variant="outline" onClick={() => { setFakeDocUploaded(false); setSelectedDocFile(null); if(docInputRef.current) docInputRef.current.value = ''; }} className="w-full h-12 rounded-xl border-dashed border-2 border-border text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 font-black text-xs uppercase tracking-widest transition-colors shadow-sm">
+                                                            Xóa bản nháp / Chọn file khác
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div onClick={() => docInputRef.current?.click()} className="border-2 border-dashed border-amber-500/30 rounded-xl p-16 bg-amber-500/[0.02] hover:bg-amber-500/[0.05] hover:border-amber-500/50 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-5 group shadow-sm">
+                                                        <input 
+                                                            type="file" 
+                                                            ref={docInputRef} 
+                                                            className="hidden" 
+                                                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                                                            onChange={handleDocFileSelect} 
+                                                        />
+                                                        <div className="h-16 w-16 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform shadow-inner border border-amber-500/20"><FileText size={30} /></div>
+                                                        <div className="space-y-1.5">
+                                                            <p className="text-sm font-black uppercase tracking-widest text-foreground">Click để Chọn <span className="text-amber-500">PDF / Word</span></p>
+                                                            <p className="text-[10px] font-medium text-muted-foreground opacity-60">Hỗ trợ định dạng .pdf, .doc, .docx - Tối đa 50MB</p>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
                                 </div>
-                                <div className="lg:col-span-12 xl:col-span-5">
-                                    <div className="sticky top-0 space-y-6">
+                                {selectedLesson.type === 'video' && (
+                                    <div className="lg:col-span-12 xl:col-span-5">
+                                        <div className="sticky top-0 space-y-6">
                                         <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Xem trước</Label>
                                         <div className="aspect-video bg-black rounded-md overflow-hidden shadow-xl border border-border/40 flex items-center justify-center">
                                             {selectedLesson.videoUrl ? (
@@ -387,15 +470,16 @@ export const LessonPreviewModal = ({
                                                 <div className="text-center"><PlayCircle className="h-10 w-10 text-white/10 mx-auto" /></div>
                                             )}
                                         </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div key="lp-footer" className="p-6 bg-card border-t border-border flex items-center justify-end gap-3 px-8 shrink-0">
+                <div className="p-6 bg-card border-t border-border flex items-center justify-end gap-3 px-8 shrink-0">
                     <Button variant="ghost" onClick={onClose} className="rounded-sm h-10 px-8 font-bold text-[11px] uppercase tracking-widest">Hủy bỏ</Button>
                     <Button onClick={handleSave} className="h-10 px-10 rounded-sm font-bold text-[11px] uppercase tracking-widest bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20">Lưu bài học</Button>
                 </div>

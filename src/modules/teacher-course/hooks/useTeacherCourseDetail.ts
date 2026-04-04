@@ -72,6 +72,52 @@ export const useTeacherCourseDetail = (courseId: string) => {
     return course.totalDuration;
   }, [course?.totalDuration]);
 
+  const [isCreatingMooc, setIsCreatingMooc] = useState(false);
+
+  const handleCreateMooc = useCallback(async (title: string) => {
+    if (!courseId) return;
+    setIsCreatingMooc(true);
+    try {
+      await teacherCourseService.createMooc(courseId, title);
+      toast.success('Thêm chương mới thành công');
+      await loadDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi thêm chương');
+    } finally {
+      setIsCreatingMooc(false);
+    }
+  }, [courseId, loadDetail]);
+
+  const [isUpdatingMooc, setIsUpdatingMooc] = useState(false);
+
+  const handleUpdateMooc = useCallback(async (moocId: string, title: string) => {
+    setIsUpdatingMooc(true);
+    try {
+      await teacherCourseService.updateMooc(moocId, title);
+      toast.success('Cập nhật tên chương thành công');
+      await loadDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi cập nhật chương');
+    } finally {
+      setIsUpdatingMooc(false);
+    }
+  }, [loadDetail]);
+
+  const [isDeletingMooc, setIsDeletingMooc] = useState(false);
+
+  const handleDeleteMooc = useCallback(async (moocId: string) => {
+    setIsDeletingMooc(true);
+    try {
+      await teacherCourseService.deleteMooc(moocId);
+      toast.success('Xoá chương học thành công');
+      await loadDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi xoá chương học');
+    } finally {
+      setIsDeletingMooc(false);
+    }
+  }, [loadDetail]);
+
   return {
     course,
     isLoading,
@@ -88,5 +134,11 @@ export const useTeacherCourseDetail = (courseId: string) => {
     setSelectedLesson,
     quizQuestions,
     isQuizLoading,
+    handleCreateMooc,
+    isCreatingMooc,
+    handleUpdateMooc,
+    isUpdatingMooc,
+    handleDeleteMooc,
+    isDeletingMooc,
   };
 };

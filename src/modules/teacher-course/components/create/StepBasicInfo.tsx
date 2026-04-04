@@ -353,7 +353,14 @@ export const StepBasicInfo = ({ basicInfo, setBasicInfo }: StepBasicInfoProps) =
             className="hidden" 
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) setBasicInfo({ ...basicInfo, thumbnail: file });
+              if (!file) return;
+              const MAX_IMAGE_MB = 5;
+              if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+                alert(`Ảnh quá lớn. Vui lòng chọn ảnh dưới ${MAX_IMAGE_MB}MB (hiện tại: ${(file.size / 1024 / 1024).toFixed(1)}MB).`);
+                e.target.value = '';
+                return;
+              }
+              setBasicInfo({ ...basicInfo, thumbnail: file });
             }}
           />
           

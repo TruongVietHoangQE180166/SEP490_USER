@@ -1,5 +1,5 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse } from './types';
+import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse, VideoUploadResponse } from './types';
 
 export const teacherCourseService = {
   /**
@@ -93,5 +93,65 @@ export const teacherCourseService = {
       throw new Error(response?.message?.messageDetail || 'Không thể tải chi tiết câu hỏi');
     }
     return response.data;
+  },
+
+  /**
+   * Upload video preview for a course.
+   * POST /api/course/upload?courseId={courseId}
+   * Body: multipart/form-data  { file: File }
+   */
+  async uploadVideoPreview(courseId: string, file: File): Promise<VideoUploadResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await ApiConfigService.post<VideoUploadResponse>(
+      `/api/course/upload?courseId=${courseId}`,
+      formData
+    );
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tải video preview lên');
+    }
+    return response;
+  },
+
+  /**
+   * Create a new Mooc (lesson) under a course
+   */
+  async createMooc(courseId: string, title: string): Promise<any> {
+    const data = {
+      title,
+      description: 'Chưa có mô tả',
+      isPreview: true,
+    };
+    const response = await ApiConfigService.post<any>(`/api/mooc?courseId=${courseId}`, data);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tạo bài học');
+    }
+    return response.data;
+  },
+
+  /**
+   * Update an existing Mooc (chapter/lesson)
+   */
+  async updateMooc(moocId: string, title: string): Promise<any> {
+    const data = {
+      title,
+      description: 'Chưa có mô tả',
+      isPreview: true,
+    };
+    const response = await ApiConfigService.put<any>(`/api/mooc/${moocId}`, data);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể cập nhật bài học');
+    }
+    return response.data;
+  },
+
+  /**
+   * Delete an existing Mooc
+   */
+  async deleteMooc(moocId: string): Promise<void> {
+    const response = await ApiConfigService.delete<any>(`/api/mooc/${moocId}`);
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Không thể xoá chương học');
+    }
   },
 };

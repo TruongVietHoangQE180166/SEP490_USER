@@ -203,9 +203,15 @@ export const TeacherCourseCard = ({
               </span>
             </div>
             <div className="h-3 w-px bg-border/40" />
-            <div className="flex items-center gap-1 text-indigo-500">
-              <span className="text-xs font-bold">
-                {course.courseLevel || 'Chưa có'}
+            <div className={`flex items-center gap-1 ${
+              (course.level as string) === 'LEVEL_5' || course.courseLevel === 'Nâng cao' ? 'text-rose-500' :
+              (course.level as string) === 'LEVEL_4' || course.courseLevel === 'Thực hành' ? 'text-orange-500' :
+              (course.level as string) === 'LEVEL_3' || course.level === 'INTERMEDIATE' || course.courseLevel === 'Trung cấp' ? 'text-amber-500' :
+              (course.level as string) === 'LEVEL_2' || course.courseLevel === 'Nền tảng' ? 'text-blue-500' :
+              'text-emerald-500'
+            }`}>
+              <span className="text-xs font-bold bg-current/10 px-1.5 py-0.5 rounded-md">
+                {course.courseLevel || 'Nhập môn'}
               </span>
             </div>
           </div>
