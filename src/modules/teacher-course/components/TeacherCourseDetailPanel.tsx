@@ -51,6 +51,12 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
     isUpdatingMooc,
     handleDeleteMooc,
     isDeletingMooc,
+    handleDeleteVideo,
+    isDeletingVideo,
+    handleDeleteDocument,
+    isDeletingDocument,
+    handleDeleteQuiz,
+    isDeletingQuiz,
   } = useTeacherCourseDetail(courseId);
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -265,6 +271,12 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
                         isUpdatingMooc={isUpdatingMooc}
                         onDeleteMooc={handleDeleteMooc}
                         isDeletingMooc={isDeletingMooc}
+                        onDeleteVideo={handleDeleteVideo}
+                        isDeletingVideo={isDeletingVideo}
+                        onDeleteDocument={handleDeleteDocument}
+                        isDeletingDocument={isDeletingDocument}
+                        onDeleteQuiz={handleDeleteQuiz}
+                        isDeletingQuiz={isDeletingQuiz}
                     />
                 </div>
             )}
@@ -278,6 +290,10 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
           setSelectedLesson={setSelectedLesson}
           quizQuestions={quizQuestions}
           isQuizLoading={isQuizLoading}
+          onSuccess={() => {
+            setSelectedLesson(null);
+            reload();
+          }}
         />
       )}
     </main>

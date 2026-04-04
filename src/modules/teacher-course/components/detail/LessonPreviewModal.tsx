@@ -17,11 +17,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
     PlayCircle, Timer, FileText, CheckCircle2, ClipboardList, Target, 
-    UploadCloud, Plus, Trash2, Settings2, GripVertical, AlertTriangle, Eye
+    UploadCloud, Plus, Minus, Trash2, Settings2, GripVertical, AlertTriangle, Eye
 } from 'lucide-react';
 import { ThunderLoader } from '@/components/thunder-loader';
 import { getEmbedUrl, cn } from '@/lib/utils';
+import { teacherCourseService } from '../../services';
 import { QuizQuestion } from '../../types';
+import { useUploadMoocVideo } from '../../hooks/useUploadMoocVideo';
+import { useUploadMoocDocument } from '../../hooks/useUploadMoocDocument';
 
 // We must define formatting properties
 export interface LessonPreviewModalProps {
@@ -29,6 +32,7 @@ export interface LessonPreviewModalProps {
     setSelectedLesson: (lesson: any) => void;
     quizQuestions: QuizQuestion[];
     isQuizLoading?: boolean;
+    onSuccess?: () => void;
 }
 
 // Separate Question Item Component for stability
@@ -115,7 +119,8 @@ export const LessonPreviewModal = ({
     selectedLesson, 
     setSelectedLesson, 
     quizQuestions, 
-    isQuizLoading 
+    isQuizLoading,
+    onSuccess
 }: LessonPreviewModalProps) => {
     const [localQuestions, setLocalQuestions] = useState<QuizQuestion[]>(quizQuestions);
     const [fakeDocUploaded, setFakeDocUploaded] = useState(false);
@@ -125,7 +130,7 @@ export const LessonPreviewModal = ({
         isOpen: boolean,
         title: string,
         description: string,
-        onAction: () => void,
+        onAction: () => Promise<void> | void,
         variant?: 'danger' | 'primary'
     }>({
         isOpen: false,
@@ -136,11 +141,25 @@ export const LessonPreviewModal = ({
     });
 
     const questionsEndRef = useRef<HTMLDivElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
+    const { uploadVideo, updateVideo, isUploading: isUploadingVideo, progress: uploadProgress } = useUploadMoocVideo();
+    const { uploadDocument, updateDocument, isUploading: isUploadingDoc, progress: docUploadProgress } = useUploadMoocDocument();
+    const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+    const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     const handleDocFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             setSelectedDocFile(e.target.files[0]);
             setFakeDocUploaded(true);
+        }
+    };
+
+    const handleVideoFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            setSelectedVideoFile(file);
+            setPreviewVideoUrl(URL.createObjectURL(file));
         }
     };
 
@@ -159,11 +178,121 @@ export const LessonPreviewModal = ({
     };
 
     const handleSave = () => {
+        const isExistingVideo = selectedLesson.type === 'video' && selectedLesson.id && !selectedLesson.id.startsWith('temp-');
+        const isNewVideo = selectedLesson.type === 'video' && selectedLesson.targetMoocId;
+        const isDocument = selectedLesson.type === 'document';
+
         showConfirm(
-            'Lưu thay đổi?',
-            'Bạn có chắc chắn muốn lưu lại toàn bộ các chỉnh sửa này không?',
-            () => {
-                alert('Đã cập nhật hệ thống!');
+            'Lưu bài học?',
+            'Sẽ tiến hành lưu dữ liệu bài học, quá trình có thể mất ít thời gian.',
+            async () => {
+                if (isDocument) {
+                    const isExistingDoc = selectedLesson.id && !selectedLesson.id.startsWith('temp-');
+                    if (selectedDocFile) {
+                        if (isExistingDoc) {
+                            // UPDATE existing document
+                            try {
+                                const data = await updateDocument(selectedLesson.id, selectedDocFile, selectedLesson.title || 'Tài liệu');
+                                setSelectedLesson({ ...selectedLesson, viewUrl: data.viewUrl, downloadUrl: data.downloadUrl, fileType: data.fileType });
+                                setFakeDocUploaded(false);
+                                setSelectedDocFile(null);
+                                if (onSuccess) onSuccess();
+                            } catch (err) { return Promise.reject(err); }
+                        } else if (selectedLesson.targetMoocId) {
+                            // CREATE new document
+                            try {
+                                const data = await uploadDocument(selectedLesson.targetMoocId, selectedDocFile, selectedLesson.title || 'Tài liệu');
+                                setFakeDocUploaded(false);
+                                setSelectedDocFile(null);
+                                if (onSuccess) onSuccess();
+                            } catch (err) { return Promise.reject(err); }
+                        } else {
+                            alert('Chưa xác định được chương học!');
+                            return Promise.reject();
+                        }
+                    } else {
+                        alert('Bạn chưa chọn file tài liệu!');
+                        return Promise.reject();
+                    }
+                } else if (selectedLesson.type === 'video') {
+                    if (isExistingVideo) {
+                        try {
+                            const data = await updateVideo(selectedLesson.id, selectedLesson.title || 'Video lesson', selectedVideoFile || undefined);
+                            setSelectedLesson({ ...selectedLesson, videoUrl: data.videoUrl || selectedLesson.videoUrl });
+                            setPreviewVideoUrl(null);
+                            setSelectedVideoFile(null);
+                            if (onSuccess) onSuccess();
+                        } catch (err) { return Promise.reject(err); }
+                    } else if (isNewVideo && selectedVideoFile) {
+                        try {
+                            const data = await uploadVideo(selectedLesson.targetMoocId, selectedVideoFile, selectedLesson.title || 'Video lesson');
+                            setSelectedLesson({ ...selectedLesson, videoUrl: data.videoUrl });
+                            setPreviewVideoUrl(null);
+                            setSelectedVideoFile(null);
+                            if (onSuccess) onSuccess();
+                        } catch (err) { return Promise.reject(err); }
+                    } else if (isNewVideo && !selectedVideoFile) {
+                        alert('Bạn chưa chọn file video!');
+                        return Promise.reject();
+                    } else {
+                        alert('Chưa xác định được chương học!');
+                        return Promise.reject();
+                    }
+                } else if (selectedLesson.type === 'quiz') {
+                    const isNewQuiz = selectedLesson.isNew || (selectedLesson.id && selectedLesson.id.startsWith('temp-'));
+                    if (isNewQuiz) {
+                        setIsSaving(true);
+                        try {
+                            if (!selectedLesson.targetMoocId) {
+                                setIsSaving(false);
+                                alert('Chưa xác định được chương học!');
+                                return Promise.reject();
+                            }
+                            if (!selectedLesson.title) {
+                                setIsSaving(false);
+                                alert('Vui lòng nhập tên bài kiểm tra!');
+                                return Promise.reject();
+                            }
+                            await teacherCourseService.createQuiz(selectedLesson.targetMoocId, {
+                                title: selectedLesson.title,
+                                timeLimit: selectedLesson.timeLimit || 15,
+                                passingScore: selectedLesson.passingScore || 80
+                            });
+                            if (onSuccess) onSuccess();
+                        } catch (err: any) {
+                            setIsSaving(false);
+                            alert(err.message || 'Lỗi khi tạo bài kiểm tra');
+                            return Promise.reject(err);
+                        } finally {
+                            setIsSaving(false);
+                        }
+                    } else {
+                        setIsSaving(true);
+                        try {
+                            if (!selectedLesson.title) {
+                                setIsSaving(false);
+                                alert('Vui lòng nhập tên bài kiểm tra!');
+                                return Promise.reject();
+                            }
+                            await teacherCourseService.updateQuiz(selectedLesson.id, {
+                                title: selectedLesson.title,
+                                timeLimit: selectedLesson.timeLimit || 15,
+                                passingScore: selectedLesson.passingScore || 80
+                            });
+                            
+                            // (If this was the question mode, questions should be saved here, but for now we update the info)
+                            if (onSuccess) onSuccess();
+                        } catch (err: any) {
+                            setIsSaving(false);
+                            alert(err.message || 'Lỗi khi cập nhật bài kiểm tra');
+                            return Promise.reject(err);
+                        } finally {
+                            setIsSaving(false);
+                        }
+                    }
+                } else {
+                    alert('Đã cập nhật hệ thống!');
+                }
             }
         );
     };
@@ -271,7 +400,7 @@ export const LessonPreviewModal = ({
                         </div>
                     </div>
 
-                    {selectedLesson.type === 'quiz' && (
+                    {selectedLesson.type === 'quiz' && !(selectedLesson.isNew || (selectedLesson.id && selectedLesson.id.startsWith('temp-'))) && (!selectedLesson.mode || selectedLesson.mode === 'questions') && (
                         <div className="flex items-center gap-3">
                             <Button 
                                 variant="ghost"
@@ -295,42 +424,87 @@ export const LessonPreviewModal = ({
                 {/* Main Content */}
                 <div className="p-8 overflow-y-auto flex-1 bg-muted/5 custom-scrollbar">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 max-w-6xl mx-auto">
-                        {selectedLesson.type === 'quiz' ? (
+                        {selectedLesson.type === 'quiz' ? (() => {
+                            const isNewQuiz = selectedLesson.isNew || (selectedLesson.id && selectedLesson.id.startsWith('temp-'));
+                            const showInfo = isNewQuiz || !selectedLesson.mode || selectedLesson.mode === 'info';
+                            const showQuestions = !isNewQuiz && (!selectedLesson.mode || selectedLesson.mode === 'questions');
+
+                            return (
                             <div className="lg:col-span-12 space-y-10">
+                                {showInfo && (
                                 <div className="bg-primary/5 border border-primary/20 rounded-md p-8 relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-8 opacity-5"><Target size={100} /></div>
                                     <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
                                         <div className="flex-1 space-y-2">
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-9 w-9 rounded-sm bg-primary flex items-center justify-center text-white"><Settings2 size={18} /></div>
-                                                <h4 className="text-lg font-bold text-foreground tracking-tight uppercase">Cấu hình bài tập</h4>
-                                            </div>
-                                            <p className="text-xs font-medium text-muted-foreground/60">Thiết lập giới hạn thời gian và chỉ tiêu bài tập.</p>
+                                            <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Tên bài kiểm tra</Label>
+                                            <Input 
+                                                value={selectedLesson.title || ''} 
+                                                onChange={(e) => setSelectedLesson({ ...selectedLesson, title: e.target.value })}
+                                                placeholder="Nhập tên bài kiểm tra..." 
+                                                className="h-12 text-lg font-bold bg-background border border-border focus:border-primary rounded-sm px-6" 
+                                            />
                                         </div>
-                                        <div className="flex flex-wrap items-center gap-4">
-                                            <div className="bg-background p-3 rounded-sm border border-border flex items-center gap-4 px-5">
-                                                <div className="h-8 w-8 rounded-sm bg-amber-500/10 flex items-center justify-center text-amber-600"><Timer size={16} /></div>
+                                        <div className="flex flex-wrap items-center gap-4 mt-6 md:mt-0">
+                                            <div className="bg-background px-4 py-3 rounded-lg border-2 border-border flex items-center justify-between min-w-[220px] shadow-sm hover:border-amber-500/40 transition-all">
                                                 <div className="flex flex-col">
-                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Thời gian</p>
-                                                    <div className="flex items-center gap-2">
-                                                        <Input type="number" defaultValue={selectedLesson.timeLimit || 15} className="h-7 w-12 bg-transparent border-none p-0 font-bold text-sm focus-visible:ring-0 shadow-none text-primary" />
-                                                        <span className="text-[10px] font-bold text-muted-foreground">PHÚT</span>
+                                                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Thời gian làm bài</p>
+                                                    <div className="flex items-end gap-1.5">
+                                                        <span className="text-2xl font-black text-foreground leading-none">{selectedLesson.timeLimit || 15}</span>
+                                                        <span className="text-xs font-bold text-muted-foreground pb-0.5">Phút</span>
                                                     </div>
                                                 </div>
+                                                <div className="flex items-center gap-1 bg-amber-500/10 rounded-md p-1 border border-amber-500/10 ml-4">
+                                                    <button 
+                                                        type="button"
+                                                        className="w-8 h-8 rounded shrink-0 flex items-center justify-center bg-background border border-amber-500/20 text-amber-600 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-colors shadow-sm disabled:opacity-50 disabled:hover:bg-background disabled:hover:text-amber-600 disabled:hover:border-amber-500/20"
+                                                        onClick={() => setSelectedLesson({ ...selectedLesson, timeLimit: Math.max(1, (selectedLesson.timeLimit || 15) - 1) })}
+                                                        disabled={(selectedLesson.timeLimit || 15) <= 1}
+                                                    >
+                                                        <Minus size={16} strokeWidth={3} />
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        className="w-8 h-8 rounded shrink-0 flex items-center justify-center bg-background border border-amber-500/20 text-amber-600 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-colors shadow-sm"
+                                                        onClick={() => setSelectedLesson({ ...selectedLesson, timeLimit: (selectedLesson.timeLimit || 15) + 1 })}
+                                                    >
+                                                        <Plus size={16} strokeWidth={3} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="bg-background p-3 rounded-sm border border-border flex items-center gap-4 px-5">
-                                                <div className="h-8 w-8 rounded-sm bg-emerald-500/10 flex items-center justify-center text-emerald-600"><Target size={16} /></div>
+
+                                            <div className="bg-background px-4 py-3 rounded-lg border-2 border-border flex items-center justify-between min-w-[220px] shadow-sm hover:border-emerald-500/40 transition-all">
                                                 <div className="flex flex-col">
-                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">Điểm đạt</p>
-                                                    <div className="flex items-center gap-2">
-                                                        <Input type="number" defaultValue={selectedLesson.passingScore || 80} className="h-7 w-12 bg-transparent border-none p-0 font-bold text-sm focus-visible:ring-0 shadow-none text-primary" />
-                                                        <span className="text-[10px] font-bold text-muted-foreground">% MIN</span>
+                                                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Tiêu chuẩn đạt</p>
+                                                    <div className="flex items-end gap-1.5">
+                                                        <span className="text-2xl font-black text-foreground leading-none">{selectedLesson.passingScore || 80}</span>
+                                                        <span className="text-xs font-bold text-muted-foreground pb-0.5">% tối thiểu</span>
                                                     </div>
+                                                </div>
+                                                <div className="flex items-center gap-1 bg-emerald-500/10 rounded-md p-1 border border-emerald-500/10 ml-4">
+                                                    <button 
+                                                        type="button"
+                                                        className="w-8 h-8 rounded shrink-0 flex items-center justify-center bg-background border border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-colors shadow-sm disabled:opacity-50 disabled:hover:bg-background disabled:hover:text-emerald-600 disabled:hover:border-emerald-500/20"
+                                                        onClick={() => setSelectedLesson({ ...selectedLesson, passingScore: Math.max(5, (selectedLesson.passingScore || 80) - 5) })}
+                                                        disabled={(selectedLesson.passingScore || 80) <= 5}
+                                                    >
+                                                        <Minus size={16} strokeWidth={3} />
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        className="w-8 h-8 rounded shrink-0 flex items-center justify-center bg-background border border-emerald-500/20 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-colors shadow-sm disabled:opacity-50 disabled:hover:bg-background disabled:hover:text-emerald-600 disabled:hover:border-emerald-500/20"
+                                                        onClick={() => setSelectedLesson({ ...selectedLesson, passingScore: Math.min(100, (selectedLesson.passingScore || 80) + 5) })}
+                                                        disabled={(selectedLesson.passingScore || 80) >= 100}
+                                                    >
+                                                        <Plus size={16} strokeWidth={3} />
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                )}
+                                
+                                {showQuestions && (
                                 <div className="space-y-6 relative pb-20">
                                     <div className="flex items-center justify-between border-b border-border pb-6">
                                         <div className="flex items-center gap-4">
@@ -362,47 +536,105 @@ export const LessonPreviewModal = ({
                                         </div>
                                     )}
                                 </div>
+                                )}
                             </div>
-                        ) : (
+                            );
+                        })() : (
                             <div className="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-10">
                                 <div className={cn("space-y-8", selectedLesson.type === 'video' ? "lg:col-span-12 xl:col-span-7" : "lg:col-span-12")}>
                                     <div className="space-y-4">
                                         <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Thông tin bài học</Label>
-                                        <Input defaultValue={selectedLesson.title} placeholder="Tên bài giảng..." className="h-12 text-lg font-bold bg-background border border-border focus:border-primary rounded-sm px-6" />
+                                        <Input 
+                                            value={selectedLesson.title || ''} 
+                                            onChange={(e) => setSelectedLesson({ ...selectedLesson, title: e.target.value })}
+                                            placeholder="Tên bài giảng..." 
+                                            className="h-12 text-lg font-bold bg-background border border-border focus:border-primary rounded-sm px-6" 
+                                        />
                                     </div>
                                     {selectedLesson.type === 'video' && (
                                         <div className="space-y-6">
                                             <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Dữ liệu Video</Label>
-                                            <div className="border border-dashed border-primary/30 rounded-md p-12 bg-primary/[0.01] hover:bg-primary/[0.03] transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-4 group">
-                                                <div className="h-14 w-14 rounded-md bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-all"><UploadCloud size={32} /></div>
-                                                <p className="text-xs font-bold uppercase tracking-widest">Kéo thả Video vào đây</p>
+                                            <div 
+                                                className={cn(
+                                                    "border border-dashed border-primary/30 rounded-md p-12 bg-primary/[0.01] hover:bg-primary/[0.03] transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-4 group",
+                                                    isUploadingVideo && "opacity-50 cursor-not-allowed"
+                                                )}
+                                                onClick={() => !isUploadingVideo && videoInputRef.current?.click()}
+                                            >
+                                                <input 
+                                                    type="file" 
+                                                    ref={videoInputRef} 
+                                                    className="hidden" 
+                                                    accept="video/mp4,video/x-m4v,video/*" 
+                                                    onChange={handleVideoFileSelect} 
+                                                />
+                                                <div className="h-14 w-14 rounded-md bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-all">
+                                                    {isUploadingVideo ? <ThunderLoader size="sm" animate="thunder" /> : <UploadCloud size={32} />}
+                                                </div>
+                                                <p className="text-xs font-bold uppercase tracking-widest text-primary">
+                                                    {isUploadingVideo ? 'Đang tải lên...' : selectedVideoFile ? selectedVideoFile.name : 'Click chọn hoặc kéo thả Video vào đây'}
+                                                </p>
+                                                <p className="text-[10px] text-muted-foreground opacity-60">
+                                                    {selectedVideoFile ? `${(selectedVideoFile.size / 1024 / 1024).toFixed(2)} MB` : 'Hỗ trợ MP4, WebM (Tối đa 1GB)'}
+                                                </p>
                                             </div>
                                         </div>
                                     )}
                                     {selectedLesson.type === 'document' && (
                                         <div className="space-y-8 pt-2 border-t border-border/40">
-                                            {/* Old Document Preview */}
-                                            {(selectedLesson.documentUrl || (!selectedLesson.isNew && selectedLesson.type === 'document')) && (
+                                            {/* Existing Document Preview */}
+                                            {(selectedLesson.viewUrl || selectedLesson.downloadUrl || selectedLesson.documentUrl) && !selectedLesson.isNew && (
                                                 <div className="space-y-4">
                                                     <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Tài liệu hiện tại</Label>
-                                                    <div className="border border-border/80 rounded-xl p-5 bg-muted/10 flex items-center justify-between shadow-sm hover:border-border transition-colors">
-                                                        <div className="flex items-center gap-5 flex-1 overflow-hidden">
+                                                    <div className="border border-border/80 rounded-xl p-5 bg-muted/10 space-y-5 shadow-sm">
+                                                        {/* File info */}
+                                                        <div className="flex items-center gap-4">
                                                             <div className="h-12 w-12 rounded-lg bg-foreground/5 border border-border/60 flex items-center justify-center text-foreground shrink-0 shadow-inner">
                                                                 <FileText size={22} className="opacity-80" />
                                                             </div>
                                                             <div className="flex-1 overflow-hidden">
-                                                                <p className="font-bold text-sm truncate text-foreground">{selectedLesson.documentUrl ? "tai_lieu.pdf" : "tai_lieu_chuong_cu.pdf"}</p>
-                                                                <p className="text-[10px] text-muted-foreground uppercase mt-1 tracking-widest font-bold">Dữ liệu gốc đang sử dụng</p>
+                                                                <p className="font-bold text-sm truncate text-foreground">{selectedLesson.title || 'Tài liệu'}</p>
+                                                                <p className="text-[10px] text-muted-foreground uppercase mt-1 tracking-widest font-bold">
+                                                                    {selectedLesson.fileType || 'Tài liệu'} • Dữ liệu gốc đang sử dụng
+                                                                </p>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Button variant="secondary" size="sm" className="h-10 rounded-lg font-bold text-[10px] uppercase tracking-widest gap-2 bg-background border border-border/80 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all shadow-sm" onClick={() => window.open(selectedLesson.documentUrl || '#', '_blank')}>
-                                                                <Eye size={16} /> Xem
-                                                            </Button>
-                                                            <Button variant="secondary" size="sm" className="h-10 rounded-lg font-bold text-[10px] uppercase tracking-widest gap-2 bg-background border border-border/80 hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm" onClick={() => window.open(selectedLesson.documentUrl || '#', '_blank')}>
-                                                                <UploadCloud size={16} className="rotate-180" /> Tải về
-                                                            </Button>
-                                                        </div>
+
+                                                        {/* View URL row */}
+                                                        {(selectedLesson.viewUrl || selectedLesson.documentUrl) && (
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-[9px] font-black uppercase tracking-widest text-amber-600">Đường dẫn xem trực tiếp</p>
+                                                                <div className="flex gap-2 items-center">
+                                                                    <input
+                                                                        readOnly
+                                                                        value={selectedLesson.viewUrl || selectedLesson.documentUrl || ''}
+                                                                        className="flex-1 h-9 text-[10px] font-mono bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 text-foreground/70 truncate focus:outline-none focus:border-amber-500/50 cursor-text select-all"
+                                                                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                                                                    />
+                                                                    <Button size="sm" className="h-9 px-4 rounded-lg font-black text-[10px] uppercase tracking-widest gap-2 bg-amber-500 hover:bg-amber-600 text-white border-none shadow-md shadow-amber-500/20 shrink-0" onClick={() => window.open(selectedLesson.viewUrl || selectedLesson.documentUrl, '_blank')}>
+                                                                        <Eye size={14} /> Xem
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Download URL row */}
+                                                        {(selectedLesson.downloadUrl || selectedLesson.documentUrl) && (
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-[9px] font-black uppercase tracking-widest text-primary">Đường dẫn tải về</p>
+                                                                <div className="flex gap-2 items-center">
+                                                                    <input
+                                                                        readOnly
+                                                                        value={selectedLesson.downloadUrl || selectedLesson.documentUrl || ''}
+                                                                        className="flex-1 h-9 text-[10px] font-mono bg-primary/5 border border-primary/20 rounded-lg px-3 text-foreground/70 truncate focus:outline-none focus:border-primary/40 cursor-text select-all"
+                                                                        onClick={(e) => (e.target as HTMLInputElement).select()}
+                                                                    />
+                                                                    <Button size="sm" className="h-9 px-4 rounded-lg font-black text-[10px] uppercase tracking-widest gap-2 bg-primary hover:bg-primary/90 text-white border-none shadow-md shadow-primary/20 shrink-0" onClick={() => window.open(selectedLesson.downloadUrl || selectedLesson.documentUrl, '_blank')}>
+                                                                        <UploadCloud size={14} className="rotate-180" /> Tải về
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
@@ -425,11 +657,6 @@ export const LessonPreviewModal = ({
                                                                     <p className="text-[10px] text-amber-600 uppercase mt-1 tracking-widest font-black">Chờ lưu lại • {selectedDocFile ? (selectedDocFile.size / 1024 / 1024).toFixed(2) : "2.4"} MB</p>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex items-center gap-2 relative z-10">
-                                                                <Button variant="outline" size="sm" className="h-10 rounded-lg font-bold text-[10px] uppercase tracking-widest gap-2 bg-background border-amber-500/30 text-amber-600 hover:bg-amber-500 hover:border-amber-500 hover:text-white shadow-sm transition-all" onClick={() => window.open('#', '_blank')}>
-                                                                    <Eye size={16} /> Xem thử
-                                                                </Button>
-                                                            </div>
                                                         </div>
                                                         <Button variant="outline" onClick={() => { setFakeDocUploaded(false); setSelectedDocFile(null); if(docInputRef.current) docInputRef.current.value = ''; }} className="w-full h-12 rounded-xl border-dashed border-2 border-border text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 font-black text-xs uppercase tracking-widest transition-colors shadow-sm">
                                                             Xóa bản nháp / Chọn file khác
@@ -441,13 +668,13 @@ export const LessonPreviewModal = ({
                                                             type="file" 
                                                             ref={docInputRef} 
                                                             className="hidden" 
-                                                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" 
+                                                            accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" 
                                                             onChange={handleDocFileSelect} 
                                                         />
                                                         <div className="h-16 w-16 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform shadow-inner border border-amber-500/20"><FileText size={30} /></div>
                                                         <div className="space-y-1.5">
-                                                            <p className="text-sm font-black uppercase tracking-widest text-foreground">Click để Chọn <span className="text-amber-500">PDF / Word</span></p>
-                                                            <p className="text-[10px] font-medium text-muted-foreground opacity-60">Hỗ trợ định dạng .pdf, .doc, .docx - Tối đa 50MB</p>
+                                                            <p className="text-sm font-black uppercase tracking-widest text-foreground">Click để Chọn <span className="text-amber-500">PDF / Word / Excel</span></p>
+                                                            <p className="text-[10px] font-medium text-muted-foreground opacity-60">Hỗ trợ .pdf, .doc, .docx, .xls, .xlsx — Tối đa 50MB</p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -460,11 +687,11 @@ export const LessonPreviewModal = ({
                                         <div className="sticky top-0 space-y-6">
                                         <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Xem trước</Label>
                                         <div className="aspect-video bg-black rounded-md overflow-hidden shadow-xl border border-border/40 flex items-center justify-center">
-                                            {selectedLesson.videoUrl ? (
-                                                getEmbedUrl(selectedLesson.videoUrl) ? (
-                                                    <iframe width="100%" height="100%" src={getEmbedUrl(selectedLesson.videoUrl) || ''} frameBorder="0" allowFullScreen />
+                                            {(previewVideoUrl || selectedLesson.videoUrl) ? (
+                                                getEmbedUrl(previewVideoUrl || selectedLesson.videoUrl) ? (
+                                                    <iframe width="100%" height="100%" src={getEmbedUrl(previewVideoUrl || selectedLesson.videoUrl) || ''} frameBorder="0" allowFullScreen />
                                                 ) : (
-                                                    <video controls className="w-full h-full object-contain" src={selectedLesson.videoUrl} />
+                                                    <video controls className="w-full h-full object-contain" src={previewVideoUrl || selectedLesson.videoUrl} />
                                                 )
                                             ) : (
                                                 <div className="text-center"><PlayCircle className="h-10 w-10 text-white/10 mx-auto" /></div>
@@ -500,16 +727,35 @@ export const LessonPreviewModal = ({
                         <AlertDialogFooter className="mt-4 gap-2">
                             <AlertDialogCancel className="h-9 px-6 font-bold text-[10px] uppercase rounded-sm border-border bg-muted/20">Hủy</AlertDialogCancel>
                             <AlertDialogAction 
-                                onClick={() => {
-                                    confirmState.onAction();
-                                    setConfirmState(prev => ({...prev, isOpen: false}));
+                                onClick={async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                        await confirmState.onAction();
+                                        setConfirmState(prev => ({...prev, isOpen: false}));
+                                    } catch (e) {
+                                        // keep open on error — toast already shown
+                                    }
                                 }}
+                                disabled={isUploadingVideo || isUploadingDoc || isSaving}
                                 className={cn(
                                     "h-9 px-8 font-black text-[10px] uppercase rounded-sm shadow-xl",
-                                    confirmState.variant === 'danger' ? "bg-rose-500 hover:bg-rose-600 shadow-rose-500/20" : "bg-primary hover:bg-primary/90 shadow-primary/20"
+                                    confirmState.variant === 'danger' ? "bg-rose-500 hover:bg-rose-600 shadow-rose-500/20" : "bg-primary hover:bg-primary/90 shadow-primary/20",
+                                    (isUploadingVideo || isUploadingDoc || isSaving) && "opacity-50 cursor-not-allowed"
                                 )}
                             >
-                                Đồng ý
+                                {isSaving ? (
+                                    <>
+                                        <ThunderLoader size="sm" animate="thunder" /> Đang lưu...
+                                    </>
+                                ) : (isUploadingVideo || isUploadingDoc) ? (() => {
+                                    const prog = uploadProgress || docUploadProgress;
+                                    return (
+                                        <>
+                                            <ThunderLoader size="sm" animate="thunder" />
+                                            {!prog ? ' Đang tải...' : prog.percent === 100 ? ' Đang xử lý...' : ` ${prog.percent}% (${prog.speedMBps.toFixed(2)} MB/s)`}
+                                        </>
+                                    );
+                                })() : 'Đồng ý'}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

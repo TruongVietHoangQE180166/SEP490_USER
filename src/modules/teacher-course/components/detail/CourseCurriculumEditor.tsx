@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Video, FileText, ListChecks, UploadCloud, ChevronDown, ChevronUp, Clock, Target, GripVertical, BookPlus, Sparkles, LayoutGrid, Settings2, Eye, LayoutList, AlertTriangle, Pencil, Check, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { VideoChartDemo } from './VideoChartDemo';
 
 // We'll define local types that map to the API structure or use a consistent one
 interface Lesson {
@@ -42,6 +43,12 @@ interface CourseCurriculumEditorProps {
   isUpdatingMooc?: boolean;
   onDeleteMooc?: (moocId: string) => Promise<void>;
   isDeletingMooc?: boolean;
+  onDeleteVideo?: (videoId: string) => Promise<void>;
+  isDeletingVideo?: boolean;
+  onDeleteDocument?: (documentId: string) => Promise<void>;
+  isDeletingDocument?: boolean;
+  onDeleteQuiz?: (quizId: string) => Promise<void>;
+  isDeletingQuiz?: boolean;
 }
 
 const TYPE_CONFIG = {
@@ -50,7 +57,7 @@ const TYPE_CONFIG = {
   quiz: { icon: ListChecks, color: "text-primary", bg: "bg-primary/10", border: "border-primary/20", label: "Kiểm tra" }
 };
 
-export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, onLessonEdit, onCreateMooc, isCreatingMooc, onUpdateMooc, isUpdatingMooc, onDeleteMooc, isDeletingMooc }: CourseCurriculumEditorProps) => {
+export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, onLessonEdit, onCreateMooc, isCreatingMooc, onUpdateMooc, isUpdatingMooc, onDeleteMooc, isDeletingMooc, onDeleteVideo, isDeletingVideo, onDeleteDocument, isDeletingDocument, onDeleteQuiz, isDeletingQuiz }: CourseCurriculumEditorProps) => {
   const [expandedMooc, setExpandedMooc] = React.useState<string | null>(moocs[0]?.id || null);
   const [editingMoocId, setEditingMoocId] = React.useState<string | null>(null);
   const [editDraftTitle, setEditDraftTitle] = React.useState<string>('');
@@ -141,17 +148,42 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
     }, moocId);
   };
 
-  const handleDeleteLesson = (moocId: string, lessonId: string) => {
+  const [deletingLessonId, setDeletingLessonId] = React.useState<string | null>(null);
+
+  const handleDeleteLesson = (moocId: string, lessonId: string, lessonType?: string) => {
     showConfirm(
         'Xóa bài giảng?',
         'Bạn có chắc chắn muốn xóa bài giảng này khỏi hệ thống không?',
-        () => {
-            onUpdateMoocs(moocs.map(m => {
-                if (m.id === moocId) {
-                    return { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) };
+        async () => {
+            if (lessonType === 'video' && onDeleteVideo && !lessonId.startsWith('temp-')) {
+                setDeletingLessonId(lessonId);
+                try {
+                    await onDeleteVideo(lessonId);
+                } finally {
+                    setDeletingLessonId(null);
                 }
-                return m;
-            }));
+            } else if (lessonType === 'document' && onDeleteDocument && !lessonId.startsWith('temp-')) {
+                setDeletingLessonId(lessonId);
+                try {
+                    await onDeleteDocument(lessonId);
+                } finally {
+                    setDeletingLessonId(null);
+                }
+            } else if (lessonType === 'quiz' && onDeleteQuiz && !lessonId.startsWith('temp-')) {
+                setDeletingLessonId(lessonId);
+                try {
+                    await onDeleteQuiz(lessonId);
+                } finally {
+                    setDeletingLessonId(null);
+                }
+            } else {
+                onUpdateMoocs(moocs.map(m => {
+                    if (m.id === moocId) {
+                        return { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) };
+                    }
+                    return m;
+                }));
+            }
             setConfirmState(prev => ({ ...prev, isOpen: false }));
         }
     );
@@ -380,48 +412,74 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
                                 <motion.div 
                                   layout
                                   key={lesson.id} 
-                                  className="group/lesson flex flex-col md:flex-row md:items-center gap-6 p-6 border-2 border-border/40 bg-card hover:bg-background rounded-lg transition-all shadow-sm hover:shadow-xl hover:border-primary/20"
+                                  className="group/lesson flex flex-col p-6 border-2 border-border/40 bg-card hover:bg-background rounded-lg transition-all shadow-sm hover:shadow-xl hover:border-primary/20"
                                 >
-                                  <div className={cn(
-                                    "w-12 h-12 shrink-0 flex items-center justify-center rounded-lg border-2 transition-all group-hover/lesson:scale-110 group-hover/lesson:rotate-6 shadow-md shadow-black/5",
-                                    config.bg, config.color, config.border
-                                  )}>
-                                    <Icon size={24} />
-                                  </div>
-                                  
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-3">
-                                      <span className={cn("text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md border-2 whitespace-nowrap shrink-0", config.color, config.border)}>
-                                        {config.label}
-                                      </span>
-                                      <Input 
-                                        value={lesson.title}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                          onUpdateMoocs(moocs.map(m => m.id === mooc.id ? { ...m, lessons: m.lessons.map(l => l.id === lesson.id ? { ...l, title: e.target.value } : l) } : m));
-                                        }}
-                                        className="h-10 font-bold bg-transparent border-none shadow-none focus-visible:ring-0 p-0 text-base" 
-                                      />
+                                  <div className="flex flex-col md:flex-row md:items-center gap-6">
+                                    <div className={cn(
+                                      "w-12 h-12 shrink-0 flex items-center justify-center rounded-lg border-2 transition-all group-hover/lesson:scale-110 group-hover/lesson:rotate-6 shadow-md shadow-black/5",
+                                      config.bg, config.color, config.border
+                                    )}>
+                                      <Icon size={24} />
+                                    </div>
+                                    
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-3">
+                                        <span className={cn("text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md border-2 whitespace-nowrap shrink-0", config.color, config.border)}>
+                                          {config.label}
+                                        </span>
+                                        <span className="font-bold text-base truncate flex-1 block mt-0.5">
+                                          {lesson.title || 'Chưa có tên bài học'}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0 md:ml-auto">
+                                        {lesson.type === 'quiz' && !lesson.id.startsWith('temp-') ? (
+                                            <div className="flex items-center">
+                                                <Button 
+                                                  variant="outline" 
+                                                  size="sm" 
+                                                  onClick={() => onLessonEdit({...lesson, mode: 'questions'}, mooc.id)}
+                                                  className="rounded-l-lg rounded-r-none font-black h-12 px-4 border-2 border-r bg-primary/5 gap-1.5 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary transition-all shadow-lg shadow-primary/5 uppercase tracking-widest text-[10px]"
+                                                >
+                                                    <Plus size={16} strokeWidth={3} /> Câu hỏi
+                                                </Button>
+                                                <Button 
+                                                  variant="outline" 
+                                                  size="sm" 
+                                                  onClick={() => onLessonEdit({...lesson, mode: 'info'}, mooc.id)}
+                                                  className="rounded-r-lg rounded-l-none font-black h-12 px-4 border-2 border-l-0 bg-primary/5 gap-1.5 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary transition-all shadow-lg shadow-primary/5 uppercase tracking-widest text-[10px]"
+                                                >
+                                                    <Settings2 size={16} /> Sửa
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <Button 
+                                              variant="outline" 
+                                              size="sm" 
+                                              onClick={() => onLessonEdit(lesson, mooc.id)}
+                                              className="rounded-lg font-black h-12 px-6 border-2 bg-primary/5 gap-2 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary transition-all shadow-lg shadow-primary/5 uppercase tracking-widest text-[10px]"
+                                            >
+                                                <Settings2 size={16} /> Thiết lập nội dung
+                                            </Button>
+                                        )}
+                                        <Button 
+                                          variant="ghost" 
+                                          size="icon" 
+                                          onClick={() => handleDeleteLesson(mooc.id, lesson.id, lesson.type)} 
+                                          disabled={deletingLessonId === lesson.id || isDeletingVideo || isDeletingDocument || isDeletingQuiz}
+                                          className="h-12 w-12 text-muted-foreground/20 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
+                                        >
+                                          {deletingLessonId === lesson.id ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
+                                        </Button>
                                     </div>
                                   </div>
 
-                                  <div className="flex items-center gap-2 shrink-0 md:ml-auto">
-                                      <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        onClick={() => onLessonEdit(lesson)}
-                                        className="rounded-lg font-black h-12 px-6 border-2 bg-primary/5 gap-2 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary transition-all shadow-lg shadow-primary/5 uppercase tracking-widest text-[10px]"
-                                      >
-                                          <Settings2 size={16} /> Thiết lập nội dung
-                                      </Button>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        onClick={() => handleDeleteLesson(mooc.id, lesson.id)} 
-                                        className="h-12 w-12 text-muted-foreground/20 hover:text-rose-500 hover:bg-rose-500/10 rounded-xl transition-all"
-                                      >
-                                        <Trash2 size={20} />
-                                      </Button>
-                                  </div>
+                                  {lesson.type === 'video' && (
+                                    <div className="mt-4 border-t border-border/40 pt-4">
+                                      <VideoChartDemo videoId={lesson.id} />
+                                    </div>
+                                  )}
                                 </motion.div>
                               );
                             })}
@@ -484,17 +542,17 @@ export const CourseCurriculumEditor = ({ moocs, onUpdateMoocs, onLessonPreview, 
             <AlertDialogDescription className="text-sm font-medium text-muted-foreground leading-relaxed text-center">{confirmState.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 gap-3 flex flex-col sm:flex-row">
-            <AlertDialogCancel disabled={isDeletingMooc} className="h-12 flex-1 font-bold text-[11px] uppercase tracking-widest rounded-xl border-border hover:bg-muted transition-all">Quay lại</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeletingMooc || !!deletingLessonId} className="h-12 flex-1 font-bold text-[11px] uppercase tracking-widest rounded-xl border-border hover:bg-muted transition-all">Quay lại</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.preventDefault();
-                confirmState.onAction();
+                await confirmState.onAction();
               }}
-              disabled={isDeletingMooc}
+              disabled={isDeletingMooc || !!deletingLessonId}
               className="h-12 flex-1 font-black text-[11px] uppercase tracking-widest rounded-xl bg-rose-500 hover:bg-rose-600 shadow-xl shadow-rose-500/20 text-white transition-all active:scale-95"
             >
-              {isDeletingMooc ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
-              Tôi chắc chắn
+              {(isDeletingMooc || !!deletingLessonId) ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              {(isDeletingMooc || !!deletingLessonId) ? 'Đang xóa...' : 'Tôi chắc chắn'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

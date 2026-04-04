@@ -145,6 +145,34 @@ export interface QuizQuestion {
   answers: QuizAnswer[];
 }
 
+export interface CreateQuizRequest {
+  title: string;
+  timeLimit: number;
+  passingScore: number;
+}
+
+export interface QuizLesson {
+  id: string;
+  title: string;
+  timeLimit: number;
+  passingScore: number;
+  orderIndex: number;
+  moocId: string;
+  isCompleted: boolean;
+  createdDate: string;
+  createdBy: string;
+}
+
+export interface CreateQuizResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: Array<{ field: string; message: string }> | null;
+  data: QuizLesson;
+  success: boolean;
+}
+
 export interface QuizQuestionsResponse {
   message: {
     messageCode: string;
@@ -186,3 +214,81 @@ export interface CreateMoocRequest {
   description: string;
   isPreview: boolean;
 }
+
+export interface DocumentLesson {
+  id: string;
+  title: string;
+  viewUrl: string;
+  downloadUrl: string;
+  fileType: 'PDF' | 'WORD' | 'EXCEL' | string;
+  orderIndex: number;
+  moocId: string;
+  isCompleted: boolean;
+  createdBy: string;
+  createdDate: string;
+}
+
+export interface DocumentUploadResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: Array<{ field: string; message: string }> | null;
+  data: DocumentLesson;
+  success: boolean;
+}
+
+export interface ChartDemoCandle {
+  id: string;
+  createdBy: string;
+  updatedBy: string;
+  createdDate: string;
+  updatedDate: string;
+  symbol: string;
+  timeframe: string;
+  openTime: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  closed: boolean;
+}
+
+export interface ChartDemoData {
+  id: string;
+  videoId: string;
+  videoTitle: string;
+  createdDate: string;
+  provideMoney: number;
+  description: string;
+  ts: number;
+  startTradeTs: number;
+  closeTs: number;
+  limitTs: number;
+  objectDone: number;
+  candles: ChartDemoCandle[];
+  done: boolean;
+}
+
+export interface ChartDemoApiResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: ChartDemoData;
+  success: boolean;
+}
+
+export interface CreateChartDemoRequest {
+  videoId: string;
+  ts: number;
+  startTradeTs: number;
+  closeTs: number;
+  limitTs: number;
+  provideMoney: number;
+  objectDone: number;
+  description: string;
+}
+
