@@ -1,5 +1,5 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse, VideoUploadResponse } from './types';
+import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse, VideoUploadResponse, DocumentUploadResponse, CreateQuizRequest, CreateQuizResponse, ChartDemoApiResponse, CreateChartDemoRequest } from './types';
 
 export const teacherCourseService = {
   /**
@@ -154,4 +154,167 @@ export const teacherCourseService = {
       throw new Error(response?.message?.messageDetail || 'Không thể xoá chương học');
     }
   },
+
+  /**
+   * Delete a Video lesson by ID
+   */
+  async deleteVideo(videoId: string): Promise<void> {
+    const response = await ApiConfigService.delete<any>(`/api/video/${videoId}`);
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Không thể xoá bài học video');
+    }
+  },
+
+  /**
+   * Update an existing Video lesson (title / replace file)
+   * PUT /api/video/{videoId}?title=...&duration=1&isPreview=true
+   * Body: multipart/form-data { file?: File }
+   */
+  async updateVideo(videoId: string, title: string, file?: File): Promise<any> {
+    const formData = new FormData();
+    if (file) formData.append('file', file);
+    const url = `/api/video/${videoId}?title=${encodeURIComponent(title)}&duration=1&isPreview=true`;
+    const response = await ApiConfigService.put<any>(url, formData);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể cập nhật bài học video');
+    }
+    return response.data;
+  },
+
+  /**
+   * Upload a document for a Mooc
+   * POST /api/documents/{moocId}/upload?title=...&fileType=...
+   * Body: multipart/form-data { file: File }
+   */
+  async uploadDocument(moocId: string, file: File, title: string, fileType: string): Promise<DocumentUploadResponse['data']> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const url = `/api/documents/${moocId}/upload?title=${encodeURIComponent(title)}&fileType=${fileType}`;
+    const response = await ApiConfigService.post<DocumentUploadResponse>(url, formData);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tải tài liệu lên');
+    }
+    return response.data;
+  },
+
+  /**
+   * Update an existing document
+   * PUT /api/documents/{documentId}?title=...&fileType=...
+   * Body: multipart/form-data { file?: File }
+   */
+  async updateDocument(documentId: string, file: File, title: string, fileType: string): Promise<DocumentUploadResponse['data']> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const url = `/api/documents/${documentId}?title=${encodeURIComponent(title)}&fileType=${fileType}`;
+    const response = await ApiConfigService.put<DocumentUploadResponse>(url, formData);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể cập nhật tài liệu');
+    }
+    return response.data;
+  },
+
+  /**
+   * Delete a document
+   * DELETE /api/documents/{documentId}
+   */
+  async deleteDocument(documentId: string): Promise<any> {
+    const response = await ApiConfigService.delete<any>(`/api/documents/${documentId}`);
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Không thể xóa tài liệu');
+    }
+    return response.data;
+  },
+
+  /**
+   * Upload video for a Mooc
+   */
+  async uploadMoocVideo(moocId: string, file: File, title: string): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    // Request is POST /api/video/{moocId}/upload?title=...&duration=1&isPreview=true
+    const url = `/api/video/${moocId}/upload?title=${encodeURIComponent(title)}&duration=1&isPreview=true`;
+    
+    const response = await ApiConfigService.post<any>(url, formData);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tải video lên');
+    }
+    return response.data;
+  },
+
+  /**
+   * Create Quiz for a Mooc
+   * POST /api/quiz?moocId=xxx
+   */
+  async createQuiz(moocId: string, payload: CreateQuizRequest): Promise<CreateQuizResponse['data']> {
+    const url = `/api/quiz?moocId=${moocId}`;
+    const response = await ApiConfigService.post<CreateQuizResponse>(url, payload);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tạo bài kiểm tra');
+    }
+    return response.data;
+  },
+
+  /**
+   * Update Quiz content (title, timeLimit, passingScore)
+   * PUT /api/quiz/{quizId}
+   */
+  async updateQuiz(quizId: string, payload: CreateQuizRequest): Promise<CreateQuizResponse['data']> {
+    const url = `/api/quiz/${quizId}`;
+    const response = await ApiConfigService.put<CreateQuizResponse>(url, payload);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể cập nhật bài kiểm tra');
+    }
+    return response.data;
+  },
+
+  /**
+   * Delete a Quiz
+   * DELETE /api/quiz/{quizId}
+   */
+  async deleteQuiz(quizId: string): Promise<void> {
+    const response = await ApiConfigService.delete<any>(`/api/quiz/${quizId}`);
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Không thể xoá bài kiểm tra');
+    }
+  },
+
+  /**
+   * Fetch Chart Demo by Video ID
+   * GET /api/chart-demo/by-video/{videoId}
+   */
+  async getChartDemoByVideo(videoId: string): Promise<ChartDemoApiResponse['data'] | null> {
+    try {
+      const response = await ApiConfigService.get<ChartDemoApiResponse>(`/api/chart-demo/by-video/${videoId}`);
+      if (response && response.success && response.data) {
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  /**
+   * Create Chart Demo
+   * POST /api/chart-demo?videoId=...&ts=...&startTradeTs=...&closeTs=...&limitTs=...&provideMoney=...&objectDone=...&description=...
+   */
+  async createChartDemo(payload: CreateChartDemoRequest): Promise<ChartDemoApiResponse['data']> {
+    const params = new URLSearchParams({
+      videoId: payload.videoId,
+      ts: payload.ts.toString(),
+      startTradeTs: payload.startTradeTs.toString(),
+      closeTs: payload.closeTs.toString(),
+      limitTs: payload.limitTs.toString(),
+      provideMoney: payload.provideMoney.toString(),
+      objectDone: payload.objectDone.toString(),
+      description: payload.description
+    });
+    const url = `/api/chart-demo?${params.toString()}`;
+    const response = await ApiConfigService.post<ChartDemoApiResponse>(url, null);
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tạo Chart Demo');
+    }
+    return response.data;
+  }
 };
+

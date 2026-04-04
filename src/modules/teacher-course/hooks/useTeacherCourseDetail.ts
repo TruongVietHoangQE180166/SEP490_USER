@@ -118,6 +118,50 @@ export const useTeacherCourseDetail = (courseId: string) => {
     }
   }, [loadDetail]);
 
+  const [isDeletingVideo, setIsDeletingVideo] = useState(false);
+  const [isDeletingDocument, setIsDeletingDocument] = useState(false);
+
+  const handleDeleteVideo = useCallback(async (videoId: string) => {
+    setIsDeletingVideo(true);
+    try {
+      await teacherCourseService.deleteVideo(videoId);
+      toast.success('Xoá bài học video thành công');
+      await loadDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi xoá bài học video');
+    } finally {
+      setIsDeletingVideo(false);
+    }
+  }, [loadDetail]);
+
+  const handleDeleteDocument = useCallback(async (documentId: string) => {
+    setIsDeletingDocument(true);
+    try {
+      await teacherCourseService.deleteDocument(documentId);
+      toast.success('Xoá tài liệu thành công');
+      await loadDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi xoá tài liệu');
+    } finally {
+      setIsDeletingDocument(false);
+    }
+  }, [loadDetail]);
+
+  const [isDeletingQuiz, setIsDeletingQuiz] = useState(false);
+
+  const handleDeleteQuiz = useCallback(async (quizId: string) => {
+    setIsDeletingQuiz(true);
+    try {
+      await teacherCourseService.deleteQuiz(quizId);
+      toast.success('Xoá bài kiểm tra thành công');
+      await loadDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi xoá bài kiểm tra');
+    } finally {
+      setIsDeletingQuiz(false);
+    }
+  }, [loadDetail]);
+
   return {
     course,
     isLoading,
@@ -140,5 +184,11 @@ export const useTeacherCourseDetail = (courseId: string) => {
     isUpdatingMooc,
     handleDeleteMooc,
     isDeletingMooc,
+    handleDeleteVideo,
+    isDeletingVideo,
+    handleDeleteDocument,
+    isDeletingDocument,
+    handleDeleteQuiz,
+    isDeletingQuiz,
   };
 };
