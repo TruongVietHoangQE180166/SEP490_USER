@@ -292,3 +292,12 @@ export interface CreateChartDemoRequest {
   description: string;
 }
 
+export interface UpdateChartDemoRequest {
+  ts: number;
+  startTradeTs: number;
+  closeTs: number;
+  limitTs: number;
+  provideMoney: number;
+  objectDone: number;
+  description: string;
+}
