@@ -180,3 +180,146 @@ export interface RatingPaginationResponse {
   };
   totalElement: number;
 }
+
+export interface ChartDemoCandle {
+  id: string;
+  createdBy: string;
+  updatedBy: string;
+  createdDate: string;
+  updatedDate: string;
+  symbol: string;
+  timeframe: string;
+  openTime: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  closed: boolean;
+}
+
+export interface ChartDemoData {
+  id: string;
+  videoId: string;
+  videoTitle: string;
+  createdDate: string;
+  provideMoney: number;
+  description: string;
+  ts: number;
+  startTradeTs: number;
+  closeTs: number;
+  limitTs: number;
+  objectDone: number;
+  candles: ChartDemoCandle[];
+  done: boolean;
+}
+
+export interface ChartDemoApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: ChartDemoData;
+  success: boolean;
+}
+
+// --- Answer Demo Session types ---
+
+export interface AnswerDemoCandle {
+  id: string;
+  createdBy: string;
+  updatedBy: string;
+  createdDate: string;
+  updatedDate: string;
+  symbol: string;
+  timeframe: string;
+  openTime: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  closed: boolean;
+}
+
+export interface AnswerDemoResponse {
+  id: string;
+  sessionId: string;
+  walletMoney: number;
+  totalPnl: number;
+  orderType: 'BUY' | 'SELL';
+  quantity: number;
+  totalMoney: number;
+  entryPrice: number;
+  closePrice: number;
+  ts: number;
+  pnl: number;
+  isDoneSession: boolean;
+  createdDate: string;
+  candles: AnswerDemoCandle[];
+}
+
+// --- Answer Demo by-chart (paginated) types ---
+
+export interface AnswerDemoByChartItem {
+  id: string;
+  sessionId: string;
+  walletMoney: number;
+  totalPnl: number;
+  orderType: 'BUY' | 'SELL' | null;
+  quantity: number;
+  totalMoney: number;
+  entryPrice: number;
+  closePrice: number;
+  ts: number;
+  pnl: number;
+  isDoneSession: boolean | null;
+  createdDate: string;
+  candles: AnswerDemoCandle[] | null;
+}
+
+export interface AnswerDemoPaginatedResponse {
+  content: AnswerDemoByChartItem[];
+  request: {
+    page: number;
+    size: number;
+    sortRequest: {
+      direction: string;
+      field: string;
+    };
+  };
+  totalElement: number;
+}
+
+export interface AnswerDemoByChartApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: AnswerDemoPaginatedResponse;
+  success: boolean;
+}
+
+export interface AnswerDemoSession {
+  id: string;
+  userId: string;
+  email: string;
+  chartDemoId: string;
+  walletMoney: number;
+  totalPnl: number;
+  answerDemoResponses: AnswerDemoResponse[];
+  createdDate: string;
+}
+
+export interface AnswerDemoSessionApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: Array<{ field: string; message: string }>;
+  data: AnswerDemoSession;
+  success: boolean;
+}
+
+// --- Reset Answer Demo types ---
+
+export interface ResetAnswerDemoApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: Array<{ field: string; message: string }> | null;
+  data: Record<string, unknown>;
+  success: boolean;
+}
+

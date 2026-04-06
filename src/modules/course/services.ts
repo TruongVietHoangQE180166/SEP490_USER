@@ -1,5 +1,12 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { Course, CourseApiResponse, CoursePaginationResponse, Question, Rating, RatingPaginationResponse } from './types';
+import {
+  Course, CourseApiResponse, CoursePaginationResponse, Question,
+  Rating, RatingPaginationResponse,
+  ChartDemoApiResponse, ChartDemoData,
+  AnswerDemoSession, AnswerDemoSessionApiResponse,
+  AnswerDemoByChartApiResponse, AnswerDemoByChartItem,
+  ResetAnswerDemoApiResponse,
+} from './types';
 
 export const courseService = {
   async getAllCourses(page = 1, size = 1000, field = 'createdDate', direction = 'desc'): Promise<Course[]> {
@@ -102,5 +109,56 @@ export const courseService = {
     }
 
     return response.data;
-  }
+  },
+
+  async getChartDemoByVideo(videoId: string): Promise<ChartDemoData | null> {
+    try {
+      const response = await ApiConfigService.get<ChartDemoApiResponse>(`/api/chart-demo/by-video/${videoId}`);
+      if (response && response.success && response.data) {
+        return response.data;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  async getAnswerDemoSession(chartId: string): Promise<AnswerDemoSession | null> {
+    try {
+      const response = await ApiConfigService.get<AnswerDemoSessionApiResponse>(`/api/answer-demo/session/${chartId}`);
+      if (response && response.success && response.data) {
+        return response.data;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  async getAnswerDemoByChart(
+    chartId: string,
+    page = 1,
+    size = 1000,
+    field = 'createdDate',
+    direction = 'desc',
+  ): Promise<AnswerDemoByChartItem[]> {
+    try {
+      const response = await ApiConfigService.get<AnswerDemoByChartApiResponse>(
+        `/api/answer-demo/by-chart?page=${page}&size=${size}&field=${field}&direction=${direction}&chartId=${chartId}`,
+      );
+      if (response && response.success && response.data) {
+        return response.data.content || [];
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  async resetAnswerDemo(chartId: string): Promise<ResetAnswerDemoApiResponse> {
+    const response = await ApiConfigService.delete<ResetAnswerDemoApiResponse>(
+      `/api/answer-demo/reset/${chartId}`,
+    );
+    return response;
+  },
 };

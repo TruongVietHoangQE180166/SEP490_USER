@@ -8,6 +8,7 @@ import { CheckCircle2, Circle, FileText, Clock, Target, PlayCircle, Trophy, Lock
 import { getEmbedUrl } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { StudentChartDemoSection } from './StudentChartDemoSection';
 
 export const LessonContent = observer(({ lesson, onRefresh }: { lesson: any, onRefresh?: () => void }) => {
   const params = useParams();
@@ -141,6 +142,8 @@ export const LessonContent = observer(({ lesson, onRefresh }: { lesson: any, onR
             )}
           </Button>
         </div>
+        {/* Chart Demo Practice Section */}
+        <StudentChartDemoSection videoId={lesson.id} videoTitle={lesson.title} />
       </div>
     );
   }
