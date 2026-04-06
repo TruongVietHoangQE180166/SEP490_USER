@@ -289,3 +289,34 @@ export function timeframeToSeconds(tf: string): number {
   };
   return map[tf] ?? 3600;
 }
+
+// ─────────────────────────────────────────────
+// 4. AI Chat
+// ─────────────────────────────────────────────
+
+export async function fetchChatHistory(page = 1, size = 1000, field = 'createdDate', direction = 'desc') {
+  try {
+    const response = await ApiConfigService.get<{
+      data?: {
+        content: import('./types').ChatMessageItem[];
+      }
+    }>(`/api/chat?page=${page}&size=${size}&field=${field}&direction=${direction}`);
+    return response?.data?.content || [];
+  } catch (error) {
+    console.error('Lỗi lấy lịch sử AI Chat:', error);
+    return [];
+  }
+}
+
+export async function sendChatMessage(message: string) {
+  try {
+    const response = await ApiConfigService.post<import('./types').SendChatMessageResponse>(
+      `/api/ai/chat`,
+      { message }
+    );
+    return response;
+  } catch (error) {
+    console.error('Lỗi gửi tin nhắn AI Chat:', error);
+    throw error;
+  }
+}

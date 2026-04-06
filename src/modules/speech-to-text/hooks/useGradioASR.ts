@@ -74,6 +74,7 @@ export const useGradioASR = () => {
                         const result = await client.predict('/process_microphone', [
                             'Vietnamese',    // language
                             modelToUse,      // repo_id — hợp lệ vì dropdown đã ở Vietnamese state
+                            'vi',            // cohere_language (mới được thêm vào repo k2-fsa)
                             'greedy_search', // decoding_method
                             4,               // num_active_paths
                             'No',            // add_punct

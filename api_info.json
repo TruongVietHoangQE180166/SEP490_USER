@@ -1,0 +1,484 @@
+{
+  "named_endpoints": {
+    "/update_model_dropdown": {
+      "parameters": [
+        {
+          "label": "Language",
+          "parameter_name": "language",
+          "parameter_has_default": true,
+          "parameter_default": "Medical dictation English",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['Medical dictation English', '52 languages (Qwen3 ASR)', '31 languages (FunASR Nano)', '14 languages (Cohere Transcribe)', '1600+ languages', '25 European languages', 'Multi-lingual (east aisa)', '超多种中文方言', 'Chinese', 'English', '川渝方言(四川重庆话)', '吴语', 'Chinese+English', 'Chinese+English+Cantonese', 'Chinese+English+Cantonese+Japanese+Korean', 'Arabic', 'Bengali', 'Cantonese', 'French', 'German', 'Japanese', 'Korean', 'Portuguese (Brazil)', 'Russian', 'Spanish', 'Thai', 'Tibetan', 'Ukrainian', 'Vietnamese']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Medical dictation English"
+        }
+      ],
+      "returns": [
+        {
+          "label": "Select a model",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25', 'csukuangfj/sherpa-onnx-medasr-ctc-en-2025-12-25']",
+            "description": ""
+          },
+          "component": "Dropdown"
+        }
+      ],
+      "type": {
+        "generator": false,
+        "cancel": false
+      }
+    },
+    "/lambda": {
+      "parameters": [
+        {
+          "label": "Language",
+          "parameter_name": "language",
+          "parameter_has_default": true,
+          "parameter_default": "Medical dictation English",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['Medical dictation English', '52 languages (Qwen3 ASR)', '31 languages (FunASR Nano)', '14 languages (Cohere Transcribe)', '1600+ languages', '25 European languages', 'Multi-lingual (east aisa)', '超多种中文方言', 'Chinese', 'English', '川渝方言(四川重庆话)', '吴语', 'Chinese+English', 'Chinese+English+Cantonese', 'Chinese+English+Cantonese+Japanese+Korean', 'Arabic', 'Bengali', 'Cantonese', 'French', 'German', 'Japanese', 'Korean', 'Portuguese (Brazil)', 'Russian', 'Spanish', 'Thai', 'Tibetan', 'Ukrainian', 'Vietnamese']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Medical dictation English"
+        }
+      ],
+      "returns": [
+        {
+          "label": "Cohere Transcribe language code",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['en', 'fr', 'de', 'it', 'es', 'pt', 'el', 'nl', 'pl', 'zh', 'ja', 'ko', 'vi', 'ar']",
+            "description": ""
+          },
+          "component": "Dropdown"
+        }
+      ],
+      "type": {
+        "generator": false,
+        "cancel": false
+      }
+    },
+    "/update_cohere_language_visibility": {
+      "parameters": [
+        {
+          "label": "Select a model",
+          "parameter_name": "repo_id",
+          "parameter_has_default": true,
+          "parameter_default": "csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25', 'csukuangfj/sherpa-onnx-medasr-ctc-en-2025-12-25']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25"
+        }
+      ],
+      "returns": [
+        {
+          "label": "Cohere Transcribe language code",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['en', 'fr', 'de', 'it', 'es', 'pt', 'el', 'nl', 'pl', 'zh', 'ja', 'ko', 'vi', 'ar']",
+            "description": ""
+          },
+          "component": "Dropdown"
+        }
+      ],
+      "type": {
+        "generator": false,
+        "cancel": false
+      }
+    },
+    "/process_uploaded_file": {
+      "parameters": [
+        {
+          "label": "Language",
+          "parameter_name": "language",
+          "parameter_has_default": true,
+          "parameter_default": "Medical dictation English",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['Medical dictation English', '52 languages (Qwen3 ASR)', '31 languages (FunASR Nano)', '14 languages (Cohere Transcribe)', '1600+ languages', '25 European languages', 'Multi-lingual (east aisa)', '超多种中文方言', 'Chinese', 'English', '川渝方言(四川重庆话)', '吴语', 'Chinese+English', 'Chinese+English+Cantonese', 'Chinese+English+Cantonese+Japanese+Korean', 'Arabic', 'Bengali', 'Cantonese', 'French', 'German', 'Japanese', 'Korean', 'Portuguese (Brazil)', 'Russian', 'Spanish', 'Thai', 'Tibetan', 'Ukrainian', 'Vietnamese']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Medical dictation English"
+        },
+        {
+          "label": "Select a model",
+          "parameter_name": "repo_id",
+          "parameter_has_default": true,
+          "parameter_default": "csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25', 'csukuangfj/sherpa-onnx-medasr-ctc-en-2025-12-25']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25"
+        },
+        {
+          "label": "Cohere Transcribe language code",
+          "parameter_name": "cohere_language",
+          "parameter_has_default": true,
+          "parameter_default": "en",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['en', 'fr', 'de', 'it', 'es', 'pt', 'el', 'nl', 'pl', 'zh', 'ja', 'ko', 'vi', 'ar']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "en"
+        },
+        {
+          "label": "Decoding method",
+          "parameter_name": "decoding_method",
+          "parameter_has_default": true,
+          "parameter_default": "greedy_search",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['greedy_search', 'modified_beam_search']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "greedy_search"
+        },
+        {
+          "label": "Number of active paths for modified_beam_search",
+          "parameter_name": "num_active_paths",
+          "parameter_has_default": true,
+          "parameter_default": 4,
+          "type": "number",
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1,
+          "description": "numeric value between 1 and 100"
+        },
+        {
+          "label": "Whether to add punctuation (Only for Chinese)",
+          "parameter_name": "add_punct",
+          "parameter_has_default": true,
+          "parameter_default": "Yes",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['Yes', 'No']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Yes"
+        },
+        {
+          "label": "Upload from disk",
+          "parameter_name": "in_filename",
+          "parameter_has_default": false,
+          "parameter_default": null,
+          "type": "",
+          "python_type": {
+            "type": "filepath",
+            "description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "component": "Audio",
+          "example_input": {
+            "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+            "meta": {
+              "_type": "gradio.FileData"
+            },
+            "orig_name": "audio_sample.wav",
+            "url": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "label": "Recognized speech from uploaded file",
+          "type": "string",
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox"
+        },
+        {
+          "label": "Info",
+          "type": "string",
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Html"
+        }
+      ],
+      "type": {
+        "generator": false,
+        "cancel": false
+      }
+    },
+    "/process_microphone": {
+      "parameters": [
+        {
+          "label": "Language",
+          "parameter_name": "language",
+          "parameter_has_default": true,
+          "parameter_default": "Medical dictation English",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['Medical dictation English', '52 languages (Qwen3 ASR)', '31 languages (FunASR Nano)', '14 languages (Cohere Transcribe)', '1600+ languages', '25 European languages', 'Multi-lingual (east aisa)', '超多种中文方言', 'Chinese', 'English', '川渝方言(四川重庆话)', '吴语', 'Chinese+English', 'Chinese+English+Cantonese', 'Chinese+English+Cantonese+Japanese+Korean', 'Arabic', 'Bengali', 'Cantonese', 'French', 'German', 'Japanese', 'Korean', 'Portuguese (Brazil)', 'Russian', 'Spanish', 'Thai', 'Tibetan', 'Ukrainian', 'Vietnamese']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Medical dictation English"
+        },
+        {
+          "label": "Select a model",
+          "parameter_name": "repo_id",
+          "parameter_has_default": true,
+          "parameter_default": "csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25', 'csukuangfj/sherpa-onnx-medasr-ctc-en-2025-12-25']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25"
+        },
+        {
+          "label": "Cohere Transcribe language code",
+          "parameter_name": "cohere_language",
+          "parameter_has_default": true,
+          "parameter_default": "en",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['en', 'fr', 'de', 'it', 'es', 'pt', 'el', 'nl', 'pl', 'zh', 'ja', 'ko', 'vi', 'ar']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "en"
+        },
+        {
+          "label": "Decoding method",
+          "parameter_name": "decoding_method",
+          "parameter_has_default": true,
+          "parameter_default": "greedy_search",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['greedy_search', 'modified_beam_search']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "greedy_search"
+        },
+        {
+          "label": "Number of active paths for modified_beam_search",
+          "parameter_name": "num_active_paths",
+          "parameter_has_default": true,
+          "parameter_default": 4,
+          "type": "number",
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1,
+          "description": "numeric value between 1 and 100"
+        },
+        {
+          "label": "Whether to add punctuation (Only for Chinese)",
+          "parameter_name": "add_punct",
+          "parameter_has_default": true,
+          "parameter_default": "Yes",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['Yes', 'No']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Yes"
+        },
+        {
+          "label": "Record from microphone",
+          "parameter_name": "in_filename",
+          "parameter_has_default": false,
+          "parameter_default": null,
+          "type": "",
+          "python_type": {
+            "type": "filepath",
+            "description": "The FileData class is a subclass of the GradioModel class that represents a file object within a Gradio interface. It is used to store file data and metadata when a file is uploaded.\n\nAttributes:\n    path: The server file path where the file is stored.\n    url: The normalized server URL pointing to the file.\n    size: The size of the file in bytes.\n    orig_name: The original filename before upload.\n    mime_type: The MIME type of the file.\n    is_stream: Indicates whether the file is a stream.\n    meta: Additional metadata used internally (should not be changed)."
+          },
+          "component": "Audio",
+          "example_input": {
+            "path": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav",
+            "meta": {
+              "_type": "gradio.FileData"
+            },
+            "orig_name": "audio_sample.wav",
+            "url": "https://github.com/gradio-app/gradio/raw/main/test/test_files/audio_sample.wav"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "label": "Recognized speech from recordings",
+          "type": "string",
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox"
+        },
+        {
+          "label": "Info",
+          "type": "string",
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Html"
+        }
+      ],
+      "type": {
+        "generator": false,
+        "cancel": false
+      }
+    },
+    "/process_url": {
+      "parameters": [
+        {
+          "label": "Language",
+          "parameter_name": "language",
+          "parameter_has_default": true,
+          "parameter_default": "Medical dictation English",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['Medical dictation English', '52 languages (Qwen3 ASR)', '31 languages (FunASR Nano)', '14 languages (Cohere Transcribe)', '1600+ languages', '25 European languages', 'Multi-lingual (east aisa)', '超多种中文方言', 'Chinese', 'English', '川渝方言(四川重庆话)', '吴语', 'Chinese+English', 'Chinese+English+Cantonese', 'Chinese+English+Cantonese+Japanese+Korean', 'Arabic', 'Bengali', 'Cantonese', 'French', 'German', 'Japanese', 'Korean', 'Portuguese (Brazil)', 'Russian', 'Spanish', 'Thai', 'Tibetan', 'Ukrainian', 'Vietnamese']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Medical dictation English"
+        },
+        {
+          "label": "Select a model",
+          "parameter_name": "repo_id",
+          "parameter_has_default": true,
+          "parameter_default": "csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25', 'csukuangfj/sherpa-onnx-medasr-ctc-en-2025-12-25']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "csukuangfj/sherpa-onnx-medasr-ctc-en-int8-2025-12-25"
+        },
+        {
+          "label": "Cohere Transcribe language code",
+          "parameter_name": "cohere_language",
+          "parameter_has_default": true,
+          "parameter_default": "en",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['en', 'fr', 'de', 'it', 'es', 'pt', 'el', 'nl', 'pl', 'zh', 'ja', 'ko', 'vi', 'ar']",
+            "description": ""
+          },
+          "component": "Dropdown",
+          "example_input": "en"
+        },
+        {
+          "label": "Decoding method",
+          "parameter_name": "decoding_method",
+          "parameter_has_default": true,
+          "parameter_default": "greedy_search",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['greedy_search', 'modified_beam_search']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "greedy_search"
+        },
+        {
+          "label": "Number of active paths for modified_beam_search",
+          "parameter_name": "num_active_paths",
+          "parameter_has_default": true,
+          "parameter_default": 4,
+          "type": "number",
+          "python_type": {
+            "type": "float",
+            "description": ""
+          },
+          "component": "Slider",
+          "example_input": 1,
+          "description": "numeric value between 1 and 100"
+        },
+        {
+          "label": "Whether to add punctuation (Only for Chinese)",
+          "parameter_name": "add_punct",
+          "parameter_has_default": true,
+          "parameter_default": "Yes",
+          "type": "string",
+          "python_type": {
+            "type": "Literal['Yes', 'No']",
+            "description": ""
+          },
+          "component": "Radio",
+          "example_input": "Yes"
+        },
+        {
+          "label": "URL",
+          "parameter_name": "url",
+          "parameter_has_default": false,
+          "parameter_default": null,
+          "type": "string",
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox",
+          "example_input": "Hello!!"
+        }
+      ],
+      "returns": [
+        {
+          "label": "Recognized speech from URL",
+          "type": "string",
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Textbox"
+        },
+        {
+          "label": "Info",
+          "type": "string",
+          "python_type": {
+            "type": "str",
+            "description": ""
+          },
+          "component": "Html"
+        },
+        {
+          "label": "Audio for the URL",
+          "type": "",
+          "python_type": {
+            "type": "filepath",
+            "description": ""
+          },
+          "component": "Audio"
+        }
+      ],
+      "type": {
+        "generator": false,
+        "cancel": false
+      }
+    }
+  },
+  "unnamed_endpoints": {}
+}

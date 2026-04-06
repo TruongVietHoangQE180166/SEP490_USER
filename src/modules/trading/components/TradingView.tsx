@@ -10,10 +10,12 @@ import { TradeDashboard } from './TradeDashboard';
 import { MarketHeader } from './MarketHeader';
 import { TradingTutorial } from './TradingTutorial';
 import { useRealtimeFeed } from '../hooks/useRealtimeFeed';
+import { useAIChatHistory, ChatMessage } from '../hooks/useAIChatHistory';
 import { getChartHistory } from '../services';
+import { MessageFormatter } from './MessageFormatter';
 import { WalletService } from '../../wallet/services';
 import { CandleType, Timeframe } from '../types';
-import { Bot, Send, Sparkles, Mic, Square, Loader2, Trash2, Volume2, VolumeX } from 'lucide-react';
+import { Bot, Send, Sparkles, Mic, Square, Loader2, Trash2, Volume2, VolumeX, RefreshCw } from 'lucide-react';
 import * as googleTTS from 'google-tts-api';
 import { Client } from '@gradio/client';
 import {
@@ -34,21 +36,7 @@ const ZIPFORMER_MODEL = 'csukuangfj2/sherpa-onnx-zipformer-vi-30M-int8-2026-02-0
 
 const SYMBOL = 'XAU-USDT-SWAP';
 
-type ChatMessage = {
-  id: string;
-  role: 'user' | 'ai';
-  content: React.ReactNode;
-};
-
-const INITIAL_MESSAGES: ChatMessage[] = [
-  { id: '1', role: 'ai', content: 'Xin chào! Bạn có câu hỏi nào về thị trường cần giải đáp không? Tôi có thể phân tích xu hướng hoặc chỉ ra mức hỗ trợ/kháng cự.' },
-  { id: '2', role: 'user', content: 'Phân tích giúp tôi xu hướng của cặp XAU-USDT-SWAP hiện tại có nên vào lệnh long không?' },
-  { id: '3', role: 'ai', content: 'Dựa vào dòng tiền và các chỉ báo kỹ thuật trên khung thời gian H4, cặp XAU-USDT-SWAP đang trong vùng tích lũy xung quanh mốc kháng cự quan trọng. RSI hiện đang ở mức 65, cho thấy đà tăng vẫn còn dư địa nhưng đang đến gần vùng quá mua.\n\nNếu bạn định mở một lệnh Long lúc này, hãy đặc biệt chú ý đến:\n- Điểm stop-loss nên đặt dưới râu nến ở hỗ trợ gần nhất.\n- Theo dõi sát sao khối lượng giao dịch (Volume); nếu có lực cản mạnh bán xuống, bạn nên chốt lời sớm.' },
-  { id: '4', role: 'user', content: 'Cảm ơn nhé! Khoảng giá nào là vùng chốt lời an toàn?' },
-  { id: '5', role: 'ai', content: 'Vùng chốt lời (Take Profit) an toàn trước mắt nằm ở đỉnh cũ gần đây, tức là khoảng cản tâm lý số tròn tiếp theo. Bạn có thể chốt khoảng 50% vị thế ở vùng giá đó để đảm bảo an toàn, và dời stop-loss lên điểm vào lệnh (Entry) để thả lãi cho phần còn lại. Nhớ quản lý rủi ro thật chặt chẽ nha!' },
-  { id: '6', role: 'user', content: 'Tuyệt.' },
-  { id: '7', role: 'ai', content: 'Luôn sẵn sàng hỗ trợ bạn. Chúc bạn thu được nhiều lợi nhuận trong ngày hôm nay!' }
-];
+// Type removed, imported instead
 
 export const TradingView = observer(function TradingView() {
 
@@ -62,9 +50,8 @@ export const TradingView = observer(function TradingView() {
   const router = useRouter();
 
   // --- AI Chat State ---
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const { messages, setMessages, isLoading, refreshHistory, isAiThinking, sendMessage } = useAIChatHistory(user);
   const [chatInput, setChatInput] = useState('');
-  const [isAiThinking, setIsAiThinking] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -137,6 +124,7 @@ export const TradingView = observer(function TradingView() {
       const result = await client.predict('/process_microphone', [
         'Vietnamese',
         ZIPFORMER_MODEL,
+        'vi', // cohere_language (mới được thêm vào API k2-fsa)
         'greedy_search',
         4,
         'No',
@@ -145,17 +133,8 @@ export const TradingView = observer(function TradingView() {
       const data = result.data as string[];
       const transcribed = (data && typeof data[0] === 'string' ? data[0].trim() : '') || '[Không nhận dạng được]';
 
-      // Thêm thẳng vào chat
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', content: transcribed }]);
-      setIsAiThinking(true);
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          id: (Date.now() + 1).toString(),
-          role: 'ai',
-          content: 'Hệ thống đã ghi nhận. Tính năng AI Insight đang được tối ưu và sẽ kết nối API thật trong bản cập nhật tiếp theo!'
-        }]);
-        setIsAiThinking(false);
-      }, 1500);
+      // Call API chat after transcription
+      sendMessage(transcribed);
     } catch (err: any) {
       console.error('[ASR] Error:', err);
       toast.error('Nhận dạng giọng nói thất bại: ' + (err?.message ?? ''));
@@ -273,17 +252,8 @@ export const TradingView = observer(function TradingView() {
   // --- handleSendMessage (text) ---
   const handleSendMessage = () => {
     if (!chatInput.trim() || isAiThinking) return;
-    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', content: chatInput.trim() }]);
+    sendMessage(chatInput.trim());
     setChatInput('');
-    setIsAiThinking(true);
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'ai',
-        content: 'Hệ thống đã ghi nhận. Tính năng AI Insight đang được tối ưu và sẽ kết nối API thật trong bản cập nhật tiếp theo!'
-      }]);
-      setIsAiThinking(false);
-    }, 1500);
   };
 
 
@@ -356,6 +326,7 @@ export const TradingView = observer(function TradingView() {
     if (!user) return;
     loadData(timeframe);
     startRealtime();
+
     return () => { stopRealtime(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -468,17 +439,34 @@ export const TradingView = observer(function TradingView() {
           </button>
         </BottomSheetTrigger>
         <BottomSheetContent className="flex flex-col h-[70vh] sm:h-[600px] w-full">
-          <BottomSheetHeader className="border-b border-border pb-4 shrink-0 px-4">
-            <BottomSheetTitle className="text-xl flex items-center gap-2">
-              <Bot className="text-primary" />
-              AI Trading Assistant
-            </BottomSheetTitle>
-            <BottomSheetDescription>
-              Hỏi AI về thị trường, xu hướng hoặc phân tích kỹ thuật.
-            </BottomSheetDescription>
+          <BottomSheetHeader className="border-b border-border pb-4 shrink-0 px-4 flex flex-row items-center justify-between">
+            <div className="flex flex-col gap-1.5 pt-2">
+              <BottomSheetTitle className="text-xl flex items-center gap-2">
+                <Bot className="text-primary" />
+                AI Trading Assistant
+              </BottomSheetTitle>
+              <BottomSheetDescription>
+                Hỏi AI về thị trường, xu hướng hoặc phân tích kỹ thuật.
+              </BottomSheetDescription>
+            </div>
+            <button 
+              onClick={refreshHistory} 
+              disabled={isLoading}
+              className="p-2.5 mt-2 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground rounded-full transition-colors disabled:opacity-50 shrink-0"
+              title="Làm mới lịch sử chat"
+            >
+              <RefreshCw size={18} className={cn(isLoading && "animate-spin text-primary")} />
+            </button>
           </BottomSheetHeader>
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-            {messages.map((msg) => (
+            {isLoading && messages.length <= 1 ? (
+              <div className="flex flex-col items-center justify-center h-[200px] my-auto gap-3 text-muted-foreground/60 w-full animate-in fade-in">
+                <Loader2 size={32} className="animate-spin text-primary/60" />
+                <p className="text-sm font-medium">Đang tải lịch sử trò chuyện...</p>
+              </div>
+            ) : (
+              <>
+                {messages.map((msg) => (
               <div 
                 key={msg.id}
                 className={cn(
@@ -494,7 +482,7 @@ export const TradingView = observer(function TradingView() {
                       : "bg-primary text-primary-foreground rounded-tr-sm"
                   )}
                 >
-                  {msg.content}
+                  {typeof msg.content === 'string' ? <MessageFormatter content={msg.content} /> : msg.content}
                 </div>
                 {msg.role === 'ai' && typeof msg.content === 'string' && (
                   <button 
@@ -531,8 +519,8 @@ export const TradingView = observer(function TradingView() {
                 </div>
               </div>
             )}
-
-
+              </>
+            )}
 
             {/* Đánh dấu để có thể tự động scroll xuống dưới cùng */}
             <div ref={chatEndRef} className="h-4 shrink-0"></div>

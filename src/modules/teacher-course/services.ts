@@ -1,5 +1,5 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse, VideoUploadResponse, DocumentUploadResponse, CreateQuizRequest, CreateQuizResponse, ChartDemoApiResponse, CreateChartDemoRequest, UpdateChartDemoRequest } from './types';
+import { TeacherCourse, TeacherCourseApiResponse, TeacherCourseSingleResponse, QuizQuestion, QuizQuestionsResponse, CreateCourseRequest, ImageUploadResponse, VideoUploadResponse, DocumentUploadResponse, CreateQuizRequest, CreateQuizResponse, ChartDemoApiResponse, CreateChartDemoRequest, UpdateChartDemoRequest, CreateQuestionRequest, CreateQuestionResponse } from './types';
 
 export const teacherCourseService = {
   /**
@@ -263,6 +263,19 @@ export const teacherCourseService = {
     const response = await ApiConfigService.put<CreateQuizResponse>(url, payload);
     if (!response || !response.success || !response.data) {
       throw new Error(response?.message?.messageDetail || 'Không thể cập nhật bài kiểm tra');
+    }
+    return response.data;
+  },
+  
+  /**
+   * Update Quiz questions list
+   * POST /api/question?quizId={quizId}
+   */
+  async updateQuizQuestions(quizId: string, payload: CreateQuestionRequest[]): Promise<CreateQuestionResponse['data']> {
+    const url = `/api/question?quizId=${quizId}`;
+    const response = await ApiConfigService.post<CreateQuestionResponse>(url, payload);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể lưu câu hỏi');
     }
     return response.data;
   },

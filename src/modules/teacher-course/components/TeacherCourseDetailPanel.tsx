@@ -57,6 +57,8 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
     isDeletingDocument,
     handleDeleteQuiz,
     isDeletingQuiz,
+    handleUpdateQuizQuestions,
+    isUpdatingQuestions,
   } = useTeacherCourseDetail(courseId);
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -290,6 +292,8 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
           setSelectedLesson={setSelectedLesson}
           quizQuestions={quizQuestions}
           isQuizLoading={isQuizLoading}
+          onUpdateQuizQuestions={handleUpdateQuizQuestions}
+          isUpdatingQuestions={isUpdatingQuestions}
           onSuccess={() => {
             setSelectedLesson(null);
             reload();
