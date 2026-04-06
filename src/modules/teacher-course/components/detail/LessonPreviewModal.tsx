@@ -25,6 +25,7 @@ import { teacherCourseService } from '../../services';
 import { QuizQuestion } from '../../types';
 import { useUploadMoocVideo } from '../../hooks/useUploadMoocVideo';
 import { useUploadMoocDocument } from '../../hooks/useUploadMoocDocument';
+import { toast } from '@/components/ui/toast';
 
 // We must define formatting properties
 export interface LessonPreviewModalProps {
@@ -32,6 +33,8 @@ export interface LessonPreviewModalProps {
     setSelectedLesson: (lesson: any) => void;
     quizQuestions: QuizQuestion[];
     isQuizLoading?: boolean;
+    onUpdateQuizQuestions?: (quizId: string, questions: any[]) => Promise<void>;
+    isUpdatingQuestions?: boolean;
     onSuccess?: () => void;
 }
 
@@ -120,6 +123,8 @@ export const LessonPreviewModal = ({
     setSelectedLesson, 
     quizQuestions, 
     isQuizLoading,
+    onUpdateQuizQuestions,
+    isUpdatingQuestions,
     onSuccess
 }: LessonPreviewModalProps) => {
     const [localQuestions, setLocalQuestions] = useState<QuizQuestion[]>(quizQuestions);
@@ -207,11 +212,11 @@ export const LessonPreviewModal = ({
                                 if (onSuccess) onSuccess();
                             } catch (err) { return Promise.reject(err); }
                         } else {
-                            alert('Chưa xác định được chương học!');
+                            toast.error('Chưa xác định được chương học!');
                             return Promise.reject();
                         }
                     } else {
-                        alert('Bạn chưa chọn file tài liệu!');
+                        toast.error('Bạn chưa chọn file tài liệu!');
                         return Promise.reject();
                     }
                 } else if (selectedLesson.type === 'video') {
@@ -232,10 +237,10 @@ export const LessonPreviewModal = ({
                             if (onSuccess) onSuccess();
                         } catch (err) { return Promise.reject(err); }
                     } else if (isNewVideo && !selectedVideoFile) {
-                        alert('Bạn chưa chọn file video!');
+                        toast.error('Bạn chưa chọn file video!');
                         return Promise.reject();
                     } else {
-                        alert('Chưa xác định được chương học!');
+                        toast.error('Chưa xác định được chương học!');
                         return Promise.reject();
                     }
                 } else if (selectedLesson.type === 'quiz') {
@@ -245,12 +250,12 @@ export const LessonPreviewModal = ({
                         try {
                             if (!selectedLesson.targetMoocId) {
                                 setIsSaving(false);
-                                alert('Chưa xác định được chương học!');
+                                toast.error('Chưa xác định được chương học!');
                                 return Promise.reject();
                             }
                             if (!selectedLesson.title) {
                                 setIsSaving(false);
-                                alert('Vui lòng nhập tên bài kiểm tra!');
+                                toast.error('Vui lòng nhập tên bài kiểm tra!');
                                 return Promise.reject();
                             }
                             await teacherCourseService.createQuiz(selectedLesson.targetMoocId, {
@@ -261,7 +266,7 @@ export const LessonPreviewModal = ({
                             if (onSuccess) onSuccess();
                         } catch (err: any) {
                             setIsSaving(false);
-                            alert(err.message || 'Lỗi khi tạo bài kiểm tra');
+                            toast.error(err.message || 'Lỗi khi tạo bài kiểm tra');
                             return Promise.reject(err);
                         } finally {
                             setIsSaving(false);
@@ -271,9 +276,28 @@ export const LessonPreviewModal = ({
                         try {
                             if (!selectedLesson.title) {
                                 setIsSaving(false);
-                                alert('Vui lòng nhập tên bài kiểm tra!');
+                                toast.error('Vui lòng nhập tên bài kiểm tra!');
                                 return Promise.reject();
                             }
+                            
+                            if (selectedLesson.mode === 'questions') {
+                                const invalidQuestionIndex = localQuestions.findIndex(q => !q.content.trim());
+                                if (invalidQuestionIndex !== -1) {
+                                    setIsSaving(false);
+                                    toast.error(`Câu hỏi số ${invalidQuestionIndex + 1} chưa có nội dung!`);
+                                    return Promise.reject(new Error('Validation failed'));
+                                }
+                                
+                                for (let i = 0; i < localQuestions.length; i++) {
+                                    const invalidAnswerIndex = localQuestions[i].answers.findIndex(a => !a.content.trim());
+                                    if (invalidAnswerIndex !== -1) {
+                                        setIsSaving(false);
+                                        toast.error(`Câu hỏi số ${i + 1} có đáp án ${invalidAnswerIndex + 1} bị bỏ trống!`);
+                                        return Promise.reject(new Error('Validation failed'));
+                                    }
+                                }
+                            }
+                            
                             await teacherCourseService.updateQuiz(selectedLesson.id, {
                                 title: selectedLesson.title,
                                 timeLimit: selectedLesson.timeLimit || 15,
@@ -281,17 +305,29 @@ export const LessonPreviewModal = ({
                             });
                             
                             // (If this was the question mode, questions should be saved here, but for now we update the info)
+                            if (selectedLesson.mode === 'questions' && onUpdateQuizQuestions) {
+                                const formattedQuestions = localQuestions.map((q, idx) => ({
+                                    questionContent: q.content,
+                                    orderIndex: idx + 1,
+                                    answers: q.answers.map(a => ({
+                                        answerContent: a.content,
+                                        isCorrect: a.isCorrect
+                                    }))
+                                }));
+                                await onUpdateQuizQuestions(selectedLesson.id, formattedQuestions);
+                            }
+                            
                             if (onSuccess) onSuccess();
                         } catch (err: any) {
                             setIsSaving(false);
-                            alert(err.message || 'Lỗi khi cập nhật bài kiểm tra');
+                            toast.error(err.message || 'Lỗi khi cập nhật bài kiểm tra');
                             return Promise.reject(err);
                         } finally {
                             setIsSaving(false);
                         }
                     }
                 } else {
-                    alert('Đã cập nhật hệ thống!');
+                    toast.success('Đã cập nhật hệ thống!');
                 }
             }
         );
@@ -732,18 +768,18 @@ export const LessonPreviewModal = ({
                                     try {
                                         await confirmState.onAction();
                                         setConfirmState(prev => ({...prev, isOpen: false}));
-                                    } catch (e) {
-                                        // keep open on error — toast already shown
+                                    } catch (err) {
+                                        setConfirmState(prev => ({...prev, isOpen: false}));
                                     }
                                 }}
                                 disabled={isUploadingVideo || isUploadingDoc || isSaving}
                                 className={cn(
                                     "h-9 px-8 font-black text-[10px] uppercase rounded-sm shadow-xl",
                                     confirmState.variant === 'danger' ? "bg-rose-500 hover:bg-rose-600 shadow-rose-500/20" : "bg-primary hover:bg-primary/90 shadow-primary/20",
-                                    (isUploadingVideo || isUploadingDoc || isSaving) && "opacity-50 cursor-not-allowed"
+                                    (isUploadingVideo || isUploadingDoc || isSaving || isUpdatingQuestions) && "opacity-50 cursor-not-allowed"
                                 )}
                             >
-                                {isSaving ? (
+                                {(isSaving || isUpdatingQuestions) ? (
                                     <>
                                         <ThunderLoader size="sm" animate="thunder" /> Đang lưu...
                                     </>

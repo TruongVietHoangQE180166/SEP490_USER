@@ -181,3 +181,38 @@ export interface TradingState {
   isRealtimeActive: boolean;
   isChartLoading: boolean;
 }
+
+// ─────────────────────────────────────────────
+// AI Chat
+// ─────────────────────────────────────────────
+export interface ChatMessageItem {
+  userId: string;
+  username: string;
+  email: string;
+  userMessage: string;
+  aiResponse: string;
+}
+
+export interface ChatPaginatedResponse {
+  content: ChatMessageItem[];
+  request: {
+    page: number;
+    size: number;
+    sortRequest: { direction: string; field: string };
+  };
+  totalElement: number;
+}
+
+export interface ChatHistoryApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: ChatPaginatedResponse;
+  success: boolean;
+}
+
+export interface SendChatMessageResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: string;
+  success: boolean;
+}

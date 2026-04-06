@@ -162,6 +162,22 @@ export const useTeacherCourseDetail = (courseId: string) => {
     }
   }, [loadDetail]);
 
+  const [isUpdatingQuestions, setIsUpdatingQuestions] = useState(false);
+
+  const handleUpdateQuizQuestions = useCallback(async (quizId: string, questions: any[]) => {
+    setIsUpdatingQuestions(true);
+    try {
+      await teacherCourseService.updateQuizQuestions(quizId, questions);
+      toast.success('Cập nhật câu hỏi thành công');
+      await loadDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi cập nhật câu hỏi');
+      throw err;
+    } finally {
+      setIsUpdatingQuestions(false);
+    }
+  }, [loadDetail]);
+
   return {
     course,
     isLoading,
@@ -190,5 +206,7 @@ export const useTeacherCourseDetail = (courseId: string) => {
     isDeletingDocument,
     handleDeleteQuiz,
     isDeletingQuiz,
+    handleUpdateQuizQuestions,
+    isUpdatingQuestions,
   };
 };

@@ -145,6 +145,27 @@ export interface QuizQuestion {
   answers: QuizAnswer[];
 }
 
+export interface CreateAnswerRequest {
+  answerContent: string;
+  isCorrect: boolean;
+}
+
+export interface CreateQuestionRequest {
+  questionContent: string;
+  orderIndex: number;
+  answers: CreateAnswerRequest[];
+}
+
+export interface CreateQuestionResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: Array<{ field: string; message: string }> | null;
+  data: QuizQuestion[];
+  success: boolean;
+}
+
 export interface CreateQuizRequest {
   title: string;
   timeLimit: number;
