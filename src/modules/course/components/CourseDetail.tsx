@@ -26,7 +26,15 @@ import {
   Users,
   Video,
   Zap,
+  Facebook,
+  Instagram,
+  Music,
+  MessageCircle,
+  Twitter,
+  Globe,
+  Phone
 } from "lucide-react";
+import { UserInformation } from '@/modules/profile/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cn, getEmbedUrl } from '@/lib/utils';
@@ -36,6 +44,8 @@ import { paymentActions } from '@/modules/payment/store';
 import { useCourseRatings } from '../hooks/useCourseRatings';
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { authState$ } from '@/modules/auth/store';
+import { SupportChatService } from '@/modules/support-chat/services';
+import { chatState$ } from '@/modules/support-chat/store';
 
 // ============================================================================
 // ANIMATION VARIANTS
@@ -399,7 +409,11 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-border/40 bg-background/60 backdrop-blur hover:border-border/60 hover:bg-background/70 shadow-lg">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-12 w-12 rounded-full border-border/40 bg-background/60 backdrop-blur hover:border-border/60 hover:bg-background/70 shadow-lg"
+                >
                   <Share2 className="h-5 w-5" />
                 </Button>
                 
@@ -669,62 +683,190 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
 
               {/* Instructor */}
               <div className="lg:col-span-1">
-                <motion.div variants={itemVariants} className="group relative overflow-hidden rounded-2xl border border-border/40 bg-background/60 p-6 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg sticky top-24">
-                  <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
-                  
-                  <div className="relative space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-foreground">Giảng viên</h3>
-                      <Badge className="bg-primary/10 text-primary border-primary/20">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Xác minh
-                      </Badge>
-                    </div>
+                 <motion.div variants={itemVariants} className="group relative overflow-hidden rounded-2xl border border-border/40 bg-background/60 p-6 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg sticky top-24">
+                   <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
+                   
+                   <div className="relative space-y-6">
+                     <div className="flex items-center justify-between">
+                       <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-foreground">Giảng viên</h3>
+                       <Badge className="bg-primary/10 text-primary border-primary/20">
+                         <CheckCircle2 className="h-3 w-3 mr-1" />
+                         Xác minh
+                       </Badge>
+                     </div>
+ 
+                     <div className="flex flex-col gap-6">
+                       {/* Part 1: Identity Header */}
+                       <div className="flex items-center gap-4 px-1">
+                         <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-background shadow-inner">
+                           <img 
+                             src={currentCourse.profileResponse?.avatar || currentCourse.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentCourse.createdBy || 'Giangvien'}`} 
+                             alt={currentCourse.profileResponse?.fullName || currentCourse.author?.name || currentCourse.createdBy || "Giảng viên"} 
+                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                           />
+                         </div>
+                         <div className="flex-1 min-w-0">
+                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 mb-1">
+                             Tạo bởi giảng viên
+                           </p>
+                           <h4 className="text-xl font-bold text-foreground tracking-tight truncate">
+                             {currentCourse.profileResponse?.fullName || currentCourse.createdBy || currentCourse.author?.name || "Giảng viên"}
+                           </h4>
+                           {currentCourse.createdBy && (
+                             <div className="pt-0.5">
+                               <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-[10px] font-bold px-2 py-0.5 leading-none transition-all hover:bg-primary/10 select-none">
+                                 @{currentCourse.createdBy}
+                               </Badge>
+                             </div>
+                           )}
+                           <div className="text-[11px] font-black uppercase tracking-[0.15em] text-muted-foreground/50 pt-2 flex items-center gap-1.5">
+                             <div className="h-1 w-1 rounded-full bg-primary/30" />
+                             {currentCourse.author?.role || "Giảng viên chuyên nghiệp"}
+                           </div>
+                         </div>
+                       </div>
+ 
+                       {/* Part 2: Social Connections (Only show if link exists) */}
+                       {currentCourse.profileResponse?.information && Object.values(currentCourse.profileResponse.information).some(v => v) && (
+                         <div className="w-full space-y-2">
+                           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 px-1">Kết nối mạng xã hội</p>
+                           <div className="flex flex-wrap gap-2.5">
+                             {[
+                               { id: 'facebook', icon: Facebook, color: 'bg-[#1877F2]' },
+                               { id: 'instagram', icon: Instagram, color: 'bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]' },
+                               { id: 'tiktok', icon: ({ className }: { className?: string }) => (
+                                   <svg className={className} viewBox="0 0 448 512" fill="currentColor">
+                                     <path d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0l88 0a121.18 121.18 0 0 0 1.86 22.17A122.18 122.18 0 0 0 381 102.39a121.43 121.43 0 0 0 67 20.14Z"/>
+                                   </svg>
+                                 ), color: 'bg-zinc-950' },
+                               { id: 'zalo', icon: ({ className }: { className?: string }) => (
+                                   <img 
+                                     src="https://page.widget.zalo.me/static/images/2.0/Logo.svg" 
+                                     alt="Zalo" 
+                                     className="h-full w-full object-contain" 
+                                   />
+                                 ), color: 'bg-[#0068FF] p-1' },
+                               { id: 'twitter', icon: Twitter, color: 'bg-sky-500' },
+                             ].map((social) => {
+                               // @ts-ignore - indexing UserInformation
+                               const link = currentCourse.profileResponse?.information?.[social.id];
+                               return link ? (
+                                 <a 
+                                   key={social.id} 
+                                   href={link.startsWith('http') ? link : `https://${link}`} 
+                                   target="_blank" 
+                                   rel="noopener noreferrer" 
+                                   className={cn(
+                                     "flex h-10 w-10 items-center justify-center rounded-xl transition-all hover:-translate-y-1 hover:shadow-lg active:scale-95",
+                                     social.color
+                                   )}
+                                   title={social.id}
+                                 >
+                                   <social.icon className={cn("text-white", social.id === 'zalo' ? 'h-full w-full p-0.5' : 'h-6 w-6')} />
+                                 </a>
+                               ) : null;
+                             })}
+                           </div>
+                         </div>
+                       )}
+ 
+                       {/* Part 3: Direct Contact */}
+                       <div className="w-full relative group cursor-pointer overflow-hidden rounded-2xl border border-primary/10 bg-primary/[0.02] p-2.5 transition-all hover:bg-primary/[0.05] hover:border-primary/20">
+                          <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                             <Phone className="h-12 w-12 -rotate-12" />
+                          </div>
+                          <div className="flex items-center gap-3 relative z-10">
+                             <div className={cn(
+                               "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-md",
+                               currentCourse.profileResponse?.phoneNumber ? "bg-primary text-primary-foreground shadow-primary/10" : "bg-muted text-muted-foreground shadow-none"
+                             )}>
+                                <Phone className="h-4.5 w-4.5" />
+                             </div>
+                             <div className="flex flex-col">
+                                <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-primary/60 leading-none mb-1">Liên hệ trực tiếp</span>
+                                <span className={cn(
+                                  "text-base font-bold tabular-nums tracking-tight",
+                                  currentCourse.profileResponse?.phoneNumber ? "text-foreground" : "text-foreground/30 italic font-medium"
+                                )}>
+                                  {currentCourse.profileResponse?.phoneNumber || "Đang cập nhật..."}
+                                </span>
+                             </div>
+                          </div>
+                       </div>
+ 
+                       {/* Part 4: Bio/Description */}
+                       <div className="space-y-1.5 px-0.5">
+                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Về giảng viên</p>
+                         <p className={cn(
+                           "text-[13px] leading-relaxed border-l-2 pl-3 italic",
+                           currentCourse.profileResponse?.description ? "text-foreground/70 border-primary/10" : "text-foreground/30 border-muted/50"
+                         )}>
+                           {currentCourse.profileResponse?.description || "Giảng viên hiện đang bận rộn xây dựng nội dung chất lượng cao. Lời giới thiệu dự kiến sẽ sớm được cập nhật."}
+                         </p>
+                       </div>
 
-                    <div className="flex flex-col gap-6">
-                      <div className="flex items-start gap-4">
-                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border-2 border-border/60 bg-background">
-                          <img src={currentCourse.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentCourse.createdBy || 'Giangvien'}`} alt={currentCourse.author?.name || currentCourse.createdBy || "Giảng viên"} className="h-full w-full object-cover" />
-                        </div>
-                        <div className="flex-1 space-y-1.5">
-                          <h4 className="text-xl font-semibold text-foreground tracking-tight">{currentCourse.createdBy || currentCourse.author?.name || "Giảng viên"}</h4>
-                          <p className="text-sm text-foreground/70 font-medium">{currentCourse.author?.role || "Giảng viên"}</p>
-                        </div>
-                      </div>
+                       {/* Part 5: Primary Actions (Bottom) */}
+                       <div className="w-full pt-4 border-t border-border/40 space-y-3">
+                         <Button 
+                            variant="outline" 
+                            onClick={async () => {
+                              const userId = authState$.user.peek()?.userId || (typeof window !== 'undefined' ? localStorage.getItem('guest_id') : 'guest');
+                              if (!userId) return;
+                              
+                              const courseData = {
+                                id: currentCourse.id,
+                                title: currentCourse.title,
+                                thumbnail: currentCourse.thumbnailUrl || currentCourse.thumbnail,
+                                price: currentCourse.salePrice || currentCourse.price,
+                                slug: currentCourse.slug
+                              };
 
-                      <p className="text-sm leading-relaxed text-foreground/70 border-l-2 border-primary/20 pl-4 italic">
-                        "Chuyên gia phân tích thị trường tiền mã hóa với hơn 8 năm kinh nghiệm thực chiến từ những ngày đầu của Blockchain. Đã đồng hành và hỗ trợ hàng nghìn nhà đầu tư tối ưu hóa danh mục trong các chu kỳ thị trường. Đam mê chia sẻ kiến thức về DeFi, Web3 và xây dựng cộng đồng đầu tư bền vững, minh bạch."
-                      </p>
-
-
-                      {(isAuthenticated && currentCourse.isEnrolled) ? (
-                        <Link href={`/learn/${currentCourse.slug}`} className="block">
-                          <Button className="w-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-bold transition-all">
-                            Vào học ngay
-                          </Button>
-                        </Link>
-                      ) : (
-                        <div onClick={handleRegistration} className="w-full cursor-pointer">
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="relative group"
+                              await SupportChatService.sendMessage({
+                                userId,
+                                senderId: userId,
+                                senderRole: 'user',
+                                senderName: authState$.user.peek()?.username || 'Khách',
+                                content: `[COURSE_INQUIRY]${JSON.stringify(courseData)}`
+                              });
+                              
+                              // Open chat window instead of alert
+                              chatState$.open();
+                            }}
+                            className="w-full h-11 rounded-xl border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
                           >
-                            <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 opacity-50 blur group-hover:opacity-100 transition-opacity animate-pulse" />
-                            <Button className="relative w-full h-12 rounded-xl bg-primary text-primary-foreground border-none font-bold shadow-lg overflow-hidden">
-                              <span className="relative z-10">
-                                {currentCourse.isFree ? 'Nhận khóa học' : `Đăng ký học (${formatPrice(currentCourse.salePrice || currentCourse.price)})`}
-                              </span>
-                              <motion.div
-                                initial={{ x: '-100%' }}
-                                animate={{ x: '200%' }}
-                                transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
-                              />
-                            </Button>
-                          </motion.div>
-                        </div>
-                      )}
+                            <MessageCircle size={16} />
+                            Hỏi về khóa học này
+                          </Button>
+
+                          {(isAuthenticated && currentCourse.isEnrolled) ? (
+                         <Link href={`/learn/${currentCourse.slug}`} className="block">
+                           <Button className="w-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-bold transition-all">
+                             Vào học ngay
+                           </Button>
+                         </Link>
+                       ) : (
+                         <div onClick={handleRegistration} className="w-full cursor-pointer pt-2">
+                           <motion.div
+                             whileHover={{ scale: 1.02 }}
+                             whileTap={{ scale: 0.98 }}
+                             className="relative group"
+                           >
+                             <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 opacity-50 blur group-hover:opacity-100 transition-opacity animate-pulse" />
+                             <Button className="relative w-full h-12 rounded-xl bg-primary text-primary-foreground border-none font-bold shadow-lg overflow-hidden">
+                               <span className="relative z-10">
+                                 {currentCourse.isFree ? 'Nhận khóa học' : `Đăng ký học (${formatPrice(currentCourse.salePrice || currentCourse.price)})`}
+                               </span>
+                               <motion.div
+                                 initial={{ x: '-100%' }}
+                                 animate={{ x: '200%' }}
+                                 transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+                                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
+                               />
+                             </Button>
+                           </motion.div>
+                         </div>
+                       )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>

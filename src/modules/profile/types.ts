@@ -33,6 +33,7 @@ export interface UserProfile {
   dateOfBirth: string | null;
   avatar: string | null;
   gender: string | null;
+  description: string | null;
   // Optional extra fields based on the response structure
   createdDate?: string;
   updatedDate?: string;
@@ -100,5 +101,11 @@ export interface UpdateProfileRequest {
   dateOfBirth?: string | null;
   gender?: string | null;
   avatar?: string | null;
+  description?: string | null;
   addresses?: UpdateAddressRequest[];
+  facebook?: string | null;
+  instagram?: string | null;
+  tiktok?: string | null;
+  zalo?: string | null;
+  twitter?: string | null;
 }

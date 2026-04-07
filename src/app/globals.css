@@ -239,6 +239,15 @@ body {
   .animate-scroll-down {
     animation: scroll-down linear infinite;
   }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
 }
 
 /* Driver.js Theme Overrides */

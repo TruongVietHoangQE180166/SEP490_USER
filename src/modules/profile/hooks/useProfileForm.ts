@@ -29,12 +29,18 @@ export const useProfileForm = ({ profile, onUpdate, onToggleEdit }: UseProfileFo
     dateOfBirth: formatDateForInput(profile.dateOfBirth),
     gender: profile.gender || 'MALE',
     avatar: profile.avatar || '',
+    description: profile.description || '',
     addresses: profile.addresses ? profile.addresses.map(addr => ({
       id: addr.id,
       address: addr.address,
       other: addr.other,
       default: addr.default || false
     })) : [],
+    facebook: profile.information?.facebook || '',
+    instagram: profile.information?.instagram || '',
+    tiktok: profile.information?.tiktok || '',
+    zalo: profile.information?.zalo || '',
+    twitter: profile.information?.twitter || '',
   });
   
   // Also keep track of local address UI state if needed, but managing directly in formData is fine 
@@ -107,8 +113,14 @@ export const useProfileForm = ({ profile, onUpdate, onToggleEdit }: UseProfileFo
       dateOfBirth: formatDateForInput(profile.dateOfBirth),
       gender: profile.gender || 'MALE',
       avatar: profile.avatar || '',
+      description: profile.description || '',
       // @ts-ignore - mapping existing addresses to update structure
       addresses: profile.addresses || [], 
+      facebook: profile.information?.facebook || '',
+      instagram: profile.information?.instagram || '',
+      tiktok: profile.information?.tiktok || '',
+      zalo: profile.information?.zalo || '',
+      twitter: profile.information?.twitter || '',
     });
     onToggleEdit();
   };

@@ -1,3 +1,4 @@
+import { UserProfile } from '@/modules/profile/types';
 export interface Answer {
   id: string;
   content: string;
@@ -108,6 +109,7 @@ export interface Course {
   
   courseLevel?: string | null;
   countEnrolledStudents?: number | null;
+  profileResponse?: UserProfile;
 }
 
 export interface CourseApiResponse<T> {

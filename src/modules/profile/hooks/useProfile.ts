@@ -32,9 +32,14 @@ export const useProfile = () => {
     const user = authState$.user.get();
     if (!user?.userId) return;
 
+    // Logic: Skip fields that are empty strings (unfilled inputs)
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, value]) => value !== "")
+    ) as UpdateProfileRequest;
+
     loadingActions.showUpdateLoading('Đang cập nhật hồ sơ...');
     try {
-      const updated = await profileService.updateProfile(user.userId, updates);
+      const updated = await profileService.updateProfile(user.userId, filteredUpdates);
       profileActions.setProfile(updated);
       profileActions.setEditing(false);
       toast.success('Cập nhật hồ sơ thành công');
