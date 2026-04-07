@@ -2,6 +2,7 @@
 
 import React, { useState, ReactNode, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { usePathname } from 'next/navigation';
 import { cn } from "@/utils/cn"
 
 interface ExpandableDockProps {
@@ -42,6 +43,12 @@ const ExpandableDock = ({
 
   const isCollapsed = animationStage === "collapsed";
   const isExpanded = animationStage === "fullyExpanded";
+
+  const pathname = usePathname();
+
+  useEffect(() => {
+    handleCollapse();
+  }, [pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

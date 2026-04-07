@@ -1,0 +1,12 @@
+# Hugging Face Speech-to-Text (Whisper)
+NEXT_PUBLIC_HF_WHISPER_URL="https://api-inference.huggingface.co/models/openai/whisper-large-v3"
+
+# Hugging Face Zipformer (ASR model khác)
+NEXT_PUBLIC_HF_ZIPFORMER_URL="https://api-inference.huggingface.co/models/k2-fsa/zipformer-en"
+
+# API backend của bạn
+NEXT_PUBLIC_API_BASE_URL="http://localhost:3001/api"
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL="https://your-project-id.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-public-key"

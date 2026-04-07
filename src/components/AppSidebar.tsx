@@ -26,6 +26,7 @@ interface SidebarItem {
   icon: React.ElementType;
   label: string;
   href: string;
+  badge?: number;
 }
 
 interface AppSidebarProps {
@@ -120,7 +121,22 @@ export const AppSidebar = observer(({ items, title, role }: AppSidebarProps) => 
                 )} />
 
                 {!isCollapsed && (
-                  <span className="text-sm tracking-tight leading-none">{item.label}</span>
+                  <span className="text-sm tracking-tight leading-none flex-1">{item.label}</span>
+                )}
+
+                {item.badge !== undefined && item.badge > 0 && (
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className={cn(
+                      "h-5 min-w-[22px] px-1.5 flex items-center justify-center rounded-full text-[10px] font-bold shadow-lg transition-all ring-2",
+                      isActive 
+                        ? "bg-white text-sidebar-primary ring-white/20" 
+                        : "bg-rose-500 text-white ring-rose-500/20"
+                    )}
+                  >
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </motion.div>
                 )}
 
                 {isActive && !isCollapsed && (
