@@ -20,7 +20,7 @@ import {
   SideSheetDescription
 } from '@/components/ui/side-sheet';
 import { cn } from '@/lib/utils';
-import { AUTH_ROUTES } from '@/constants/routes';
+import { AUTH_ROUTES, ROUTES } from '@/constants/routes';
 import { motion } from 'framer-motion';
 import { authState$ } from '@/modules/auth/store';
 import { chatState$ } from '@/modules/support-chat/store';
@@ -67,6 +67,7 @@ const CourseInquiryCard = ({ content, isMe }: { content: string, isMe: boolean }
 export const ChatBubble = observer(() => {
   const pathname = usePathname();
   const user = authState$.user.get();
+  const isAuthenticated = authState$.isAuthenticated.get();
   const userId = user?.userId || (typeof window !== 'undefined' ? (localStorage.getItem('guest_id') || (() => {
     const gid = 'guest_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('guest_id', gid);
@@ -289,36 +290,53 @@ export const ChatBubble = observer(() => {
           <div ref={chatEndRef} className="h-4" />
         </div>
 
-        <div className="p-4 border-t border-border bg-background/80 backdrop-blur-md shrink-0">
-          <div className="flex items-end gap-3">
-            <div className="relative flex-1">
-              <textarea
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                rows={1}
-                className="w-full bg-muted/50 border border-border rounded-xl pl-5 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[52px] max-h-32 overflow-y-auto block"
-                placeholder="Nhập tin nhắn..."
-                style={{ height: 'auto' }}
-              />
+        {isAuthenticated ? (
+          <div className="p-4 border-t border-border bg-background/80 backdrop-blur-md shrink-0">
+            <div className="flex items-end gap-3">
+              <div className="relative flex-1">
+                <textarea
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  rows={1}
+                  className="w-full bg-muted/50 border border-border rounded-xl pl-5 pr-12 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none min-h-[52px] max-h-32 overflow-y-auto block"
+                  placeholder="Nhập tin nhắn..."
+                  style={{ height: 'auto' }}
+                />
+              </div>
+              <button
+                onClick={handleSendMessage}
+                disabled={!chatInput.trim()}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md rounded-xl h-[52px] w-[52px] flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 disabled:grayscale shrink-0"
+              >
+                <Send size={20} />
+              </button>
             </div>
-            <button
-              onClick={handleSendMessage}
-              disabled={!chatInput.trim()}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md rounded-xl h-[52px] w-[52px] flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 disabled:grayscale shrink-0"
-            >
-              <Send size={20} />
-            </button>
+            <div className="mt-2 text-[10px] text-muted-foreground text-center">
+              Nhấn Enter để gửi, Shift + Enter để xuống dòng
+            </div>
           </div>
-          <div className="mt-2 text-[10px] text-muted-foreground text-center">
-            Nhấn Enter để gửi, Shift + Enter để xuống dòng
+        ) : (
+          <div className="p-6 border-t border-border bg-muted/30 text-center space-y-4 shrink-0">
+            <div className="flex flex-col items-center gap-2">
+              <User size={32} className="text-muted-foreground/50" />
+              <p className="text-sm font-medium text-foreground">Bạn cần đăng nhập để được hỗ trợ</p>
+              <p className="text-xs text-muted-foreground max-w-[240px] mx-auto">
+                Vui lòng đăng nhập tài khoản của bạn để có thể gửi thắc mắc cho đội ngũ hỗ trợ.
+              </p>
+            </div>
+            <Link href={ROUTES.AUTH.LOGIN}>
+              <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-lg shadow-primary/20">
+                Đăng nhập ngay
+              </Button>
+            </Link>
           </div>
-        </div>
+        )}
       </SideSheetContent>
     </SideSheet>
   );
