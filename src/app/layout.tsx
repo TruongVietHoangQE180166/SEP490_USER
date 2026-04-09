@@ -9,6 +9,7 @@ import { ChatBubble } from '@/components/ChatBubble';
 import { HeroHeader } from '@/components/header1';
 import { MainWrapper } from '@/components/MainWrapper';
 import { ToastContainer } from '@/components/ui/toast';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,8 +27,9 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <head>
         {/* Theme detection script to prevent FLASH of unstyled content */}
-        <script
+        <Script
           id="theme-detection"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {
@@ -56,7 +58,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <HeroHeader />
         <MainWrapper>
           <RouteGuard>{children}</RouteGuard>

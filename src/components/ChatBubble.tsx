@@ -68,11 +68,7 @@ export const ChatBubble = observer(() => {
   const pathname = usePathname();
   const user = authState$.user.get();
   const isAuthenticated = authState$.isAuthenticated.get();
-  const userId = user?.userId || (typeof window !== 'undefined' ? (localStorage.getItem('guest_id') || (() => {
-    const gid = 'guest_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('guest_id', gid);
-    return gid;
-  })()) : 'guest');
+  const [userId, setUserId] = useState<string>('');
 
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -85,6 +81,16 @@ export const ChatBubble = observer(() => {
   const isAdminPage = pathname?.startsWith('/admin');
   const isTeacherPage = pathname?.startsWith('/teacher');
   const isTradingPage = pathname?.startsWith('/trading');
+
+  // Initialize userId on client side only to prevent hydration mismatch
+  useEffect(() => {
+    const id = user?.userId || localStorage.getItem('guest_id') || (() => {
+      const gid = 'guest_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('guest_id', gid);
+      return gid;
+    })();
+    setUserId(id);
+  }, [user?.userId]);
 
   // Load chat history & subscribe to realtime
   useEffect(() => {
