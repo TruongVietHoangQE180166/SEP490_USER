@@ -1,9 +1,11 @@
 import { observable } from '@legendapp/state';
-import { TeacherStudentState, TeacherStudent } from './types';
+import { TeacherStudentState, TeacherStudent, StudentCourseDetail } from './types';
 
 const INITIAL_STATE: TeacherStudentState = {
   students: [],
   isLoading: false,
+  isDetailLoading: false,
+  selectedStudentCourses: [],
   error: null,
   totalElements: 0,
   currentPage: 1,
@@ -21,6 +23,14 @@ export const teacherStudentActions = {
 
   setLoading: (isLoading: boolean) => {
     teacherStudentState$.isLoading.set(isLoading);
+  },
+
+  setDetailLoading: (isLoading: boolean) => {
+    teacherStudentState$.isDetailLoading.set(isLoading);
+  },
+
+  setSelectedStudentCourses: (courses: StudentCourseDetail[]) => {
+    teacherStudentState$.selectedStudentCourses.set(courses);
   },
 
   setError: (error: string | null) => {
@@ -41,6 +51,10 @@ export const teacherStudentActions = {
     if (filters.status !== undefined) teacherStudentState$.filterStatus.set(filters.status);
     if (filters.query !== undefined) teacherStudentState$.searchQuery.set(filters.query);
     teacherStudentState$.currentPage.set(1);
+  },
+
+  resetSelectedCourses: () => {
+    teacherStudentState$.selectedStudentCourses.set([]);
   },
 
   reset: () => {
