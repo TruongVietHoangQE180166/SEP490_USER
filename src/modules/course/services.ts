@@ -5,7 +5,7 @@ import {
   ChartDemoApiResponse, ChartDemoData,
   AnswerDemoSession, AnswerDemoSessionApiResponse,
   AnswerDemoByChartApiResponse, AnswerDemoByChartItem,
-  ResetAnswerDemoApiResponse,
+  ResetAnswerDemoApiResponse, AnswerDemoRequest, AnswerDemoApiResponse
 } from './types';
 
 export const courseService = {
@@ -159,6 +159,25 @@ export const courseService = {
     const response = await ApiConfigService.delete<ResetAnswerDemoApiResponse>(
       `/api/answer-demo/reset/${chartId}`,
     );
+    return response;
+  },
+
+  async createAnswerDemo(payload: AnswerDemoRequest): Promise<AnswerDemoApiResponse> {
+    const response = await ApiConfigService.post<AnswerDemoApiResponse>(
+      '/api/answer-demo',
+      payload
+    );
+    if (!response) {
+      throw new Error('Failed to place demo order (No response)');
+    }
+    return response;
+  },
+
+  async getAnswerDemoById(id: string): Promise<AnswerDemoApiResponse> {
+    const response = await ApiConfigService.get<AnswerDemoApiResponse>(`/api/answer-demo/${id}`);
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Failed to fetch answer demo detail');
+    }
     return response;
   },
 };

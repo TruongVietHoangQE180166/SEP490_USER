@@ -73,6 +73,7 @@ export const ChatBubble = observer(() => {
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Visibility logic matching SearchDock
@@ -84,6 +85,7 @@ export const ChatBubble = observer(() => {
 
   // Initialize userId on client side only to prevent hydration mismatch
   useEffect(() => {
+    setIsMounted(true);
     const id = user?.userId || localStorage.getItem('guest_id') || (() => {
       const gid = 'guest_' + Math.random().toString(36).substr(2, 9);
       localStorage.setItem('guest_id', gid);
@@ -170,6 +172,8 @@ export const ChatBubble = observer(() => {
   };
 
   const userRole = user?.role;
+
+  if (!isMounted) return null;
 
   if (isAuthPage || isLearnPage || isAdminPage || isTeacherPage || isTradingPage || userRole === 'ADMIN') return null;
 

@@ -27,9 +27,8 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <head>
         {/* Theme detection script to prevent FLASH of unstyled content */}
-        <Script
+        <script
           id="theme-detection"
-          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {

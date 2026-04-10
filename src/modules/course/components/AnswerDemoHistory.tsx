@@ -21,13 +21,30 @@ import {
   Minus,
   Target,
   ReceiptText,
+  Eye,
 } from 'lucide-react';
 import { useAnswerDemoByChart } from '../hooks/useAnswerDemoByChart';
 import { AnswerDemoByChartItem } from '../types';
 import { cn } from '@/lib/utils';
+import { useAnswerDemoDetail } from '../hooks/useAnswerDemoDetail';
+import { createPortal } from 'react-dom';
+import dynamic from 'next/dynamic';
+
+const DemoChart = dynamic(
+  () => import('@/modules/teacher-course/components/detail/DemoChart').then(m => m.DemoChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center p-10 text-muted-foreground/50">
+        <Loader2 className="animate-spin mr-2" size={20} /> Đang tải đồ thị...
+      </div>
+    ),
+  }
+);
 
 interface AnswerDemoHistoryProps {
   chartId: string;
+  onLatestWalletMoney?: (money: number) => void;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -134,10 +151,12 @@ function TradeRow({
   order,
   index,
   isEven,
+  onViewDetail,
 }: {
   order: AnswerDemoByChartItem;
   index: number;
   isEven: boolean;
+  onViewDetail: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const isBuy = order.orderType === 'BUY';
@@ -233,9 +252,18 @@ function TradeRow({
 
         {/* Expand toggle */}
         <td className="px-3 py-3 text-right">
-          <span className="text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors">
-            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </span>
+          <div className="flex items-center justify-end gap-3">
+            <button
+              onClick={(e) => { e.stopPropagation(); onViewDetail(order.id); }}
+              className="h-7 w-7 flex items-center justify-center bg-primary/10 text-primary border border-primary/20 rounded-md hover:bg-primary hover:text-white transition-all shadow-sm"
+              title="Xem biểu đồ và chi tiết lệnh"
+            >
+              <Eye size={13} />
+            </button>
+            <span className="text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors">
+              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </span>
+          </div>
         </td>
       </motion.tr>
 
@@ -329,11 +357,146 @@ function TradeRow({
   );
 }
 
+// ── Detail Modal ──────────────────────────────────────────────────────────────
+
+function AnswerDemoDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false);
+  const { detail, isLoading, error, fetchDetail } = useAnswerDemoDetail();
+
+  React.useEffect(() => {
+    setMounted(true);
+    fetchDetail(orderId);
+  }, [orderId, fetchDetail]);
+
+  const content = (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[400] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 lg:p-10"
+    >
+      <motion.div
+        initial={{ scale: 0.95, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, y: 20 }}
+        className="w-full max-w-5xl h-[85vh] flex flex-col bg-background rounded-3xl border border-primary/20 shadow-2xl overflow-hidden relative"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Minus size={18} />
+        </button>
+
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          {isLoading && (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3">
+              <Loader2 className="animate-spin text-primary" size={32} />
+              <span className="text-sm text-muted-foreground font-medium">Đang tải chi tiết lệnh...</span>
+            </div>
+          )}
+          {!isLoading && error && (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3">
+              <Activity className="text-rose-500" size={32} />
+              <span className="text-sm text-rose-500 font-medium">{error}</span>
+            </div>
+          )}
+          {!isLoading && detail && (
+            <div className="flex-1 flex flex-col h-full overflow-y-auto">
+              {/* Header Stats */}
+              <div className="p-5 md:p-6 border-b border-border/20 bg-muted/5 flex flex-col gap-4">
+                 <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-black text-foreground mb-1 flex items-center gap-2">
+                         Chi tiết Lệnh <TypeBadge type={detail.orderType} />
+                      </h3>
+                      <p className="text-xs text-muted-foreground font-medium">
+                         Id: <span className="font-mono">{detail.id}</span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-background border border-border/40 px-3.5 py-2 rounded-xl shadow-sm">
+                      <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                        <Wallet size={14} className="text-blue-500" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[9px] uppercase tracking-widest font-black text-muted-foreground/60 leading-tight mb-0.5">Số dư Ví hiện hành</span>
+                        <div className="flex items-baseline gap-1.5">
+                           <span className="text-base font-mono font-black leading-none">${detail.walletMoney.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                           <span className={cn("text-[10px] font-mono font-bold leading-none", detail.totalPnl >= 0 ? "text-emerald-500" : "text-rose-500")}>
+                             (Σ PnL {detail.totalPnl >= 0 ? '+' : ''}{detail.totalPnl.toLocaleString('en-US', { minimumFractionDigits: 2 })})
+                           </span>
+                        </div>
+                      </div>
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div className="bg-background border border-border/40 rounded-xl px-3.5 py-2.5">
+                       <span className="text-[9px] uppercase tracking-[0.1em] font-black text-muted-foreground/60 flex items-center gap-1.5 mb-1.5"><Clock size={11} className="text-primary/70" /> Ngày Đặt Lệnh</span>
+                       <p className="text-xs font-bold text-foreground/90">{new Date(detail.createdDate).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
+                    </div>
+                    <div className="bg-background border border-border/40 rounded-xl px-3.5 py-2.5">
+                       <span className="text-[9px] uppercase tracking-[0.1em] font-black text-muted-foreground/60 flex items-center gap-1.5 mb-1.5"><Target size={11} className="text-primary/70" /> Hạn Đóng (Thực Tế)</span>
+                       <p className="text-xs font-bold text-foreground/90">{new Date(detail.ts).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</p>
+                    </div>
+                    <div className="bg-background border border-border/40 rounded-xl px-3.5 py-2.5">
+                       <span className="text-[9px] uppercase tracking-[0.1em] font-black text-muted-foreground/60 flex items-center gap-1.5 mb-1.5"><Hash size={11} className="text-primary/70" /> Khối Lượng (Vốn)</span>
+                       <p className="text-xs font-bold font-mono text-foreground/90">{detail.quantity} <span className="text-muted-foreground font-medium">(${(detail.totalMoney || 0).toLocaleString()})</span></p>
+                    </div>
+                    <div className="bg-background border border-border/40 rounded-xl px-3.5 py-2.5">
+                       <span className="text-[9px] uppercase tracking-[0.1em] font-black text-muted-foreground/60 flex items-center gap-1.5 mb-1.5"><Activity size={11} className="text-primary/70" /> Giá Vào → Ra</span>
+                       <p className="text-xs font-bold font-mono text-muted-foreground">
+                         <span className="text-foreground/90">{detail.entryPrice.toFixed(2)}</span> → <span className={cn(detail.pnl >= 0 ? 'text-emerald-500' : 'text-rose-500')}>{detail.closePrice.toFixed(2)}</span>
+                       </p>
+                    </div>
+                    <div className="bg-background border border-border/50 rounded-xl px-3.5 py-2.5 shadow-sm relative overflow-hidden flex flex-col justify-center">
+                       <div className={cn("absolute inset-0 opacity-[0.08]", detail.pnl >= 0 ? "bg-emerald-500" : "bg-rose-500")} />
+                       <span className="text-[9px] uppercase tracking-[0.1em] font-black text-muted-foreground/60 flex items-center gap-1.5 mb-1.5 relative z-10"><TrendingUp size={11} className={detail.pnl >= 0 ? "text-emerald-500" : "text-rose-500"} /> Lợi nhuận PnL</span>
+                       <p className={cn("text-[15px] leading-none font-mono font-black relative z-10", detail.pnl >= 0 ? "text-emerald-500" : "text-rose-500")}>
+                          {detail.pnl >= 0 ? '+' : ''}${detail.pnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                       </p>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Chart Area */}
+              <div className="flex-1 p-6 flex flex-col min-h-0 bg-background">
+                 <div className="w-full h-full rounded-2xl border-2 border-emerald-500/20 bg-emerald-500/5 shadow-inner relative overflow-hidden">
+                    <div className="absolute top-3 right-3 z-30 px-3 py-1.5 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider rounded-lg shadow-sm">
+                       Diễn biến thị trường của lệnh
+                    </div>
+                    {detail.candles && detail.candles.length > 0 ? (
+                       <DemoChart candles={detail.candles} themeVariant="result" />
+                    ) : (
+                       <div className="h-full w-full flex items-center justify-center">
+                          <p className="text-muted-foreground italic text-sm">Không có dữ liệu nến</p>
+                       </div>
+                    )}
+                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+
+  if (!mounted) return null;
+  return createPortal(content, document.body);
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export const AnswerDemoHistory: React.FC<AnswerDemoHistoryProps> = ({ chartId }) => {
+export const AnswerDemoHistory: React.FC<AnswerDemoHistoryProps> = ({ chartId, onLatestWalletMoney }) => {
   const { items, isLoading, error, refetch } = useAnswerDemoByChart(chartId);
   const [collapsed, setCollapsed] = useState(false);
+  const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (items && items.length > 0) {
+      onLatestWalletMoney?.(items[0].walletMoney);
+    }
+  }, [items, onLatestWalletMoney]);
 
   const stats = useMemo(() => {
     if (!items.length) return { walletMoney: 0, totalPnl: 0, wins: 0, losses: 0, winRate: 0, bestPnl: 0, worstPnl: 0 };
@@ -531,6 +694,7 @@ export const AnswerDemoHistory: React.FC<AnswerDemoHistoryProps> = ({ chartId })
                           order={item}
                           index={i}
                           isEven={i % 2 === 0}
+                          onViewDetail={setDetailOrderId}
                         />
                       ))}
                     </tbody>
@@ -550,6 +714,12 @@ export const AnswerDemoHistory: React.FC<AnswerDemoHistoryProps> = ({ chartId })
               </div>
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {detailOrderId && (
+           <AnswerDemoDetailModal orderId={detailOrderId} onClose={() => setDetailOrderId(null)} />
         )}
       </AnimatePresence>
     </div>
