@@ -15,6 +15,8 @@ export const useTeacherStudent = () => {
   const pageSize = useSelector(() => teacherStudentState$.pageSize.get());
   const searchQuery = useSelector(() => teacherStudentState$.searchQuery.get());
   const filterStatus = useSelector(() => teacherStudentState$.filterStatus.get());
+  const selectedStudentCourses = useSelector(() => teacherStudentState$.selectedStudentCourses.get());
+  const isDetailLoading = useSelector(() => teacherStudentState$.isDetailLoading.get());
 
   const fetchStudents = useCallback(async () => {
     teacherStudentActions.setLoading(true);
@@ -36,6 +38,20 @@ export const useTeacherStudent = () => {
     }
   }, []);
 
+  const fetchStudentCourses = useCallback(async (userId: string) => {
+    teacherStudentActions.setDetailLoading(true);
+    teacherStudentActions.resetSelectedCourses();
+    try {
+      const response = await teacherStudentService.getStudentCourses(userId);
+      teacherStudentActions.setSelectedStudentCourses(response.data || []);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Lỗi khi tải chi tiết khóa học của học viên';
+      toast.error(errorMessage);
+    } finally {
+      teacherStudentActions.setDetailLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchStudents();
   }, [fetchStudents]);
@@ -43,6 +59,8 @@ export const useTeacherStudent = () => {
   return {
     students,
     isLoading,
+    isDetailLoading,
+    selectedStudentCourses,
     error,
     totalElements,
     currentPage,
@@ -51,6 +69,7 @@ export const useTeacherStudent = () => {
     filterStatus,
     setFilters: teacherStudentActions.setFilters,
     setCurrentPage: teacherStudentActions.setCurrentPage,
+    fetchStudentCourses,
     reload: fetchStudents,
   };
 };

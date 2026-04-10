@@ -1,5 +1,5 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { TeacherStudentApiResponse } from './types';
+import { TeacherStudentApiResponse, TeacherStudentCourseApiResponse } from './types';
 
 export const teacherStudentService = {
   /**
@@ -16,6 +16,20 @@ export const teacherStudentService = {
     
     if (!response || !response.success || !response.data) {
       throw new Error(response?.message?.messageDetail || 'Không thể tải danh sách học viên');
+    }
+    
+    return response;
+  },
+
+  /**
+   * Fetch courses enrolled by a specific student
+   */
+  async getStudentCourses(userId: string): Promise<TeacherStudentCourseApiResponse> {
+    const url = `/api/dashboard/teacher/student/${userId}`;
+    const response = await ApiConfigService.get<TeacherStudentCourseApiResponse>(url);
+    
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tải chi tiết học tập của học viên');
     }
     
     return response;
