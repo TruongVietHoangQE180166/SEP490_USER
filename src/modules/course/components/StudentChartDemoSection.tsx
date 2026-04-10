@@ -11,7 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { useStudentChartDemo } from '../hooks/useStudentChartDemo';
 import { useResetAnswerDemo } from '../hooks/useResetAnswerDemo';
-import { ChartDemoData } from '../types';
+import { useCreateAnswerDemo } from '../hooks/useCreateAnswerDemo';
+import { ChartDemoData, AnswerDemoCandle } from '../types';
 import { AnswerDemoHistory } from './AnswerDemoHistory';
 import { cn } from '@/lib/utils';
 
@@ -110,6 +111,90 @@ function ResetConfirmDialog({
   return createPortal(content, document.body);
 }
 
+// ── Order confirm dialog ───────────────────────────────────────────────────────
+
+function OrderConfirmDialog({
+  order,
+  onCancel,
+  onConfirm,
+  isPlacingOrder,
+}: {
+  order: { type: 'BUY' | 'SELL'; money: number; quantity: number; date: string };
+  onCancel: () => void;
+  onConfirm: () => void;
+  isPlacingOrder: boolean;
+}) {
+  const [mounted, setMounted] = useState(false);
+  React.useEffect(() => { setMounted(true); }, []);
+  
+  const isBuy = order.type === 'BUY';
+  const orderType = order.type;
+  const dateStr = order.date;
+  const isPlacing = isPlacingOrder;
+
+  const content = (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.95, y: 10 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.95, y: 10 }}
+        transition={{ duration: 0.2, delay: 0.05 }}
+        className="w-full max-w-md rounded-3xl border border-primary/30 bg-background shadow-2xl shadow-primary/10 overflow-hidden"
+      >
+        <div className={cn("h-1.5 w-full bg-gradient-to-r", isBuy ? "from-emerald-500 to-green-400" : "from-rose-500 to-red-400")} />
+        <div className="p-6">
+          <div className="flex items-start gap-4 mb-6">
+            <div className={cn("h-12 w-12 rounded-2xl border flex items-center justify-center shrink-0 mt-0.5", isBuy ? "bg-emerald-500/15 border-emerald-500/25" : "bg-rose-500/15 border-rose-500/25")}>
+              <Activity size={24} className={isBuy ? "text-emerald-400" : "text-rose-400"} />
+            </div>
+            <div>
+              <p className="text-lg font-black text-foreground">Xác nhận Đặt lệnh</p>
+              <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                <p>Loại lệnh: <strong className={isBuy ? "text-emerald-500" : "text-rose-500"}>{orderType}</strong></p>
+                {isBuy ? (
+                  <p>Số tiền: <strong>${Number(order.money).toLocaleString()}</strong></p>
+                ) : (
+                  <p>Khối lượng bán: <strong>{Number(order.quantity).toLocaleString()}</strong></p>
+                )}
+                <p>Đóng lệnh vào ngày: <strong>{new Date(dateStr + "T00:00:00Z").toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}</strong> (Theo giờ VN)</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={onCancel}
+              disabled={isPlacing}
+              className="flex-1 h-11 rounded-xl border border-border/40 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-all disabled:opacity-40"
+            >
+              Huỷ
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={isPlacing}
+              className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-black transition-all shadow-lg shadow-primary/30 disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isPlacing ? (
+                <><Loader2 size={16} className="animate-spin" /> Xử lý...</>
+              ) : (
+                <><CheckCircle2 size={16} /> Xác nhận</>
+              )}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+
+  if (!mounted) return null;
+  return createPortal(content, document.body);
+}
+
 import { toast } from '@/components/ui/toast';
 
 // ── Reset button (uses useResetAnswerDemo hook) ────────────────────────────────
@@ -182,9 +267,99 @@ function ChartDemoModal({
   // Bump key to remount AnswerDemoHistory (triggers fresh fetch) after reset
   const [historyKey, setHistoryKey] = useState(0);
 
+  // Local state for chart to update after a trade
+  const [localCandles, setLocalCandles] = useState<any[]>(demo.candles || []);
+  const [walletBalance, setWalletBalance] = useState<number>(demo.provideMoney || 0);
+
   const handleResetSuccess = useCallback(() => {
     setHistoryKey(k => k + 1);
-  }, []);
+    setLocalCandles(demo.candles || []);
+    setWalletBalance(demo.provideMoney || 0);
+  }, [demo]);
+
+  const { isPlacingOrder, placeOrder } = useCreateAnswerDemo();
+  const [orderType, setOrderType] = useState<'BUY' | 'SELL'>('BUY');
+  const [tradeMoney, setTradeMoney] = useState<string>('');
+  const [tradeQuantity, setTradeQuantity] = useState<string>('');
+  
+  // Dynamic calculation for SELL maximum quantity
+  const currentPrice = localCandles && localCandles.length > 0 ? localCandles[localCandles.length - 1].close : 0;
+  const availableQuantity = currentPrice > 0 ? walletBalance / currentPrice : 0;
+  
+  // datetime-local input string
+  const [limitDateStr, setLimitDateStr] = useState<string>('');
+
+  const [showOrderConfirm, setShowOrderConfirm] = useState(false);
+
+  const handleValidation = () => {
+    if (orderType === 'BUY') {
+      if (!tradeMoney || isNaN(Number(tradeMoney)) || Number(tradeMoney) <= 0) {
+        toast.error('Vui lòng nhập số tiền hợp lệ');
+        return;
+      }
+      if (Number(tradeMoney) > walletBalance) {
+        toast.error('Số dư ví không đủ để đặt lệnh này');
+        return;
+      }
+    } else {
+      if (!tradeQuantity || isNaN(Number(tradeQuantity)) || Number(tradeQuantity) <= 0) {
+        toast.error('Vui lòng nhập khối lượng (Quantity) hợp lệ');
+        return;
+      }
+      if (Number(tradeQuantity) > availableQuantity) {
+        toast.error('Khối lượng bán vượt quá số lượng tối đa (' + availableQuantity.toFixed(4) + ')');
+        return;
+      }
+    }
+
+    if (!limitDateStr) {
+      toast.error('Vui lòng chọn ngày đóng lệnh');
+      return;
+    }
+    // Parse selected date as 00:00:00 UTC explicitly
+    const orderTs = new Date(limitDateStr + "T00:00:00Z").getTime();
+    
+    if (orderTs <= demo.closeTs) {
+      toast.error('Ngày đóng lệnh phải nằm sau thời gian hiện tại của biểu đồ.');
+      return;
+    }
+    if (orderTs > demo.limitTs) {
+      toast.error('Ngày đóng lệnh không được vượt quá giới hạn!');
+      return;
+    }
+    
+    setShowOrderConfirm(true);
+  };
+
+  const executeOrder = async () => {
+    const orderTs = new Date(limitDateStr + "T00:00:00Z").getTime();
+    const payload = {
+      orderType,
+      quantity: orderType === 'SELL' ? Number(tradeQuantity) : 0,
+      totalMoney: orderType === 'BUY' ? Number(tradeMoney) : 0,
+      ts: orderTs,
+      chartId: demo.id,
+    };
+
+    const res = await placeOrder(payload);
+    setShowOrderConfirm(false);
+
+    if (res?.success && res.data) {
+      toast.success('Đặt lệnh thành công!');
+      // Update the chart with new candles
+      if (res.data.candles) {
+        setLocalCandles(res.data.candles);
+      }
+      setWalletBalance(res.data.walletMoney);
+      setHistoryKey(k => k + 1); // Refresh history
+      setTradeMoney('');
+      setLimitDateStr('');
+    } else {
+      toast.error(res?.message?.messageDetail || 'Đặt lệnh thất bại');
+    }
+  };
+
+  const isCompleted = demo.objectDone && walletBalance >= demo.objectDone;
 
   return (
     <motion.div
@@ -198,13 +373,31 @@ function ChartDemoModal({
         <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
           <BarChart3 size={18} className="text-primary" />
         </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-black text-foreground truncate">
-            Chart Demo – {demo.videoTitle}
-          </h2>
-          <p className="text-[10px] text-muted-foreground font-medium">
-            {demo.candles?.length || 0} nến · Thực hành phân tích biểu đồ
-          </p>
+        <div className="flex-1 min-w-0 flex items-center gap-4">
+          <div>
+            <h2 className="text-sm font-black text-foreground truncate">
+              Chart Demo – {demo.videoTitle}
+            </h2>
+            <p className="text-[10px] text-muted-foreground font-medium">
+              {demo.candles?.length || 0} nến · Thực hành phân tích biểu đồ
+            </p>
+          </div>
+          
+          <AnimatePresence>
+             {isCompleted && (
+               <motion.div 
+                 initial={{ scale: 0.8, opacity: 0 }}
+                 animate={{ scale: 1, opacity: 1 }}
+                 className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-500 shadow-sm"
+               >
+                 <span className="relative flex h-2 w-2">
+                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                 </span>
+                 Hoàn Thành Chỉ Tiêu
+               </motion.div>
+             )}
+          </AnimatePresence>
         </div>
 
         {/* Reset button — prominent in header */}
@@ -242,19 +435,21 @@ function ChartDemoModal({
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="px-6 pb-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="px-6 pb-4 grid grid-cols-2 lg:grid-cols-2 gap-4">
                   <div className="bg-background/80 rounded-xl p-3 border border-border/40 space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
                       <Calendar size={10} /> Bắt đầu Chart
                     </span>
-                    <p className="text-xs font-bold">{new Date(demo.ts).toLocaleDateString('vi-VN')}</p>
+                    <p className="text-xs font-bold">
+                      {new Date(demo.ts).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
+                    </p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-emerald-500/20 space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-1">
                       <Clock size={10} /> Bắt đầu GD
                     </span>
                     <p className="text-xs font-bold text-emerald-600">
-                      {new Date(demo.startTradeTs).toLocaleDateString('vi-VN')}
+                      {new Date(demo.startTradeTs).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                     </p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-rose-500/20 space-y-1">
@@ -262,7 +457,7 @@ function ChartDemoModal({
                       <Activity size={10} /> Nến hiện tại
                     </span>
                     <p className="text-xs font-bold text-rose-600">
-                      {new Date(demo.closeTs).toLocaleDateString('vi-VN')}
+                      {new Date(demo.closeTs).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' })}
                     </p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-amber-500/20 space-y-1">
@@ -270,16 +465,21 @@ function ChartDemoModal({
                       <Clock size={10} /> Giới hạn
                     </span>
                     <p className="text-xs font-bold text-amber-600">
-                      {new Date(demo.limitTs).toLocaleDateString('vi-VN')}
+                      {new Date(demo.limitTs).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' })}
                     </p>
                   </div>
-                  <div className="bg-background/80 rounded-xl p-3 border border-blue-500/20 space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-1">
-                      <DollarSign size={10} /> Số dư cấp
+                  <div className={cn("bg-background/80 rounded-xl p-3 border space-y-1 transition-colors duration-500", isCompleted ? "border-emerald-500/40 bg-emerald-500/5" : "border-blue-500/20")}>
+                    <span className={cn("text-[9px] font-black uppercase tracking-widest flex items-center gap-1", isCompleted ? "text-emerald-500" : "text-blue-500")}>
+                      <DollarSign size={10} /> Số dư ví
                     </span>
-                    <p className="text-xs font-black text-blue-600">
-                      ${demo.provideMoney?.toLocaleString()}
-                    </p>
+                    <div className="flex items-baseline gap-1.5">
+                      <p className={cn("text-base font-black leading-none", isCompleted ? "text-emerald-600" : "text-blue-600")}>
+                        ${walletBalance?.toLocaleString()}
+                      </p>
+                      <span className={cn("text-[10px] font-bold opacity-80", isCompleted ? "text-emerald-600" : "text-blue-500")}>
+                        (≈ {availableQuantity.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 4 })} Qty)
+                      </span>
+                    </div>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-purple-500/20 space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-purple-500 flex items-center gap-1">
@@ -302,9 +502,130 @@ function ChartDemoModal({
           </AnimatePresence>
         </div>
 
-        {/* Chart */}
-        <div className="p-4" style={{ minHeight: '440px', height: '50vh' }}>
-          <div className="w-full h-full rounded-xl overflow-hidden border border-border/40 shadow-inner bg-background">
+        {/* Order Panel */}
+        {isCompleted ? (
+          <div className="px-4 py-6 mx-4 mt-2 mb-4 bg-emerald-500/5 border border-emerald-500/30 rounded-xl shadow-inner flex flex-col items-center justify-center gap-3 text-center">
+             <div className="h-14 w-14 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
+                <CheckCircle2 size={28} className="text-emerald-500" />
+             </div>
+             <div>
+               <h3 className="text-[13px] font-black text-emerald-600 uppercase tracking-widest mb-1.5 mt-1">Thử thách Hoàn Thành Xuất Sắc!</h3>
+               <p className="text-xs text-muted-foreground font-medium max-w-[450px]">
+                 Xin chúc mừng! Tài sản của bạn đã đạt hoặc vượt qua chỉ tiêu mục tiêu mà phiên thực hành này yêu cầu. Hệ thống đã khóa tính năng đặt cược.
+               </p>
+             </div>
+             <p className="text-[10px] uppercase font-black tracking-widest text-emerald-500/70 mt-1 bg-emerald-500/10 px-3 py-1 rounded-full">
+               * Hãy nhấn [RESET] phía trên để chơi lại
+             </p>
+          </div>
+        ) : (
+          <div className="px-4 py-3 mx-4 mt-2 mb-4 bg-muted/20 border border-border/40 rounded-xl shadow-inner flex flex-wrap lg:flex-nowrap items-end gap-4">
+            <div className="flex-1 min-w-[200px]">
+               <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 flex justify-between">
+                  Loại lệnh
+               </label>
+               <div className="flex bg-background border border-border/40 rounded-lg p-1 w-full">
+                 <button 
+                   onClick={() => setOrderType('BUY')}
+                   className={cn('flex-1 py-2 rounded-md text-xs font-bold transition-colors', orderType === 'BUY' ? 'bg-emerald-500 text-white shadow-sm' : 'text-emerald-500/60 hover:bg-emerald-500/10')}
+                 >
+                   BUY (Long)
+                 </button>
+                 <button 
+                   onClick={() => setOrderType('SELL')}
+                   className={cn('flex-1 py-2 rounded-md text-xs font-bold transition-colors', orderType === 'SELL' ? 'bg-rose-500 text-white shadow-sm' : 'text-rose-500/60 hover:bg-rose-500/10')}
+                 >
+                   SELL (Short)
+                 </button>
+               </div>
+               <p className="text-[9px] text-muted-foreground/70 mt-1 italic">* BUY (Giá tăng), SELL (Giá giảm)</p>
+            </div>
+            
+            <div className="flex-1 min-w-[150px]">
+               <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 flex justify-between">
+                  {orderType === 'BUY' ? 'Số tiền đầu tư ($)' : 'Khối lượng bán'}
+               </label>
+               <div className="relative">
+                 {orderType === 'BUY' && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">$</span>}
+                 {orderType === 'BUY' ? (
+                   <input 
+                     type="number" 
+                     placeholder="Nhập số tiền..." 
+                     value={tradeMoney}
+                     onChange={e => setTradeMoney(e.target.value)}
+                     className="w-full bg-background border border-border/40 rounded-lg pl-8 pr-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none appearance-none"
+                     min="0"
+                   />
+                 ) : (
+                   <input 
+                     type="number" 
+                     placeholder="Nhập khối lượng..." 
+                     value={tradeQuantity}
+                     onChange={e => setTradeQuantity(e.target.value)}
+                     className="w-full bg-background border border-border/40 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none appearance-none"
+                     min="0"
+                   />
+                 )}
+               </div>
+               {orderType === 'BUY' ? (
+                 <p className="text-[9px] text-muted-foreground/70 mt-1 italic">* Ví của bạn: <strong>${walletBalance.toLocaleString()}</strong></p>
+               ) : (
+                 <div className="flex justify-between items-center mt-1">
+                   <p className="text-[9px] text-muted-foreground/70 italic">* Max: <strong>{availableQuantity.toFixed(4)}</strong> (Price: ${currentPrice})</p>
+                   <button onClick={() => setTradeQuantity(availableQuantity.toString())} className="text-[9px] font-bold text-primary hover:underline uppercase">Max</button>
+                 </div>
+               )}
+            </div>
+
+            <div className="flex-1 min-w-[200px]">
+               <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 flex justify-between">
+                  Ngày đóng lệnh 
+               </label>
+               <input 
+                 type="date" 
+                 value={limitDateStr}
+                 onClick={(e) => { (e.target as any).showPicker?.(); }}
+                 onChange={e => setLimitDateStr(e.target.value)}
+                 min={new Date(demo.closeTs + 86400000).toISOString().split('T')[0]} 
+                 max={new Date(demo.limitTs).toISOString().split('T')[0]}
+                 className="w-full bg-background border border-border/40 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+               />
+               <p className="text-[9px] text-muted-foreground/70 mt-1 italic">* Phải nằm giữa nến hiện tại và giới hạn</p>
+            </div>
+
+            <Button 
+              onClick={handleValidation}
+              disabled={isPlacingOrder || demo.done}
+              className="w-full lg:w-auto mt-auto mb-5 h-10 px-8 rounded-lg font-black text-xs shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
+            >
+              {isPlacingOrder ? <Loader2 size={16} className="animate-spin" /> : 'ĐẶT LỆNH'}
+            </Button>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {showOrderConfirm && (
+            <OrderConfirmDialog
+              order={{
+                type: orderType,
+                money: orderType === 'BUY' ? Number(tradeMoney) : 0,
+                quantity: orderType === 'SELL' ? Number(tradeQuantity) : 0,
+                date: limitDateStr,
+              }}
+              onCancel={() => setShowOrderConfirm(false)}
+              onConfirm={executeOrder}
+              isPlacingOrder={isPlacingOrder}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Charts */}
+        <div className="px-4 pb-4 flex flex-col gap-4">
+          {/* Original Chart */}
+          <div style={{ minHeight: '440px', height: '40vh' }} className="w-full rounded-xl overflow-hidden border border-border/40 shadow-inner bg-background relative">
+            <div className="absolute top-3 right-3 z-30 px-2.5 py-1 bg-background/80 backdrop-blur border border-border/40 text-foreground text-[10px] font-black uppercase tracking-wider rounded-md shadow-sm">
+               Phân tích ban đầu
+            </div>
             {demo.candles && demo.candles.length > 0 ? (
               <DemoChart candles={demo.candles} />
             ) : (
@@ -314,10 +635,29 @@ function ChartDemoModal({
               </div>
             )}
           </div>
+
+          {/* Result Chart (Shown only if new candles are added) */}
+          {(localCandles && demo.candles && localCandles.length > demo.candles.length) && (
+            <div style={{ minHeight: '440px', height: '40vh' }} className="w-full rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-inner shadow-emerald-500/10 bg-emerald-500/5 relative">
+              <div className="absolute top-3 right-3 z-30 px-2.5 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider rounded-md shadow-sm">
+                 Kết quả thị trường sau khi lệnh đóng
+              </div>
+              <DemoChart candles={localCandles} themeVariant="result" />
+            </div>
+          )}
         </div>
 
         {/* History — key remounts on reset to trigger fresh API fetch */}
-        <AnswerDemoHistory key={historyKey} chartId={demo.id} />
+        <AnswerDemoHistory 
+           key={historyKey} 
+           chartId={demo.id} 
+           onLatestWalletMoney={(newWalletBalance) => {
+              // Ensure we only update if it is different, to avoid loop
+              if (newWalletBalance !== walletBalance) {
+                 setWalletBalance(newWalletBalance);
+              }
+           }} 
+        />
       </div>
     </motion.div>
   );

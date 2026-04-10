@@ -17,9 +17,22 @@ import { ChartDemoCandle } from '../../types';
 interface DemoChartProps {
   candles: ChartDemoCandle[];
   isLoading?: boolean;
+  themeVariant?: 'default' | 'result';
 }
 
-function getChartColors(isDark: boolean) {
+function getChartColors(isDark: boolean, themeVariant?: 'default' | 'result') {
+  if (themeVariant === 'result') {
+    return {
+      bg: isDark ? '#022c22' : '#f0fdf4', // Very dark emerald or very light emerald
+      grid: isDark ? 'rgba(52, 211, 153, 0.1)' : 'rgba(52, 211, 153, 0.2)',
+      text: isDark ? '#a7f3d0' : '#065f46',
+      border: isDark ? 'rgba(52, 211, 153, 0.3)' : 'rgba(52, 211, 153, 0.4)',
+      crosshair: isDark ? '#6ee7b7' : '#10b981',
+      watermark: isDark ? 'rgba(52, 211, 153, 0.05)' : 'rgba(16, 185, 129, 0.05)',
+      upCandle: '#34d399',
+      downCandle: '#fb7185',
+    };
+  }
   return {
     bg: isDark ? '#131415' : '#ffffff',
     grid: isDark ? 'rgba(42, 46, 57, 0.15)' : 'rgba(240, 243, 250, 0.3)',
@@ -27,10 +40,12 @@ function getChartColors(isDark: boolean) {
     border: isDark ? 'rgba(42, 46, 57, 0.4)' : 'rgba(224, 227, 235, 0.4)',
     crosshair: isDark ? '#758696' : '#95a5a6',
     watermark: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    upCandle: '#26a69a',
+    downCandle: '#ef5350',
   };
 }
 
-export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading }) => {
+export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeVariant = 'default' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -45,7 +60,7 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading }) => {
     if (!containerRef.current) return;
 
     const isDark = document.documentElement.classList.contains('dark');
-    const colors = getChartColors(isDark);
+    const colors = getChartColors(isDark, themeVariant);
 
     const chart = createChart(containerRef.current, {
       layout: {
@@ -97,12 +112,12 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading }) => {
     });
 
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#26a69a',
-      downColor: '#ef5350',
-      borderUpColor: '#26a69a',
-      borderDownColor: '#ef5350',
-      wickUpColor: '#26a69a',
-      wickDownColor: '#ef5350',
+      upColor: colors.upCandle,
+      downColor: colors.downCandle,
+      borderUpColor: colors.upCandle,
+      borderDownColor: colors.downCandle,
+      wickUpColor: colors.upCandle,
+      wickDownColor: colors.downCandle,
     });
 
     const volumeSeries = chart.addSeries(HistogramSeries, {
@@ -157,7 +172,7 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading }) => {
 
     const mo = new MutationObserver(() => {
       const dark = document.documentElement.classList.contains('dark');
-      const c = getChartColors(dark);
+      const c = getChartColors(dark, themeVariant);
       chart.applyOptions({
         layout: { 
           background: { type: ColorType.Solid, color: c.bg }, 

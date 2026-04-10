@@ -259,6 +259,21 @@ export interface AnswerDemoResponse {
   candles: AnswerDemoCandle[];
 }
 
+export interface AnswerDemoRequest {
+  orderType: 'BUY' | 'SELL';
+  quantity: number | null;
+  totalMoney: number;
+  ts: number;
+  chartId: string;
+}
+
+export interface AnswerDemoApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: Array<{ field: string; message: string }> | null;
+  data: AnswerDemoResponse;
+  success: boolean;
+}
+
 // --- Answer Demo by-chart (paginated) types ---
 
 export interface AnswerDemoByChartItem {
