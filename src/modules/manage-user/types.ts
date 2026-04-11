@@ -9,6 +9,7 @@ export interface User {
   phoneNumber?: string;
   deleted: boolean;
   password?: string;
+  level?: string;
 }
 
 export interface UserState {

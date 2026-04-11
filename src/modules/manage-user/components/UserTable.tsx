@@ -52,6 +52,7 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus, isL
             <tr className="border-b border-border/40 bg-muted/30">
               <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">Tên người dùng</th>
               <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">Vai trò</th>
+              <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">Cấp độ</th>
               <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-muted-foreground">Trạng thái</th>
               <th className="px-6 py-4 text-right text-xs font-black uppercase tracking-wider text-muted-foreground">Thao tác</th>
             </tr>
@@ -94,6 +95,13 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus, isL
                     </div>
                   </td>
                   <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      <Badge variant="outline" className="rounded-lg h-6 px-2 text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border-primary/20 whitespace-nowrap">
+                        {user.level === 'NHAP_MON' ? 'Nhập môn' : user.level || 'Chưa xác định'}
+                      </Badge>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
                     <Badge 
                       variant={user.status === 'ACTIVE' ? 'default' : 'destructive'} 
                       className={`rounded-lg font-black text-[10px] uppercase tracking-tighter ${
@@ -104,7 +112,6 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onToggleStatus, isL
                     >
                       {user.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'}
                     </Badge>
-
                   </td>
                   <td className="px-6 py-4 text-right">
                     <DropdownMenu>

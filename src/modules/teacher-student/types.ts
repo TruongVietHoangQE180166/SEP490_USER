@@ -5,7 +5,8 @@ export interface TeacherStudent {
   status: string;
   role: string;
   deleted: boolean;
-  password?: string; // Tồn tại trong API nhưng có thể không cần thiết frontend
+  password?: string;
+  level?: string;
 }
 
 export interface TeacherStudentApiResponse {

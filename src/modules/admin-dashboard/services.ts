@@ -1,5 +1,6 @@
 import { ApiConfigService } from '@/services/apiConfig';
-import { AdminSummaryApiResponse, AdminRevenueApiResponse } from './types';
+import { AdminSummaryApiResponse, AdminRevenueApiResponse, UserRegChartApiResponse } from './types';
+
 
 export const adminDashboardService = {
   async getSummary(): Promise<AdminSummaryApiResponse> {
@@ -19,4 +20,14 @@ export const adminDashboardService = {
     }
     return response;
   },
+
+  async getUserRegChart(days: 7 | 30): Promise<UserRegChartApiResponse> {
+    const url = `/api/user/revenue-chart?days=${days}`;
+    const response = await ApiConfigService.get<UserRegChartApiResponse>(url);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể tải dữ liệu người dùng đăng ký');
+    }
+    return response;
+  },
 };
+

@@ -17,9 +17,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
 import { AdminRevenueChart } from './AdminRevenueChart';
+import { AdminUserRegChart } from './AdminUserRegChart';
+
 
 export function AdminDashboard() {
-  const { summary, revenueChart, isLoading, error, reload } = useAdminDashboard();
+  const { summary, revenueChart, userRegChart, userRegDays, isLoading, error, reload, changeUserRegDays } = useAdminDashboard();
+
 
   if (error) {
     return (
@@ -203,15 +206,22 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        {/* Row 3: Full Width Chart */}
+        {/* Row 3: Full Width Charts (2 columns) */}
         <div className="space-y-6 pt-4">
           <div className="flex items-center gap-4">
             <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex-shrink-0">
-              Xu hướng doanh thu 30 ngày
+              Biểu đồ phân tích
             </h2>
             <div className="h-[1px] w-full bg-gradient-to-r from-primary/20 to-transparent" />
           </div>
-          <AdminRevenueChart data={revenueChart} isLoading={isLoading} />
+          <div className="flex flex-col gap-6">
+            <AdminRevenueChart data={revenueChart} isLoading={isLoading} />
+            <AdminUserRegChart
+              data={userRegChart}
+              days={userRegDays}
+              onChangeDays={changeUserRegDays}
+            />
+          </div>
         </div>
       </motion.div>
     </div>

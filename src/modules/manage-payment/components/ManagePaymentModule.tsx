@@ -104,7 +104,7 @@ export const ManagePaymentModule = () => {
                </div>
             </div>
             <p className="text-muted-foreground font-medium text-lg leading-relaxed max-w-xl">
-               Giám sát dòng tiền, học phí và lịch sử mua khóa học của cộng đồng VIC Teach. Hệ thống hiện ghi nhận <span className="text-foreground font-bold">{totalElements}</span> bản ghi giao dịch.
+               Giám sát dòng tiền, học phí, lịch sử mua khóa học và nạp tiền trading của cộng đồng VIC Teach. Hệ thống hiện ghi nhận <span className="text-foreground font-bold">{totalElements}</span> bản ghi giao dịch.
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export const ManagePaymentModule = () => {
             <Input 
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Tìm kiếm theo tiêu đề khóa học..." 
+              placeholder="Tìm kiếm giao dịch, khóa học..." 
               className="h-16 pl-16 pr-8 bg-card border-none rounded-[2rem] shadow-xl shadow-black/5 focus-visible:ring-2 focus-visible:ring-primary/20 font-bold text-lg placeholder:font-medium transition-all"
             />
           </div>

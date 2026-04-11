@@ -51,7 +51,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({
       className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30"
     >
       {/* Back Navigation */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40">
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-5xl mx-auto px-6 py-3">
           <Button
             variant="ghost"
@@ -85,8 +85,8 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({
             
             {/* Category Badge */}
             <div className="absolute top-6 left-6">
-              <Badge className="bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-widest px-4 py-2 rounded-full shadow-lg backdrop-blur-md border border-primary/50">
-                <Tag size={12} className="mr-1.5" />
+              <Badge className="bg-primary text-primary-foreground font-black text-xs uppercase tracking-[0.2em] px-6 py-2.5 rounded-full shadow-2xl shadow-primary/40 border-none">
+                <Tag size={12} className="mr-2" />
                 {blog.categoryName}
               </Badge>
             </div>
@@ -217,7 +217,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <Tag size={16} className="text-primary" />
             <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider mr-2">Danh mục:</span>
-            <Badge variant="secondary" className="font-semibold px-4 py-2 rounded-lg bg-muted/60 hover:bg-muted/80 transition-colors">
+            <Badge className="font-black text-[11px] uppercase tracking-widest px-5 py-2 rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-sm">
               {blog.categoryName}
             </Badge>
           </div>
