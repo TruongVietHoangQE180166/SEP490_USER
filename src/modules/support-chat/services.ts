@@ -1,5 +1,8 @@
 import { supabase } from '@/lib/supabase';
-import { SupportMessage, SendSupportMessageParams } from './types';
+import { ApiConfigService } from '@/services/apiConfig';
+import { SupportMessage, SendSupportMessageParams, AttendanceHistoryResponse, CheckInResponse } from './types';
+
+
 
 export const SupportChatService = {
   /**
@@ -189,5 +192,43 @@ export const SupportChatService = {
       .subscribe();
 
     return channel;
+  },
+
+  /**
+   * Fetches attendance history
+   */
+  getAttendanceHistory: async (): Promise<AttendanceHistoryResponse | null> => {
+    try {
+      const response = await ApiConfigService.post<AttendanceHistoryResponse>(
+        '/api/v1/attendances/history',
+        {}
+      );
+      if (response && response.success) {
+        return response;
+      }
+      return null;
+    } catch (err) {
+      console.error('getAttendanceHistory error:', err);
+      return null;
+    }
+  },
+
+  /**
+   * POST /api/v1/attendances/check-in?rewardAmount=N
+   * Check in for today with the given reward amount.
+   */
+  checkIn: async (rewardAmount: number): Promise<CheckInResponse | null> => {
+    try {
+      const response = await ApiConfigService.post<CheckInResponse>(
+        `/api/v1/attendances/check-in?rewardAmount=${rewardAmount}`,
+        {}
+      );
+      return response ?? null;
+    } catch (err) {
+      console.error('checkIn error:', err);
+      return null;
+    }
   }
 };
+
+

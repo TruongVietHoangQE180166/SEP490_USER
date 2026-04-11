@@ -28,6 +28,35 @@ export const WalletService = {
   },
 
   /**
+   * GET /api/point/detail
+   * Returns the user's point details.
+   */
+  async getPointDetail(): Promise<import('./types').PointDetail | null> {
+    const response = await ApiConfigService.get<import('./types').PointDetailApiResponse>(
+      '/api/point/detail'
+    );
+    if (response?.success && response.data) {
+      return response.data;
+    }
+    return null;
+  },
+
+  /**
+   * POST /api/point/exchange-point
+   * Exchange points using available USDT
+   */
+  async exchangePoints(amount: number): Promise<{ success: boolean; data?: import('./types').PointDetail }> {
+    const response = await ApiConfigService.post<import('./types').PointDetailApiResponse>(
+      `/api/point/exchange-point?amount=${amount}`,
+      {}
+    );
+    if (response?.success && response.data) {
+      return { success: true, data: response.data };
+    }
+    return { success: false };
+  },
+
+  /**
    * GET /api/v1/assets/my-assets
    * Returns list of assets the user holds.
    * - quantity       = tổng số lượng đang sở hữu

@@ -7,13 +7,15 @@ import {
   WalletHero,
   WalletStats,
   TradeOrderHistory,
-  WalletModuleSkeleton
+  WalletModuleSkeleton,
+  PointExchangeBanner
 } from './sections';
 import { pct } from '../utils';
 
 export const WalletModule = observer(function WalletModule() {
   const {
     walletInfo,
+    pointDetail,
     assets,
     tradeOrders,
     isLoading,
@@ -23,6 +25,7 @@ export const WalletModule = observer(function WalletModule() {
     totalEquity,
     dailyPnl,
     dailyPnlPercent,
+    handleExchangePoints,
   } = useWallet();
 
   if (isLoading && !walletInfo) return <WalletModuleSkeleton />;
@@ -48,6 +51,13 @@ export const WalletModule = observer(function WalletModule() {
         usdtPct={usdtPct}
         xautPct={xautPct}
         lockPct={lockPct}
+      />
+
+      {/* ROW 1.5 — Banner Hướng Dẫn Đổi Điểm (Nổi bật) */}
+      <PointExchangeBanner
+        pointDetail={pointDetail}
+        availableBalance={availableBalance}
+        onExchangePoints={handleExchangePoints}
       />
 
       {/* ROW 2 — 3 stat cards nằm ngang */}

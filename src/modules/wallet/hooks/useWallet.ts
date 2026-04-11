@@ -10,6 +10,7 @@ const CURRENCY = 'USDT';
 
 export function useWallet() {
   const walletInfo = walletState$.walletInfo.get();
+  const pointDetail = walletState$.pointDetail.get();
   const assets = walletState$.assets.get();
   const transactions = walletState$.transactions.get();
   const tradeOrders = walletState$.tradeOrders.get();
@@ -41,12 +42,14 @@ export function useWallet() {
         WalletService.getMyAssets(),
         WalletService.getTransactions(),
         WalletService.getTradeOrders(),
+        WalletService.getPointDetail(),
       ]);
 
       if (settleAll[0].status === 'fulfilled') walletActions.setWalletInfo(settleAll[0].value);
       if (settleAll[1].status === 'fulfilled') walletActions.setAssets(settleAll[1].value);
       if (settleAll[2].status === 'fulfilled') walletActions.setTransactions(settleAll[2].value);
       if (settleAll[3].status === 'fulfilled') walletActions.setTradeOrders(settleAll[3].value);
+      if (settleAll[4].status === 'fulfilled') walletActions.setPointDetail(settleAll[4].value);
 
       if (settleAll[0].status === 'rejected' && settleAll[1].status === 'rejected') {
         throw new Error('Không thể tải thông tin ví');
@@ -69,6 +72,21 @@ export function useWallet() {
       }
     } catch (err: any) {
       walletActions.setError(err.message || 'Lỗi khi nạp tiền');
+    }
+  };
+
+  const handleExchangePoints = async (amount: number) => {
+    try {
+      const response = await WalletService.exchangePoints(amount);
+      if (response.success) {
+        // Refresh wallet and point details after successful exchange
+        await fetchWalletInfo();
+        return true;
+      }
+      return false;
+    } catch (err: any) {
+      walletActions.setError(err.message || 'Lỗi khi đổi điểm');
+      return false;
     }
   };
 
@@ -95,6 +113,7 @@ export function useWallet() {
 
   return {
     walletInfo,
+    pointDetail,
     assets,
     transactions,
     tradeOrders,
@@ -112,6 +131,7 @@ export function useWallet() {
     // Actions
     fetchWalletInfo,
     handleDeposit,
+    handleExchangePoints,
   };
 }
 

@@ -70,9 +70,27 @@ export interface TradeOrder {
   completed: boolean;
 }
 
+export interface PointDetail {
+  id: string;
+  userId: string;
+  email: string;
+  currentPoints: number;
+}
+
+export interface PointDetailApiResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: PointDetail;
+  success: boolean;
+}
+
 // --- Store State ---
 export interface WalletState {
   walletInfo: WalletInfo | null;
+  pointDetail: PointDetail | null;
   assets: UserAsset[];
   pnl: WalletPnL | null;
   transactions: WalletTransaction[];

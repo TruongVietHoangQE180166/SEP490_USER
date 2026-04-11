@@ -3,6 +3,7 @@ import { WalletState, UserAsset } from './types';
 
 export const walletState$ = observable<WalletState>({
   walletInfo: null,
+  pointDetail: null,
   assets: [],
   pnl: null,
   transactions: [],
@@ -18,6 +19,9 @@ export const walletActions = {
   },
   setWalletInfo: (info: WalletState['walletInfo']) => {
     walletState$.walletInfo.set(info);
+  },
+  setPointDetail: (detail: WalletState['pointDetail']) => {
+    walletState$.pointDetail.set(detail);
   },
   setPnl: (pnl: WalletState['pnl']) => {
     walletState$.pnl.set(pnl);
