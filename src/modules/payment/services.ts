@@ -1,6 +1,6 @@
 import { ApiConfigService } from '@/services/apiConfig';
 import { CourseApiResponse } from '../course/types';
-import { PaymentData, PaymentRequest, PaymentResponse } from './types';
+import { PaymentData, PaymentRequest, PaymentResponse, PointData, PointDetailResponse } from './types';
 
 export const paymentService = {
   async createPayment(request: PaymentRequest): Promise<PaymentData> {
@@ -31,5 +31,28 @@ export const paymentService = {
     }
 
     return response.data;
-  }
+  },
+
+  async getUserPoints(): Promise<PointData> {
+    const response = await ApiConfigService.get<PointDetailResponse>('/api/point/detail');
+    
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể lấy thông tin điểm thưởng');
+    }
+
+    return response.data;
+  },
+
+  async payWithPoints(courseId: string): Promise<PaymentData> {
+    const response = await ApiConfigService.post<PaymentResponse>('/api/payment', {
+      courseId,
+      paymentMethod: 'POINT',
+    });
+
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Không thể thanh toán bằng điểm thưởng');
+    }
+
+    return response.data;
+  },
 };

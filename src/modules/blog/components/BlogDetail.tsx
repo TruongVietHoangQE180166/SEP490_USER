@@ -283,9 +283,9 @@ export const BlogDetail = observer(({ slug }: BlogDetailProps) => {
         </div>
 
         {/* Comment Section */}
-        <div className="border-t border-border/50 px-6 py-12 md:px-12">
+        {/* <div className="border-t border-border/50 px-6 py-12 md:px-12">
           <CommentThread />
-        </div>
+        </div> */}
 
         {/* Footer / Related Posts - Moved to bottom */}
         {relatedPosts.length > 0 && (

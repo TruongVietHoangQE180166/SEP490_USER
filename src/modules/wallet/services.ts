@@ -106,6 +106,34 @@ export const WalletService = {
     }
   },
 
+  async createTopUpPayment(amount: number): Promise<import('./types').PaymentInfo | null> {
+    const response = await ApiConfigService.post<import('./types').PaymentApiResponse>(
+      '/api/payment',
+      {
+        courseId: null,
+        voucherCode: null,
+        amount,
+        paymentMethod: 'BANK'
+      }
+    );
+
+    if (response?.success && response.data) {
+      return response.data;
+    }
+    throw new Error(response?.message?.messageDetail || 'Lỗi khi tạo yêu cầu nạp tiền');
+  },
+
+  async getPaymentDetail(paymentId: string): Promise<import('./types').PaymentInfo | null> {
+    const response = await ApiConfigService.get<import('./types').PaymentApiResponse>(
+      `/api/payment/detail/${paymentId}`
+    );
+
+    if (response?.success && response.data) {
+      return response.data;
+    }
+    return null;
+  },
+
   async deposit(amount: number): Promise<{ success: boolean; url?: string }> {
     return await ApiConfigService.post<{ success: boolean; url?: string }>(
       '/api/v1/wallets/deposit',

@@ -6,6 +6,7 @@ import { PaymentState } from './types';
 const initialPaymentState: PaymentState = {
   paymentInfo: null,
   currentOrder: null,
+  userPoints: null,
   isLoading: false,
   isPaymentCompleted: false,
   error: null,
@@ -41,5 +42,8 @@ export const paymentActions = {
   resetOrder: () => {
     paymentState$.currentOrder.set(null);
     paymentState$.isPaymentCompleted.set(false);
+  },
+  setUserPoints: (points: PaymentState['userPoints']) => {
+    paymentState$.userPoints.set(points);
   }
 };

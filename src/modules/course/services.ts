@@ -98,14 +98,26 @@ export const courseService = {
   },
 
   async createRating(courseId: string, rating: number, comment: string): Promise<any> {
-    const response = await ApiConfigService.post<any>('/api/rate', {
-      courseId,
-      rate: rating,
+    const response = await ApiConfigService.post<any>(`/api/rate?courseId=${courseId}`, {
+      rateValue: rating,
       comment
     });
 
     if (!response || !response.success) {
       throw new Error(response?.message?.messageDetail || 'Failed to submit rating');
+    }
+
+    return response.data;
+  },
+
+  async updateRating(id: string, rating: number, comment: string): Promise<any> {
+    const response = await ApiConfigService.put<any>(`/api/rate?rateId=${id}`, {
+      rateValue: rating,
+      comment
+    });
+
+    if (!response || !response.success) {
+      throw new Error(response?.message?.messageDetail || 'Failed to update rating');
     }
 
     return response.data;

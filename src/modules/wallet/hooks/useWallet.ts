@@ -75,6 +75,41 @@ export function useWallet() {
     }
   };
 
+  const createTopUp = async (amount: number) => {
+    walletActions.setLoading(true);
+    walletActions.setError(null);
+    try {
+      const payment = await WalletService.createTopUpPayment(amount);
+      walletActions.setPayment(payment);
+      return { success: true, data: payment };
+    } catch (err: any) {
+      const errorMessage = err.message || 'Lỗi khi tạo yêu cầu nạp tiền';
+      walletActions.setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      walletActions.setLoading(false);
+    }
+  };
+
+  const checkPaymentStatus = async (paymentId: string) => {
+    try {
+      const detail = await WalletService.getPaymentDetail(paymentId);
+      if (detail) {
+        walletActions.setPayment(detail);
+        return detail;
+      }
+      return null;
+    } catch (err) {
+      console.error('Error checking payment status:', err);
+      return null;
+    }
+  };
+
+  const cancelPayment = () => {
+    walletActions.setPayment(null);
+    walletActions.setError(null);
+  };
+
   const handleExchangePoints = async (amount: number) => {
     try {
       const response = await WalletService.exchangePoints(amount);
@@ -117,6 +152,7 @@ export function useWallet() {
     assets,
     transactions,
     tradeOrders,
+    currentPayment: walletState$.currentPayment.get(),
     isLoading,
     error,
     // Realtime PnL từ trading socket
@@ -132,6 +168,8 @@ export function useWallet() {
     fetchWalletInfo,
     handleDeposit,
     handleExchangePoints,
+    createTopUp,
+    checkPaymentStatus,
+    cancelPayment,
   };
 }
-

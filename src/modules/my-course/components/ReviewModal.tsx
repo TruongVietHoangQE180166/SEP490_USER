@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { observer } from '@legendapp/state/react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Star } from 'lucide-react';
 import { courseService } from '@/modules/course/services';
+import { useMyCourse } from '../hooks/useMyCourse';
 import { toast } from '@/components/ui/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,11 +27,37 @@ interface ReviewModalProps {
   children: React.ReactNode;
 }
 
-export const ReviewModal = ({ courseId, courseTitle, children }: ReviewModalProps) => {
+export const ReviewModal = observer(({ courseId, courseTitle, children }: ReviewModalProps) => {
+  const { userRatings, fetchCourseRating } = useMyCourse();
+  const existingRating = userRatings?.[courseId];
+
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize form with existing rating when it changes or when modal opens
+  React.useEffect(() => {
+    if (isOpen && !isInitialized) {
+      const init = async () => {
+        const data = await fetchCourseRating(courseId);
+        if (data) {
+          setRating(data.rating);
+          setComment(data.comment);
+        }
+        setIsInitialized(true);
+      };
+      init();
+    }
+  }, [isOpen, courseId, isInitialized, fetchCourseRating]);
+
+  // Reset initialized state when modal closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setIsInitialized(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async () => {
     if (rating < 1) {
@@ -39,12 +67,18 @@ export const ReviewModal = ({ courseId, courseTitle, children }: ReviewModalProp
 
     setIsSubmitting(true);
     try {
-      await courseService.createRating(courseId, rating, comment);
-      toast.success('Cảm ơn bạn đã đánh giá khóa học!');
+      if (existingRating) {
+        await courseService.updateRating(existingRating.id, rating, comment);
+        toast.success('Đã cập nhật đánh giá của bạn!');
+      } else {
+        await courseService.createRating(courseId, rating, comment);
+        toast.success('Cảm ơn bạn đã đánh giá khóa học!');
+      }
+      
+      // Refresh rating in store
+      await fetchCourseRating(courseId);
+      
       setIsOpen(false);
-      // Reset form
-      setRating(5);
-      setComment('');
     } catch (error: any) {
       toast.error(error.message || 'Có lỗi xảy ra khi gửi đánh giá');
     } finally {
@@ -79,7 +113,7 @@ export const ReviewModal = ({ courseId, courseTitle, children }: ReviewModalProp
             <Star className="w-8 h-8 fill-primary" />
           </div>
           <AlertDialogTitle className="text-3xl font-black text-center tracking-tight">
-            Đánh giá khóa học
+            {existingRating ? 'Cập nhật đánh giá' : 'Đánh giá khóa học'}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-center text-base font-medium text-muted-foreground">
             Bạn thấy khóa học <span className="text-foreground font-bold">"{courseTitle}"</span> như thế nào? Chia sẻ trải nghiệm của bạn nhé!
@@ -140,11 +174,11 @@ export const ReviewModal = ({ courseId, courseTitle, children }: ReviewModalProp
                 Đang gửi...
               </div>
             ) : (
-              'Gửi đánh giá'
+              existingRating ? 'Cập nhật' : 'Gửi đánh giá'
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
-};
+});

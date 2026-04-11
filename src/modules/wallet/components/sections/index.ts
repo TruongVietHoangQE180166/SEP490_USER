@@ -4,3 +4,4 @@ export * from './TransactionHistory';
 export * from './TradeOrderHistory';
 export * from './WalletSkeleton';
 export * from './PointExchangeBanner';
+export * from './DepositModal';

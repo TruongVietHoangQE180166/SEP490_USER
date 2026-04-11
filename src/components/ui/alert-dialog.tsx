@@ -58,7 +58,7 @@ const AlertDialogContent = React.forwardRef<
       <AlertDialogPrimitive.Content
         ref={ref}
         {...props}
-        className="fixed left-1/2 top-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2"
+        className="fixed left-0 top-1/2 w-full -translate-y-1/2 flex justify-center items-center pointer-events-none"
         style={{ zIndex: 9999999 }}
       >
         <motion.div
@@ -67,7 +67,7 @@ const AlertDialogContent = React.forwardRef<
           animate={{ x: [0, -10, 10, -8, 8, -4, 4, 0] }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
           className={cn(
-            "grid gap-4 border bg-background p-6 shadow-lg sm:rounded-lg",
+            "grid gap-4 border bg-background p-6 shadow-lg sm:rounded-lg pointer-events-auto",
             className
           )}
         >

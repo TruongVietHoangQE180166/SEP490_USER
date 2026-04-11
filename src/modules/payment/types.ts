@@ -36,9 +36,30 @@ export interface PaymentResponse {
   success: boolean;
 }
 
+export interface PointData {
+  id: string;
+  userId: string;
+  email: string;
+  currentPoints: number;
+}
+
+export interface PointDetailResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: {
+    field: string;
+    message: string;
+  }[] | null;
+  data: PointData | null;
+  success: boolean;
+}
+
 export interface PaymentState {
   paymentInfo: PaymentInfo | null;
   currentOrder: PaymentData | null;
+  userPoints: PointData | null;
   isLoading: boolean;
   isPaymentCompleted: boolean;
   error: string | null;

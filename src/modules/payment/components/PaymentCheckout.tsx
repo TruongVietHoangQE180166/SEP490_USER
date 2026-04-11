@@ -12,20 +12,17 @@ import {
   ArrowLeft, 
   Zap, 
   CheckCircle2, 
-  Smartphone,
   Info,
   Lock,
   Wallet,
   Building2,
-  ChevronLeft,
   Copy,
   RotateCcw,
-  ExternalLink
+  Coins,
 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import { toast } from '@/components/ui/toast';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -97,12 +94,12 @@ export const PaymentCheckout = observer(() => {
     error, 
     handleCreateOrder, 
     resetOrder, 
-    formatPrice 
+    formatPrice,
+    userPoints
   } = usePaymentOrder();
-  const [selectedMethod, setSelectedMethod] = useState<'VNPAY' | 'WALLET' | 'BANK'>('BANK');
+  const [selectedMethod, setSelectedMethod] = useState<'VNPAY' | 'WALLET' | 'BANK' | 'POINT'>('BANK');
 
   if (isLoading) {
-    // ... skeleton code ...
     return (
       <main className="relative min-h-screen overflow-hidden bg-background pt-8 pb-24">
         <div className="mx-auto max-w-8xl px-6">
@@ -174,7 +171,7 @@ export const PaymentCheckout = observer(() => {
   return (
     <main className="relative min-h-screen overflow-hidden bg-background pt-8 pb-24">
       <CustomScrollbarStyle />
-      {/* Glassmorphism background blobs - Enhanced */}
+      {/* Glassmorphism background blobs */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute left-1/2 top-0 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/[0.05] blur-[160px] animate-pulse" />
         <div className="absolute top-1/2 right-[10%] h-[400px] w-[400px] rounded-full bg-primary/[0.03] blur-[140px]" />
@@ -183,7 +180,7 @@ export const PaymentCheckout = observer(() => {
 
       <div className="relative px-6">
         <div className="mx-auto max-w-8xl">
-          {/* Back Button - Aligned with max-w-8xl */}
+          {/* Back Button */}
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -197,8 +194,6 @@ export const PaymentCheckout = observer(() => {
             </div>
             <span>Quay lại trang chi tiết</span>
           </motion.button>
-
-
 
           <motion.div
             variants={containerVariants}
@@ -223,7 +218,7 @@ export const PaymentCheckout = observer(() => {
                 className="relative overflow-hidden rounded-[40px] border border-border/40 bg-background/40 backdrop-blur-3xl shadow-[0_48px_100px_-20px_rgba(0,0,0,0.15)] shadow-primary/5 group"
               >
                 <div className="grid lg:grid-cols-12 min-h-[750px]">
-                  {/* Left: Pure Visual Section (Only Image) */}
+                  {/* Left: Visual Section */}
                   <div className="relative lg:col-span-5 overflow-hidden border-b lg:border-b-0 lg:border-r border-border/20">
                     <img 
                       src={paymentInfo.courseThumbnail} 
@@ -285,7 +280,7 @@ export const PaymentCheckout = observer(() => {
                               className="text-base font-medium text-foreground/50 max-w-md mx-auto"
                             >
                               Hệ thống đã xác nhận giao dịch của bạn. <br/>
-                              Chào mừng bạn đến với khóa học <span className="text-foreground font-black">"{paymentInfo.courseTitle}"</span>.
+                              Chào mừng bạn đến với khóa học <span className="text-foreground font-black">&quot;{paymentInfo.courseTitle}&quot;</span>.
                             </motion.p>
                           </div>
 
@@ -418,7 +413,7 @@ export const PaymentCheckout = observer(() => {
                               className="rounded-full font-black text-xs uppercase tracking-widest text-foreground/40 hover:text-primary transition-colors flex items-center gap-2"
                             >
                               <RotateCcw className="h-4 w-4" />
-                              Hủy bỏ & Chọn lại phương thức
+                              Hủy bỏ &amp; Chọn lại phương thức
                             </Button>
                           </div>
                         </motion.div>
@@ -447,7 +442,7 @@ export const PaymentCheckout = observer(() => {
                             <div className="relative p-6 rounded-2xl bg-primary/[0.02] border border-primary/10 overflow-hidden group/desc">
                               <div className="absolute top-0 left-0 w-1 h-full bg-primary/40" />
                               <p className="text-sm font-medium text-foreground/60 leading-relaxed italic line-clamp-4">
-                                "{paymentInfo.courseDescription || 'Khóa học cung cấp kiến thức thực tế và kỹ năng chuyên sâu để bạn đạt được mục tiêu sự nghiệp của mình.'}"
+                                &quot;{paymentInfo.courseDescription || 'Khóa học cung cấp kiến thức thực tế và kỹ năng chuyên sâu để bạn đạt được mục tiêu sự nghiệp của mình.'}&quot;
                               </p>
                             </div>
                             <div className="flex items-center gap-6 pt-2">
@@ -463,7 +458,7 @@ export const PaymentCheckout = observer(() => {
                           </div>
 
                           {/* Section 2: Pricing & Order Details */}
-                          <div className="mb-12 flex flex-col sm:flex-row justify-between items-end gap-6 p-8 rounded-[32px] bg-primary/[0.03] border border-primary/10">
+                          <div className="mb-6 flex flex-col sm:flex-row justify-between items-end gap-6 p-8 rounded-[32px] bg-primary/[0.03] border border-primary/10">
                             <div className="space-y-1">
                               <p className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.3em]">Tổng thanh toán</p>
                               <div className="text-5xl font-black bg-gradient-to-br from-primary via-primary to-primary/60 bg-clip-text text-transparent tracking-tighter">
@@ -484,6 +479,34 @@ export const PaymentCheckout = observer(() => {
                               </div>
                             </div>
                           </div>
+
+                          {/* Section 2b: User Points Card */}
+                          {userPoints && (
+                            <div className="mb-12 p-5 rounded-[28px] bg-gradient-to-r from-amber-500/10 via-orange-500/8 to-yellow-500/10 border border-amber-500/25 relative overflow-hidden">
+                              <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-amber-400/20 blur-2xl" />
+                              <div className="relative flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/20">
+                                    <Wallet className="h-5 w-5 text-amber-500" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-black text-amber-600/70 uppercase tracking-[0.25em]">Điểm thưởng của bạn</p>
+                                    <p className="text-2xl font-black text-amber-500 tracking-tight leading-tight">
+                                      {userPoints.currentPoints.toLocaleString('vi-VN')}
+                                      <span className="text-sm font-bold text-amber-500/60 ml-1">điểm</span>
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-[10px] font-black text-amber-600/60 uppercase tracking-[0.2em] mb-0.5">Tương đương</p>
+                                  <p className="text-xl font-black text-amber-500">
+                                    {(userPoints.currentPoints * 1000).toLocaleString('vi-VN')}đ
+                                  </p>
+                                  <p className="text-[9px] font-bold text-amber-500/50 mt-0.5">1 điểm = 1.000đ</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           {/* Section 3: Value Cards & Features */}
                           <div className="flex-1 space-y-10">
@@ -514,7 +537,77 @@ export const PaymentCheckout = observer(() => {
                           </div>
 
                           {/* Section 4: Call to Action */}
-                          <div className="mt-12 space-y-8">
+                          <div className="mt-12 space-y-6">
+                             {/* Payment Method Selector */}
+                             <div className="space-y-3">
+                               <p className="text-[10px] font-black text-foreground/40 uppercase tracking-[0.3em]">Phương thức thanh toán</p>
+                               <div className="grid grid-cols-1 gap-2">
+                                 {/* BANK */}
+                                 <button
+                                   onClick={() => setSelectedMethod('BANK')}
+                                   className={cn(
+                                     'flex items-center gap-4 p-4 rounded-2xl border transition-all text-left',
+                                     selectedMethod === 'BANK'
+                                       ? 'border-primary/60 bg-primary/5 shadow-lg shadow-primary/10'
+                                       : 'border-border/40 bg-background/30 hover:border-primary/30 hover:bg-primary/[0.02]'
+                                   )}
+                                 >
+                                   <div className={cn(
+                                     'flex h-10 w-10 items-center justify-center rounded-xl transition-colors',
+                                     selectedMethod === 'BANK' ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'
+                                   )}>
+                                     <Building2 className="h-5 w-5" />
+                                   </div>
+                                   <div className="flex-1">
+                                     <p className="text-sm font-black text-foreground">Chuyển khoản ngân hàng (QR)</p>
+                                     <p className="text-[10px] font-bold text-foreground/40">Quét mã QR qua app ngân hàng</p>
+                                   </div>
+                                   <div className={cn(
+                                     'h-4 w-4 rounded-full border-2 transition-colors',
+                                     selectedMethod === 'BANK' ? 'border-primary bg-primary' : 'border-border/60'
+                                   )} />
+                                 </button>
+
+                                 {/* POINT */}
+                                 <button
+                                   onClick={() => setSelectedMethod('POINT')}
+                                   disabled={!userPoints || userPoints.currentPoints === 0}
+                                   className={cn(
+                                     'flex items-center gap-4 p-4 rounded-2xl border transition-all text-left relative overflow-hidden',
+                                     selectedMethod === 'POINT'
+                                       ? 'border-amber-500/60 bg-amber-500/5 shadow-lg shadow-amber-500/10'
+                                       : 'border-amber-500/20 bg-amber-500/[0.02] hover:border-amber-500/40',
+                                     (!userPoints || userPoints.currentPoints === 0) && 'opacity-50 cursor-not-allowed'
+                                   )}
+                                 >
+                                   {selectedMethod === 'POINT' && (
+                                     <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 via-transparent to-amber-400/5 pointer-events-none" />
+                                   )}
+                                   <div className={cn(
+                                     'flex h-10 w-10 items-center justify-center rounded-xl transition-colors',
+                                     selectedMethod === 'POINT' ? 'bg-amber-500 text-white' : 'bg-amber-500/10 text-amber-500'
+                                   )}>
+                                     <Coins className="h-5 w-5" />
+                                   </div>
+                                   <div className="flex-1">
+                                     <div className="flex items-center gap-2">
+                                       <p className="text-sm font-black text-foreground">Thanh toán bằng điểm</p>
+                                       <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 uppercase tracking-wider">Tức thì</span>
+                                     </div>
+                                     <p className="text-[10px] font-bold text-foreground/40">
+                                       {userPoints
+                                         ? `Số dư: ${userPoints.currentPoints.toLocaleString('vi-VN')} điểm ≈ ${(userPoints.currentPoints * 1000).toLocaleString('vi-VN')}đ`
+                                         : 'Đang tải số dư điểm...'}
+                                     </p>
+                                   </div>
+                                   <div className={cn(
+                                     'h-4 w-4 rounded-full border-2 transition-colors',
+                                     selectedMethod === 'POINT' ? 'border-amber-500 bg-amber-500' : 'border-amber-500/30'
+                                   )} />
+                                 </button>
+                               </div>
+                             </div>
+
                              <div className="group relative">
                                 <div className="absolute -inset-2 rounded-[32px] bg-gradient-to-r from-primary to-primary/40 opacity-40 blur-xl group-hover:opacity-70 transition-opacity animate-pulse" />
                                 
@@ -538,22 +631,88 @@ export const PaymentCheckout = observer(() => {
                                   </AlertDialogTrigger>
                                   <AlertDialogContent className="rounded-[32px] border-border/40 bg-background/80 backdrop-blur-2xl p-8 max-w-[500px]">
                                     <AlertDialogHeader className="space-y-4">
-                                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-2">
-                                        <CreditCard className="h-8 w-8" />
+                                      <div className={cn(
+                                        'flex h-16 w-16 items-center justify-center rounded-2xl mb-2',
+                                        selectedMethod === 'POINT' ? 'bg-amber-500/10 text-amber-500' : 'bg-primary/10 text-primary'
+                                      )}>
+                                        {selectedMethod === 'POINT' ? <Coins className="h-8 w-8" /> : <CreditCard className="h-8 w-8" />}
                                       </div>
-                                      <AlertDialogTitle className="text-3xl font-black text-foreground tracking-tight">Xác nhận thanh toán?</AlertDialogTitle>
-                                      <AlertDialogDescription className="text-base font-bold text-foreground/50 leading-relaxed">
-                                    Bạn đang thực hiện đăng ký khóa học <span className="text-primary">"{paymentInfo.courseTitle}"</span>. 
-                                    Sau khi nhấn xác nhận, thông tin thanh toán sẽ được hiển thị để bạn hoàn tất giao dịch.
-                                  </AlertDialogDescription>
+                                      <AlertDialogTitle className="text-3xl font-black text-foreground tracking-tight">
+                                        {selectedMethod === 'POINT' ? 'Xác nhận dùng điểm?' : 'Xác nhận thanh toán?'}
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription asChild>
+                                        <div className="text-base font-bold text-foreground/50 leading-relaxed">
+                                          <p>
+                                            Bạn đang thực hiện đăng ký khóa học{' '}
+                                            <span className="text-primary">&quot;{paymentInfo.courseTitle}&quot;</span>.
+                                          </p>
+                                          {selectedMethod === 'POINT' ? (
+                                            <div className="mt-2">
+                                              <p>Điểm thưởng sẽ được trừ ngay lập tức và bạn có thể bắt đầu học ngay sau khi xác nhận.</p>
+                                              {userPoints && (
+                                                <div className="mt-4 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-3">
+                                                  <div className="flex items-center gap-2">
+                                                    <Coins className="h-3.5 w-3.5 text-amber-500" />
+                                                    <span className="text-xs font-black text-amber-600 uppercase tracking-wider">Chi tiết giao dịch</span>
+                                                  </div>
+                                                  <div className="space-y-2">
+                                                    <div className="flex justify-between text-xs">
+                                                      <span className="text-foreground/60">Số điểm hiện có</span>
+                                                      <span className="font-black text-amber-500">{userPoints.currentPoints.toLocaleString('vi-VN')} điểm</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs">
+                                                      <span className="text-foreground/60">Chi phí khóa học</span>
+                                                      <span className="font-black text-foreground">{formatPrice(paymentInfo.salePrice)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs">
+                                                      <span className="text-foreground/60">Điểm cần dùng</span>
+                                                      <span className="font-black text-red-500">−{(paymentInfo.salePrice / 1000).toLocaleString('vi-VN')} điểm</span>
+                                                    </div>
+                                                    <div className="h-px bg-amber-500/20" />
+                                                    <div className="flex justify-between text-xs">
+                                                      <span className="text-foreground/60">Còn lại sau giao dịch</span>
+                                                      <span className="font-black text-emerald-500">
+                                                        {Math.max(0, userPoints.currentPoints - paymentInfo.salePrice / 1000).toLocaleString('vi-VN')} điểm
+                                                      </span>
+                                                    </div>
+                                                  </div>
+                                                  <p className="text-[10px] text-amber-500/50">Quy đổi: 1 điểm = 1.000đ</p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          ) : (
+                                            <div className="mt-2">
+                                              <p>Sau khi nhấn xác nhận, thông tin thanh toán sẽ được hiển thị để bạn hoàn tất giao dịch.</p>
+                                              {userPoints && (
+                                                <div className="mt-4 p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                                                  <div className="flex items-center gap-2 mb-2">
+                                                    <Wallet className="h-3.5 w-3.5 text-amber-500" />
+                                                    <span className="text-xs font-black text-amber-600 uppercase tracking-wider">Điểm thưởng hiện có</span>
+                                                  </div>
+                                                  <div className="flex items-baseline justify-between">
+                                                    <span className="text-lg font-black text-amber-500">{userPoints.currentPoints.toLocaleString('vi-VN')} điểm</span>
+                                                    <span className="text-sm font-bold text-amber-500/70">≈ {(userPoints.currentPoints * 1000).toLocaleString('vi-VN')}đ</span>
+                                                  </div>
+                                                  <p className="text-[10px] text-amber-500/50 mt-1">Quy đổi: 1 điểm = 1.000đ</p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter className="mt-10 gap-4 sm:gap-0">
                                       <AlertDialogCancel className="h-14 rounded-2xl border-border/40 bg-background/40 font-black text-sm px-8 hover:bg-background/80 transition-all">Huỷ bỏ</AlertDialogCancel>
-                                      <AlertDialogAction 
+                                      <AlertDialogAction
                                         onClick={onConfirmPayment}
-                                        className="h-14 rounded-2xl bg-primary text-primary-foreground font-black text-sm px-8 shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                        className={cn(
+                                          'h-14 rounded-2xl font-black text-sm px-8 transition-all hover:scale-[1.02] active:scale-[0.98]',
+                                          selectedMethod === 'POINT'
+                                            ? 'bg-amber-500 text-white shadow-xl shadow-amber-500/20'
+                                            : 'bg-primary text-primary-foreground shadow-xl shadow-primary/20'
+                                        )}
                                       >
-                                        Tiếp tục thanh toán
+                                        {selectedMethod === 'POINT' ? '🪙 Dùng điểm thanh toán' : 'Tiếp tục thanh toán'}
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
@@ -561,9 +720,9 @@ export const PaymentCheckout = observer(() => {
                              </div>
 
                              <p className="text-[10px] text-center text-foreground/30 font-bold px-6 leading-relaxed">
-                                Bằng việc nhấn xác nhận, bạn đồng ý với 
-                                <span className="text-primary hover:underline cursor-pointer mx-1">Điều khoản dịch vụ</span> 
-                                và <span className="text-primary hover:underline cursor-pointer">Chính sách bảo mật</span> của chúng tôi.
+                                Bằng việc nhấn xác nhận, bạn đồng ý với{' '}
+                                <span className="text-primary hover:underline cursor-pointer mx-1">Điều khoản dịch vụ</span>
+                                {' '}và <span className="text-primary hover:underline cursor-pointer">Chính sách bảo mật</span> của chúng tôi.
                              </p>
                           </div>
                         </motion.div>
@@ -581,4 +740,3 @@ export const PaymentCheckout = observer(() => {
     </main>
   );
 });
-

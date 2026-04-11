@@ -1,6 +1,6 @@
 import { ApiConfigService } from '@/services/apiConfig';
 import { CourseApiResponse, CoursePaginationResponse } from '../course/types';
-import { EnrolledCourse } from './types';
+import { EnrolledCourse, RateContent, RateResponse } from './types';
 
 export const myCourseService = {
   async getMyCourses(page = 1, size = 1000): Promise<EnrolledCourse[]> {
@@ -20,5 +20,18 @@ export const myCourseService = {
         thumbnail: course.thumbnailUrl,
         progress: course.progress || 0,
       } as EnrolledCourse));
+  },
+
+  async getCourseRating(courseId: string): Promise<RateContent | null> {
+    const response = await ApiConfigService.get<CourseApiResponse<RateResponse>>(
+      `/api/rate?page=1&size=10&field=createdDate&direction=desc&courseId=${courseId}&isCurrentUser=true`
+    );
+
+    if (!response || !response.success || !response.data) {
+      return null;
+    }
+
+    // Return only the first comment as requested
+    return response.data.content?.[0] || null;
   }
 };
