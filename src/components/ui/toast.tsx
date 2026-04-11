@@ -192,7 +192,7 @@ toast.dismiss = (id?: string) => {
 };
 
 const toastVariants = cva(
-  "toast-base fixed z-[100] pointer-events-auto flex w-[calc(100%-2rem)] max-w-sm min-h-20 items-center justify-between space-x-4 rounded-lg p-4 pr-8 shadow-lg",
+  "toast-base fixed z-[99999999] pointer-events-auto flex w-[calc(100%-2rem)] max-w-sm min-h-20 items-center justify-between space-x-4 rounded-lg p-4 pr-8 shadow-lg",
   {
     variants: {
       variant: {
@@ -744,7 +744,7 @@ const ToastStack: React.FC<ToastStackProps> = ({
 
   return (
     <div
-      className="fixed pointer-events-none z-[100]"
+      className="fixed pointer-events-none z-[99999999]"
       style={{
         [position.includes("top") ? "top" : "bottom"]: "1rem",
         [position.includes("right") ? "right" : "left"]: "1rem",

@@ -7,13 +7,16 @@ import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { ReviewModal } from './ReviewModal';
+import { useMyCourse } from '../hooks/useMyCourse';
+import { observer } from '@legendapp/state/react';
 
 interface MyCourseCardProps {
   course: EnrolledCourse;
   index: number;
 }
 
-export const MyCourseCard = ({ course, index }: MyCourseCardProps) => {
+export const MyCourseCard = observer(({ course, index }: MyCourseCardProps) => {
+  const { userRatings } = useMyCourse();
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -99,7 +102,7 @@ export const MyCourseCard = ({ course, index }: MyCourseCardProps) => {
                       className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary/50 hover:bg-secondary text-foreground font-black text-[11px] uppercase tracking-wider border border-border/50 transition-all backdrop-blur-md"
                     >
                       <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      Đánh giá
+                      {userRatings[course.id] ? 'Sửa đánh giá' : 'Đánh giá'}
                     </button>
                   </ReviewModal>
 
@@ -125,4 +128,4 @@ export const MyCourseCard = ({ course, index }: MyCourseCardProps) => {
       </Link>
     </motion.div>
   );
-};
+});

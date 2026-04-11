@@ -2,8 +2,10 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, WifiOff } from 'lucide-react';
+import { TrendingUp, TrendingDown, WifiOff, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { DepositModal } from './DepositModal';
 import { WalletInfo } from '../../types';
 import { fmt } from '../../utils';
 
@@ -56,27 +58,37 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
             </p>
           </div>
 
-          {/* live badge */}
-          <motion.span
-            animate={{ opacity: isPnlConnected ? 1 : 0.5 }}
-            className={cn(
-              'inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-500',
-              isPnlConnected
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
-                : 'bg-muted/50 text-muted-foreground border-border/40'
-            )}
-          >
-            {isPnlConnected ? (
-              <>
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Live
-                Market
-              </>
-            ) : (
-              <>
-                <WifiOff size={10} /> Offline
-              </>
-            )}
-          </motion.span>
+          {/* actions */}
+          <div className="flex items-center gap-3">
+            <DepositModal>
+              <Button size="sm" className="h-9 rounded-2xl bg-primary shadow-lg shadow-primary/20 gap-2 font-black uppercase text-[10px] tracking-wider px-5">
+                <Plus size={14} className="stroke-[3]" />
+                Nạp tiền
+              </Button>
+            </DepositModal>
+
+            {/* live badge */}
+            <motion.span
+              animate={{ opacity: isPnlConnected ? 1 : 0.5 }}
+              className={cn(
+                'inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-500',
+                isPnlConnected
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                  : 'bg-muted/50 text-muted-foreground border-border/40'
+              )}
+            >
+              {isPnlConnected ? (
+                <>
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Live
+                  Market
+                </>
+              ) : (
+                <>
+                  <WifiOff size={10} /> Offline
+                </>
+              )}
+            </motion.span>
+          </div>
         </div>
 
         {/* big number */}

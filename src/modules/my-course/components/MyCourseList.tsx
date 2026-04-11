@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { observer } from '@legendapp/state/react';
 import { useMyCourse } from '../hooks/useMyCourse';
 import { MyCourseCard } from './MyCourseCard';
@@ -14,9 +14,13 @@ import Link from 'next/link';
 type FilterType = 'all' | 'completed' | 'ongoing';
 
 export const MyCourseList = observer(() => {
-  const { enrolledCourses, isLoading, error } = useMyCourse();
+  const { enrolledCourses, isLoading, error, refresh } = useMyCourse();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<FilterType>('all');
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const filteredCourses = useMemo(() => {
     return enrolledCourses.filter(course => {

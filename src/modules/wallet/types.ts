@@ -87,6 +87,29 @@ export interface PointDetailApiResponse {
   success: boolean;
 }
 
+export interface PaymentInfo {
+  id: string;
+  amount: number;
+  courseId: string | null;
+  courseTitle: string | null;
+  thumbnailUrl: string | null;
+  voucherCode: string | null;
+  discountValue: number | null;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  qrCode: string;
+  createdDate: string;
+}
+
+export interface PaymentApiResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: any;
+  data: PaymentInfo;
+  success: boolean;
+}
+
 // --- Store State ---
 export interface WalletState {
   walletInfo: WalletInfo | null;
@@ -95,6 +118,7 @@ export interface WalletState {
   pnl: WalletPnL | null;
   transactions: WalletTransaction[];
   tradeOrders: TradeOrder[];
+  currentPayment: PaymentInfo | null;
   isLoading: boolean;
   isPnlConnected: boolean;
   error: string | null;

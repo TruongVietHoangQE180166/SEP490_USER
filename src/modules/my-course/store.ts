@@ -1,8 +1,9 @@
 import { observable } from '@legendapp/state';
-import { MyCourseState } from './types';
+import { MyCourseState, RateContent } from './types';
 
 const initialMyCourseState: MyCourseState = {
   enrolledCourses: [],
+  userRatings: {},
   isLoading: false,
   error: null,
 };
@@ -20,6 +21,9 @@ export const myCourseActions = {
   },
   setError: (error: string | null) => {
     myCourseState$.error.set(error);
+  },
+  setUserRating: (courseId: string, rating: RateContent | null) => {
+    myCourseState$.userRatings[courseId].set(rating);
   },
   reset: () => {
     myCourseState$.set(initialMyCourseState);

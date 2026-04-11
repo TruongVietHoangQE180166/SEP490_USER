@@ -8,6 +8,7 @@ export const walletState$ = observable<WalletState>({
   pnl: null,
   transactions: [],
   tradeOrders: [],
+  currentPayment: null,
   isLoading: false,
   isPnlConnected: false,
   error: null,
@@ -40,5 +41,8 @@ export const walletActions = {
   },
   setError: (error: string | null) => {
     walletState$.error.set(error);
+  },
+  setPayment: (payment: WalletState['currentPayment']) => {
+    walletState$.currentPayment.set(payment);
   },
 };

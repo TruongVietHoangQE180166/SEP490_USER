@@ -121,7 +121,7 @@ export const AttendanceBubble = () => {
         whileHover={{ scale: 1.1, y: 0 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen((prev) => !prev)}
-        className="group fixed bottom-8 left-8 z-[9999] flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 ring-4 ring-primary/20 cursor-pointer pointer-events-auto"
+        className="group fixed bottom-28 right-8 z-[9999] flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 ring-4 ring-primary/20 cursor-pointer pointer-events-auto"
       >
         <CalendarDays size={28} className="relative z-10 group-hover:scale-110 transition-transform duration-300" />
 
@@ -146,7 +146,7 @@ export const AttendanceBubble = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-            className="fixed bottom-28 left-8 z-[9999] w-96 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
+            className="fixed bottom-48 right-8 z-[9999] w-96 bg-background border border-border rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
           >
             {/* Header */}
             <div className="flex justify-between items-center px-4 py-3 border-b border-border bg-muted/40">
