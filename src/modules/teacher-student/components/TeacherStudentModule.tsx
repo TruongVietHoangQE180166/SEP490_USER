@@ -144,6 +144,7 @@ export const TeacherStudentModule = () => {
                   <tr>
                     <th className="px-6 py-4">Tài khoản & Email</th>
                     <th className="px-6 py-4 text-center">Vai trò</th>
+                    <th className="px-6 py-4 text-center">Cấp độ</th>
                     <th className="px-6 py-4 text-center">Trạng thái</th>
                     <th className="px-6 py-4 text-right">Mã định danh</th>
                     <th className="px-6 py-4 text-right">Hành động</th>
@@ -179,6 +180,11 @@ export const TeacherStudentModule = () => {
                           ) : (
                             <span className="flex items-center gap-1.5 text-blue-600"><GraduationCapIcon size={12} /> Học viên</span>
                           )}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <Badge variant="outline" className="rounded-lg h-6 px-2 text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border-primary/20 whitespace-nowrap">
+                          {student.level === 'NEN_TANG' ? 'Nền tảng' : student.level === 'NHAP_MON' ? 'Nhập môn' : student.level || 'Chưa xác định'}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -263,6 +269,9 @@ export const TeacherStudentModule = () => {
                           : "bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 border-rose-500/20"
                       )}>
                         {selectedStudent?.status === 'ACTIVE' ? 'Đang hoạt động' : 'Tài khoản khóa'}
+                      </Badge>
+                      <Badge className="px-3 py-1.5 shadow-none font-bold uppercase tracking-widest text-[10px] bg-violet-500/10 text-violet-600 border-violet-500/20">
+                        {selectedStudent?.level === 'NEN_TANG' ? 'Nền tảng' : selectedStudent?.level === 'NHAP_MON' ? 'Nhập môn' : selectedStudent?.level || 'Mới tham gia'}
                       </Badge>
                     </div>
                   </div>

@@ -224,7 +224,11 @@ export const BlogModal: React.FC<BlogModalProps> = ({
                             type="button"
                             disabled={isView}
                             onClick={() => setCategoryId(cat.id)}
-                            className={`h-11 px-4 rounded-xl flex items-center justify-between border transition-all ${categoryId === cat.id ? 'bg-primary border-primary text-primary-foreground shadow-lg' : 'bg-muted/40 border-transparent hover:bg-muted/60 text-foreground font-bold'}`}
+                            className={`h-11 px-4 rounded-xl flex items-center justify-between border transition-all disabled:opacity-100 ${
+                              categoryId === cat.id 
+                                ? 'bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20' 
+                                : 'bg-muted/40 border-transparent hover:bg-muted/60 text-foreground font-bold'
+                            }`}
                           >
                             <span className="text-sm font-bold">{cat.name}</span>
                             {categoryId === cat.id && <Sparkles size={14} />}

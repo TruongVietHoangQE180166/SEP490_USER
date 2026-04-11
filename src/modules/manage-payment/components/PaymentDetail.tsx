@@ -14,12 +14,15 @@ import {
   ShieldCheck,
   Receipt,
   Download,
-  QrCode
+  QrCode,
+  Wallet,
+  DollarSign
 } from 'lucide-react';
 import { Payment } from '../types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 interface PaymentDetailProps {
   payment: Payment;
@@ -84,7 +87,7 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({
       className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30"
     >
       {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40">
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Button
             variant="ghost"
@@ -149,31 +152,53 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({
             {/* Course Information Section */}
             <div className="space-y-4">
               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground ml-2 flex items-center gap-2">
-                <BookOpen size={14} className="text-primary" />
-                Sản phẩm đăng ký
+                {payment?.courseId ? (
+                  <>
+                    <BookOpen size={14} className="text-primary" />
+                    Sản phẩm đăng ký
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={14} className="text-indigo-500" />
+                    Loại giao dịch
+                  </>
+                )}
               </h3>
               <div className="group relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-500"></div>
                 <div className="relative flex flex-col md:flex-row gap-6 p-6 bg-card border border-border/40 rounded-3xl hover:border-primary/20 transition-all">
-                  <div className="w-full md:w-48 aspect-video rounded-2xl overflow-hidden shadow-lg border border-border/20">
-                    <img 
-                      src={payment.thumbnailUrl} 
-                      alt={payment.courseTitle} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                    />
+                  <div className="w-full md:w-48 aspect-video rounded-2xl overflow-hidden shadow-lg border border-border/20 flex items-center justify-center bg-muted/30">
+                    {payment?.courseId ? (
+                      <img 
+                        src={payment.thumbnailUrl} 
+                        alt={payment.courseTitle} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 text-indigo-500 animate-pulse">
+                        <CreditCard size={48} strokeWidth={1.5} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">TRADING WALLET</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1 flex flex-col justify-between py-1">
                     <div className="space-y-2">
                       <h4 className="text-xl font-black leading-tight tracking-tight group-hover:text-primary transition-colors">
-                        {payment.courseTitle}
+                        {payment?.courseId ? payment.courseTitle : 'Nạp tiền vào ví Trading'}
                       </h4>
                       <p className="text-sm font-medium text-muted-foreground line-clamp-2">
-                        ID Khóa học: <span className="font-mono text-xs">{payment.courseId}</span>
+                        {payment?.courseId ? (
+                          <>ID Khóa học: <span className="font-mono text-xs">{payment.courseId}</span></>
+                        ) : (
+                          <>Giao dịch nạp số dư để tham gia giao dịch demo/live trên hệ thống.</>
+                        )}
                       </p>
                     </div>
-                    <Button variant="ghost" className="w-fit p-0 h-auto font-bold text-xs gap-1.5 text-primary hover:bg-transparent hover:underline">
-                      Xem trang khóa học <ExternalLink size={12} />
-                    </Button>
+                    {payment?.courseId && (
+                      <Button variant="ghost" className="w-fit p-0 h-auto font-bold text-xs gap-1.5 text-primary hover:bg-transparent hover:underline">
+                        Xem trang khóa học <ExternalLink size={12} />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -189,44 +214,70 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({
               </div>
               <div className="p-5 rounded-2xl bg-muted/20 border border-border/40 space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 flex items-center gap-1.5">
-                  <ShieldCheck size={12} /> Cổng thanh toán
+                  <ShieldCheck size={12} /> Hình thức thanh toán
                 </span>
-                <p className="font-bold text-sm tracking-tight text-emerald-600">VietQR / MB Bank - Chuyển khoản nội địa</p>
+                <p className={cn(
+                  "font-bold text-sm tracking-tight",
+                  payment?.qrCode ? "text-emerald-600" : "text-indigo-600"
+                )}>
+                  {payment?.qrCode ? 'VietQR / MB Bank - Chuyển khoản' : 'Thanh toán bằng điểm Trading'}
+                </p>
               </div>
             </div>
           </div>
 
           {/* Right Column: QR & Meta */}
           <div className="space-y-6">
-            {/* Visual Receipt Branding */}
-            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground shadow-2xl shadow-primary/20 relative overflow-hidden">
+            {/* Visual Receipt Branding or Point Info */}
+            <div className={cn(
+              "p-8 rounded-[2rem] shadow-2xl relative overflow-hidden",
+              payment?.qrCode 
+                ? "bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-primary-foreground shadow-primary/20"
+                : "bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-indigo-500/20"
+            )}>
               <div className="absolute -bottom-8 -right-8 opacity-20 transform scale-150">
-                <Receipt size={120} />
+                {payment?.qrCode ? <Receipt size={120} /> : <Wallet size={120} />}
               </div>
               <div className="relative z-10 space-y-6 text-center">
                 <div className="mx-auto w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30">
-                  <QrCode size={32} strokeWidth={2.5} />
+                  {payment?.qrCode ? <QrCode size={32} strokeWidth={2.5} /> : <DollarSign size={32} strokeWidth={2.5} />}
                 </div>
                 <div>
-                  <h3 className="text-xl font-black tracking-tight leading-none uppercase">Hóa đơn điện tử</h3>
+                  <h3 className="text-xl font-black tracking-tight leading-none uppercase">
+                    {payment?.qrCode ? 'Hóa đơn điện tử' : 'Ví điểm hệ thống'}
+                  </h3>
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60 mt-3">VIC Teach Finance</p>
                 </div>
                 <Separator className="bg-white/20" />
                 <div className="space-y-4">
-                  <div className="aspect-square bg-white p-4 rounded-[2rem] shadow-xl">
-                    <img 
-                      src={payment.qrCode} 
-                      alt="Payment QR" 
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <Button 
-                    variant="secondary" 
-                    className="w-full h-12 rounded-xl font-black uppercase tracking-[0.2em] shadow-lg group bg-white hover:bg-white/90 text-primary"
-                    onClick={() => window.open(payment.qrCode, '_blank')}
-                  >
-                    Tải mã QR <Download size={16} className="ml-2 group-hover:translate-y-1 transition-transform" />
-                  </Button>
+                  {payment?.qrCode ? (
+                    <>
+                      <div className="aspect-square bg-white p-4 rounded-[2rem] shadow-xl">
+                        <img 
+                          src={payment.qrCode} 
+                          alt="Payment QR" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <Button 
+                        variant="secondary" 
+                        className="w-full h-12 rounded-xl font-black uppercase tracking-[0.2em] shadow-lg group bg-white hover:bg-white/90 text-primary"
+                        onClick={() => window.open(payment.qrCode, '_blank')}
+                      >
+                        Tải mã QR <Download size={16} className="ml-2 group-hover:translate-y-1 transition-transform" />
+                      </Button>
+                    </>
+                  ) : (
+                    <div className="py-8 px-4 rounded-[2rem] bg-white/10 backdrop-blur-md border border-white/20">
+                      <p className="text-xs font-bold leading-relaxed opacity-90">
+                        Giao dịch được thực hiện thông qua khấu trừ điểm trực tiếp từ ví Trading của người dùng.
+                      </p>
+                      <div className="mt-6 p-4 bg-white/10 rounded-2xl flex items-center justify-center gap-2">
+                        <CheckCircle2 size={16} />
+                        <span className="text-[10px] font-black uppercase">Đã xác thực ví</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

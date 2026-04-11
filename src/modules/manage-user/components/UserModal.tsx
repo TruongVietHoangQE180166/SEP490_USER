@@ -245,6 +245,17 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user, mod
                         </button>
                       </div>
                     </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                         <Sparkles size={12} className="text-primary" /> Cấp độ (Level)
+                      </Label>
+                      <div className="p-1 bg-primary/5 border border-primary/20 rounded-xl h-12 flex items-center px-4">
+                        <span className="text-xs font-black uppercase tracking-widest text-primary">
+                          {formData.level === 'NHAP_MON' ? 'Nhập môn' : formData.level || 'Người mới'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

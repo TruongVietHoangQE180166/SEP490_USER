@@ -43,6 +43,23 @@ export interface AdminRevenueApiResponse {
 export interface AdminDashboardState {
   summary: AdminSummaryData | null;
   revenueChart: RevenueData[] | null;
+  userRegChart: UserRegistrationData[] | null;
+  userRegDays: 7 | 30;
   isLoading: boolean;
   error: string | null;
+}
+
+export interface UserRegistrationData {
+  userCount: number;
+  regDate: string;
+}
+
+export interface UserRegChartApiResponse {
+  message: {
+    messageCode: string;
+    messageDetail: string;
+  };
+  errors: { field: string; message: string; }[] | null;
+  data: UserRegistrationData[];
+  success: boolean;
 }

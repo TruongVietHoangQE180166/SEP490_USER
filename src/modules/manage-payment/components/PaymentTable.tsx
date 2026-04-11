@@ -53,18 +53,33 @@ export const PaymentTable: React.FC<PaymentTableProps> = ({ payments, isLoading,
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12 rounded-lg border-2 border-background shadow-sm group-hover:scale-110 transition-transform overflow-hidden">
-                        <AvatarImage src={payment?.thumbnailUrl} alt={payment?.courseTitle} className="object-cover" />
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                          <BookOpen size={20} />
-                        </AvatarFallback>
+                        {payment?.courseId ? (
+                          <>
+                            <AvatarImage src={payment?.thumbnailUrl} alt={payment?.courseTitle} className="object-cover" />
+                            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                              <BookOpen size={20} />
+                            </AvatarFallback>
+                          </>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-indigo-500/10 text-indigo-500 font-bold">
+                            <CreditCard size={20} />
+                          </div>
+                        )}
                       </Avatar>
                       <div className="flex flex-col max-w-[300px]">
                         <span className="font-bold text-foreground text-sm line-clamp-1">
-                          {payment?.courseTitle}
+                          {payment?.courseId ? payment?.courseTitle : 'Nạp tiền Trading'}
                         </span>
-                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider flex items-center gap-1">
-                          ID: {payment?.id?.substring(0, 8)}...
-                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider flex items-center gap-1">
+                            {payment?.courseId ? `ID: ${payment?.id?.substring(0, 8)}...` : 'Nạp số dư ví trading'}
+                          </span>
+                          {!payment?.qrCode && (
+                            <Badge variant="outline" className="h-4 px-1 text-[8px] font-black uppercase text-indigo-500 border-indigo-500/20 bg-indigo-500/5">
+                              Thanh toán điểm
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -105,12 +120,14 @@ export const PaymentTable: React.FC<PaymentTableProps> = ({ payments, isLoading,
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 p-1 rounded-xl border-border/40 shadow-xl backdrop-blur-xl bg-background/95">
                         <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 px-3 py-2">Giao dịch</DropdownMenuLabel>
-                        <DropdownMenuItem 
-                          onClick={() => payment?.qrCode && window.open(payment.qrCode, '_blank')}
-                          className="rounded-lg gap-2 cursor-pointer font-bold text-sm h-10 focus:bg-primary/10 focus:text-primary transition-colors text-primary"
-                        >
-                          <ExternalLink size={14} /> Xem mã QR
-                        </DropdownMenuItem>
+                        {payment?.qrCode && (
+                          <DropdownMenuItem 
+                            onClick={() => window.open(payment.qrCode, '_blank')}
+                            className="rounded-lg gap-2 cursor-pointer font-bold text-sm h-10 focus:bg-primary/10 focus:text-primary transition-colors text-primary"
+                          >
+                            <ExternalLink size={14} /> Xem mã QR
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem 
                           onClick={() => payment && onView(payment)}
                           className="rounded-lg gap-2 cursor-pointer font-bold text-sm h-10 focus:bg-primary/10 focus:text-primary transition-colors"

@@ -106,8 +106,8 @@ export const BlogCard: React.FC<BlogCardProps> = ({
 
         {/* Category Overlay */}
         <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 text-white">
-              <Tag size={12} className="text-primary-foreground" />
+           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 backdrop-blur-xl border border-white/20 text-white shadow-xl">
+              <Tag size={12} className="text-primary" />
               <span className="text-[10px] font-black uppercase tracking-widest leading-none">
                 {blog.categoryName}
               </span>
