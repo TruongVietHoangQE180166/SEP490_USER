@@ -6,6 +6,7 @@ import { PageLoadingIndicator } from '@/components/PageLoadingIndicator';
 import { LoadingOverlay } from '@/components/LoadingOverlay';
 import { SearchDock } from '@/components/SearchDock';
 import { ChatBubble } from '@/components/ChatBubble';
+import { AttendanceBubble } from '@/components/AttendanceBubble';
 import { HeroHeader } from '@/components/header1';
 import { MainWrapper } from '@/components/MainWrapper';
 import { ToastContainer } from '@/components/ui/toast';
@@ -27,8 +28,9 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <head>
         {/* Theme detection script to prevent FLASH of unstyled content */}
-        <script
+        <Script
           id="theme-detection"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {
@@ -63,6 +65,7 @@ export default function RootLayout({
           <RouteGuard>{children}</RouteGuard>
           <SearchDock />
           <ChatBubble />
+          <AttendanceBubble />
         </MainWrapper>
         <PageLoadingIndicator />
         <LoadingOverlay />

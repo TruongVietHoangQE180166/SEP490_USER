@@ -86,6 +86,7 @@ export const WalletStats: React.FC<WalletStatsProps> = ({
           </div>
         }
       />
+
     </div>
   );
 };
