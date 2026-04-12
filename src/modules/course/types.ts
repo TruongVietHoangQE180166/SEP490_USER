@@ -135,6 +135,45 @@ export interface CoursePaginationResponse {
   totalElement: number;
 }
 
+// ============================================================================
+// USER LEVEL
+// ============================================================================
+
+export type UserLevel = 'NHAP_MON' | 'NEN_TANG' | 'TRUNG_CAP' | 'THUC_HANH' | 'NANG_CAO';
+
+export const USER_LEVEL_ORDER: Record<UserLevel, number> = {
+  NHAP_MON: 1,
+  NEN_TANG: 2,
+  TRUNG_CAP: 3,
+  THUC_HANH: 4,
+  NANG_CAO: 5,
+};
+
+export const USER_LEVEL_LABEL: Record<UserLevel, string> = {
+  NHAP_MON:  'Nhập môn',
+  NEN_TANG:  'Nền tảng',
+  TRUNG_CAP: 'Trung cấp',
+  THUC_HANH: 'Thực hành',
+  NANG_CAO:  'Nâng cao',
+};
+
+export interface GetMeResponse {
+  id: string;
+  username: string;
+  email: string;
+  status: string;
+  level: UserLevel;
+  role: string;
+  deleted: boolean;
+}
+
+export interface GetMeApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: GetMeResponse;
+  success: boolean;
+}
+
 export interface CourseState {
   courses: Course[];
   currentCourse: Course | null;
@@ -145,6 +184,7 @@ export interface CourseState {
   isLoading: boolean;
   error: string | null;
   completedLessons: string[];
+  userLevel: UserLevel | null;
 }
 
 export type TrackingType = 'DOCUMENT' | 'VIDEO' | 'QUIZ';

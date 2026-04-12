@@ -5,10 +5,23 @@ import {
   ChartDemoApiResponse, ChartDemoData,
   AnswerDemoSession, AnswerDemoSessionApiResponse,
   AnswerDemoByChartApiResponse, AnswerDemoByChartItem,
-  ResetAnswerDemoApiResponse, AnswerDemoRequest, AnswerDemoApiResponse
+  ResetAnswerDemoApiResponse, AnswerDemoRequest, AnswerDemoApiResponse,
+  GetMeApiResponse, GetMeResponse,
 } from './types';
 
 export const courseService = {
+  async getMe(): Promise<GetMeResponse | null> {
+    try {
+      const response = await ApiConfigService.get<GetMeApiResponse>('/api/user/getme');
+      if (response && response.success && response.data) {
+        return response.data;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
   async getAllCourses(page = 1, size = 1000, field = 'createdDate', direction = 'desc'): Promise<Course[]> {
     const response = await ApiConfigService.get<CourseApiResponse<CoursePaginationResponse>>(
       `/api/course?page=${page}&size=${size}&field=${field}&direction=${direction}`

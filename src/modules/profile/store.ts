@@ -1,11 +1,13 @@
 import { observable } from '@legendapp/state';
-import { ProfileState, UserProfile } from './types';
+import { ProfileState, UserProfile, UserProgress } from './types';
 import { profileService } from './services';
 
 const initialProfileState: ProfileState = {
   profile: null,
   isLoading: false,
   isEditing: false,
+  progress: null,
+  isProgressLoading: false,
 };
 
 export const profileState$ = observable<ProfileState>(initialProfileState);
@@ -24,6 +26,14 @@ export const profileActions = {
 
   setEditing: (isEditing: boolean) => {
     profileState$.isEditing.set(isEditing);
+  },
+
+  setProgress: (progress: UserProgress) => {
+    profileState$.progress.set(progress);
+  },
+
+  setProgressLoading: (isLoading: boolean) => {
+    profileState$.isProgressLoading.set(isLoading);
   },
   
   // Note: We don't have a partial update action (updateProfile) here because 

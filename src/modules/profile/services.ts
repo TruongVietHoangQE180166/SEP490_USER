@@ -1,6 +1,6 @@
 import { ApiConfigService } from '@/services/apiConfig';
 
-import { UserProfile, ProfileApiResponse, UpdateProfileRequest, ImageUploadResponse, ChangePasswordResponse } from './types';
+import { UserProfile, ProfileApiResponse, UpdateProfileRequest, ImageUploadResponse, ChangePasswordResponse, ProgressApiResponse, UserProgress } from './types';
 
 export const profileService = {
   async getProfile(userId: string): Promise<UserProfile> {
@@ -65,6 +65,14 @@ export const profileService = {
        throw new Error(serverMessage || 'Failed to upload image');
     }
     
+    return response.data;
+  },
+
+  async getUserProgress(): Promise<UserProgress> {
+    const response = await ApiConfigService.get<ProgressApiResponse>(`/api/user/progress`);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Failed to fetch user progress');
+    }
     return response.data;
   }
 };
