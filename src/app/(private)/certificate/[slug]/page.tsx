@@ -7,45 +7,32 @@ import { observer } from '@legendapp/state/react';
 import { Loader2, ArrowLeft, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { authState$ } from '@/modules/auth/store';
+import { withAuthGuard } from '@/guards/authGuard';
+
+const LoadingScreen = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center space-y-6 bg-background">
+    <div className="relative">
+       <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+       <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-primary" />
+    </div>
+    <div className="text-center space-y-1">
+       <p className="text-sm font-black uppercase tracking-[0.2em] text-primary">Academy Verification</p>
+       <p className="text-xs text-muted-foreground font-bold">Đang xác thực thông tin chứng chỉ...</p>
+    </div>
+  </div>
+);
 
 const CertificatePage = observer(() => {
   const { slug } = useParams();
   const { course, isLoading: isCourseLoading, error: courseError } = useCourseDetail(slug as string);
   const { profile, isLoading: isProfileLoading } = useProfile();
-  const isAuthenticated = authState$.isAuthenticated.get();
 
-  // Wait for all data to load
+  // isLoading from useCourseDetail already includes isInitializing guard,
+  // so this is safe – no flash of error state possible.
   if (isCourseLoading || isProfileLoading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-6 bg-background">
-        <div className="relative">
-           <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-           <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-primary" />
-        </div>
-        <div className="text-center space-y-1">
-           <p className="text-sm font-black uppercase tracking-[0.2em] text-primary">Academy Verification</p>
-           <p className="text-xs text-muted-foreground font-bold">Đang xác thực thông tin chứng chỉ...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
-  // Handle Authentication error
-  if (!isAuthenticated) {
-    return (
-       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-6 bg-red-50/10">
-         <ShieldAlert className="w-16 h-16 text-red-500" />
-         <div className="space-y-2">
-            <h1 className="text-2xl font-black uppercase">Yêu cầu đăng nhập</h1>
-            <p className="text-muted-foreground max-w-sm">Vui lòng đăng nhập để xem thông tin chứng chỉ của bạn.</p>
-         </div>
-         <Link href="/login">
-            <button className="bg-primary text-white px-10 py-3 rounded-full font-black uppercase text-xs tracking-widest shadow-xl">Đăng nhập ngay</button>
-         </Link>
-       </div>
-    );
-  }
 
   // Handle Missing Data or API Error
   if (!course || !profile || courseError) {
@@ -162,4 +149,4 @@ const CertificatePage = observer(() => {
   );
 });
 
-export default CertificatePage;
+export default withAuthGuard(CertificatePage);

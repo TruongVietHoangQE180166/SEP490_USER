@@ -23,10 +23,18 @@ let getMeInflight: Promise<void> | null = null;
  */
 export const useCourseDetail = (slugName: string) => {
   const course = courseState$.currentCourse.get();
-  const isLoading = courseState$.isLoading.get();
+  const isFetching = courseState$.isLoading.get();
   const userLevel = courseState$.userLevel.get();
   const isAuthenticated = authState$.isAuthenticated.get();
   const [error, setError] = useState<string | null>(null);
+
+  // True on first render whenever the correct course isn't yet in the store.
+  // This prevents a flash of the error state before useEffect fires the fetch.
+  const courseAlreadyCached = !!(course && (course.slug === slugName || course.id === slugName));
+  const [isInitializing, setIsInitializing] = useState(!courseAlreadyCached);
+
+  // Combined loading flag used by all consumers
+  const isLoading = isFetching || isInitializing;
 
   // UI States – kept local so they don't cause global re-renders
   const [deadline] = useState(new Date(Date.now() + 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000));
@@ -72,12 +80,15 @@ export const useCourseDetail = (slugName: string) => {
       course &&
       (course.slug === slugName || course.id === slugName)
     ) {
+      setIsInitializing(false); // Already cached – no longer initializing
       return;
     }
 
     // 2. A request for this slug is already in-flight → wait for it
     if (!forceRefresh && inflight.has(slugName)) {
-      return inflight.get(slugName);
+      await inflight.get(slugName);
+      setIsInitializing(false);
+      return;
     }
 
     // 3. Kick off the request and share it via the module-level guard
@@ -109,6 +120,7 @@ export const useCourseDetail = (slugName: string) => {
       } finally {
         courseActions.setLoading(false);
         inflight.delete(slugName);
+        setIsInitializing(false); // ← Always clear initializing when fetch completes
       }
     })();
 
