@@ -17,14 +17,14 @@ export const useProfile = () => {
   }, []);
 
   const loadProfile = async (userId: string) => {
-    loadingActions.showFetchLoading('Đang tải thông tin hồ sơ...');
+    profileActions.setLoading(true);
     try {
       const data = await profileService.getProfile(userId);
       profileActions.setProfile(data);
     } catch (error: any) {
       toast.error(error.message || 'Không thể tải thông tin hồ sơ');
     } finally {
-      loadingActions.hideLoading();
+      profileActions.setLoading(false);
     }
   };
 

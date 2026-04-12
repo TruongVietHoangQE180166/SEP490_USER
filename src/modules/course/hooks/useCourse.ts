@@ -3,31 +3,55 @@ import { courseState$, courseActions } from '../store';
 import { courseService } from '../services';
 import { toast } from '@/components/ui/toast';
 
+/**
+ * Module-level guard: only ONE getAllCourses request is ever in-flight at a time.
+ * All hook instances that mount simultaneously will share this promise.
+ */
+let courseListInflight: Promise<void> | null = null;
+
 export const useCourses = () => {
   const courses = courseState$.courses.get();
   const isLoading = courseState$.isLoading.get();
   const error = courseState$.error.get();
 
   useEffect(() => {
-    loadCourses();
+    // Only load if the list is not yet populated
+    if (courses.length === 0) {
+      loadCourses();
+    }
   }, []);
 
-  const loadCourses = async () => {
-    courseActions.setLoading(true);
-    try {
-      const data = await courseService.getAllCourses();
-      const publishedCourses = data.filter(c => c.status === 'PUBLISHED');
-      courseActions.setCourses(publishedCourses);
-    } catch (err: any) {
-      const message = err.message || 'Không thể tải danh sách khóa học';
-      courseActions.setError(message);
-      toast.error(message);
-    } finally {
-      courseActions.setLoading(false);
+  const loadCourses = async (forceRefresh = false) => {
+    // Already have data and no force-refresh → skip
+    if (courses.length > 0 && !forceRefresh) return;
+
+    // A request is already in-flight → wait for it instead of firing a new one
+    if (!forceRefresh && courseListInflight) {
+      return courseListInflight;
     }
+
+    // Start a new request and share it via the module-level guard
+    courseListInflight = (async () => {
+      courseActions.setLoading(true);
+      try {
+        const data = await courseService.getAllCourses();
+        const publishedCourses = data.filter(c => c.status === 'PUBLISHED');
+        courseActions.setCourses(publishedCourses);
+        courseActions.setError(null);
+      } catch (err: any) {
+        const message = err.message || 'Không thể tải danh sách khóa học';
+        courseActions.setError(message);
+        toast.error(message);
+      } finally {
+        courseActions.setLoading(false);
+        courseListInflight = null; // Reset so future force-refreshes work
+      }
+    })();
+
+    return courseListInflight;
   };
 
-  return { courses, isLoading, error, refresh: loadCourses };
+  return { courses, isLoading, error, refresh: () => loadCourses(true) };
 };
 
 export const useCourseList = () => {

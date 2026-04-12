@@ -1,5 +1,5 @@
 import { observable } from '@legendapp/state';
-import { CourseState } from './types';
+import { CourseState, UserLevel } from './types';
 
 const initialCourseState: CourseState = {
   courses: [],
@@ -11,6 +11,7 @@ const initialCourseState: CourseState = {
   isLoading: false,
   error: null,
   completedLessons: [],
+  userLevel: null,
 };
 
 export const courseState$ = observable<CourseState>(initialCourseState);
@@ -54,6 +55,10 @@ export const courseActions = {
 
   setCompletedLessons: (lessonIds: string[]) => {
     courseState$.completedLessons.set(lessonIds);
+  },
+
+  setUserLevel: (level: UserLevel | null) => {
+    courseState$.userLevel.set(level);
   },
 
   reset: () => {

@@ -23,6 +23,8 @@ import {
   Share2,
   Star,
   Timer,
+  TrendingDown,
+  TrendingUp,
   Users,
   Video,
   Zap,
@@ -115,7 +117,9 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
     discountPercent,
     relatedCourses,
     isRelatedCoursesLoading,
-    formatPrice
+    formatPrice,
+    levelWarning,
+    userLevelLabel,
   } = useCourseDetail(slug);
 
   const { ratings, isLoading: isRatingsLoading, averageRating, ratingDistribution, totalRatings } = useCourseRatings(currentCourse?.id);
@@ -277,6 +281,106 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
 
           {/* ... existing header content ... */}
           {/* (I'll keep the overall structure but I need to find the right place for the slider) */}
+
+          {/* Level Warning Banner */}
+          {levelWarning && (
+            <motion.div
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="mb-8 relative overflow-hidden"
+            >
+              {/* Animated border glow */}
+              <div className={`absolute -inset-[1px] rounded-2xl blur-sm opacity-60 animate-pulse ${
+                levelWarning === 'too_hard'
+                  ? 'bg-gradient-to-r from-rose-600 via-red-500 to-rose-600'
+                  : 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500'
+              }`} />
+
+              <div className={`relative rounded-2xl border-2 px-6 py-5 backdrop-blur-xl ${
+                levelWarning === 'too_hard'
+                  ? 'bg-rose-950/60 border-rose-500/60 dark:bg-rose-950/80'
+                  : 'bg-amber-950/60 border-amber-500/60 dark:bg-amber-950/80'
+              }`}>
+                {/* Top strip */}
+                <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-2xl ${
+                  levelWarning === 'too_hard'
+                    ? 'bg-gradient-to-r from-rose-700 via-red-400 to-rose-700'
+                    : 'bg-gradient-to-r from-amber-600 via-yellow-300 to-amber-600'
+                }`} />
+
+                <div className="flex gap-4 items-start">
+                  {/* Icon */}
+                  <div className={`shrink-0 flex h-12 w-12 items-center justify-center rounded-xl border-2 shadow-lg ${
+                    levelWarning === 'too_hard'
+                      ? 'border-rose-500/50 bg-rose-500/20 text-rose-400 shadow-rose-500/20'
+                      : 'border-amber-500/50 bg-amber-500/20 text-amber-400 shadow-amber-500/20'
+                  }`}>
+                    {levelWarning === 'too_hard'
+                      ? <TrendingUp className="h-6 w-6" />
+                      : <TrendingDown className="h-6 w-6" />
+                    }
+                  </div>
+
+                  <div className="flex-1 space-y-3">
+                    {/* Badge + Title row */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] border ${
+                        levelWarning === 'too_hard'
+                          ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
+                          : 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                      }`}>
+                        <span className={`h-1.5 w-1.5 rounded-full animate-ping ${
+                          levelWarning === 'too_hard' ? 'bg-rose-400' : 'bg-amber-400'
+                        }`} />
+                        {levelWarning === 'too_hard' ? 'Cảnh báo nghiêm trọng' : 'Lưu ý quan trọng'}
+                      </span>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${
+                        levelWarning === 'too_hard' ? 'text-rose-500/60' : 'text-amber-500/60'
+                      }`}>
+                        Cấp độ của bạn: <span className="font-black">{userLevelLabel}</span>
+                      </span>
+                    </div>
+
+                    {/* Main warning text */}
+                    <h4 className={`text-base font-black leading-snug tracking-tight ${
+                      levelWarning === 'too_hard' ? 'text-rose-300' : 'text-amber-300'
+                    }`}>
+                      {levelWarning === 'too_hard'
+                        ? '⚠️ Khóa học này vượt quá cấp độ hiện tại của bạn — rủi ro cao khi tiếp tục'
+                        : '📉 Khóa học này thấp hơn cấp độ của bạn — có thể không phù hợp'}
+                    </h4>
+
+                    {/* Detailed description */}
+                    <p className="text-sm text-white/60 leading-relaxed">
+                      {levelWarning === 'too_hard'
+                        ? `Hệ thống phát hiện cấp độ khóa học này cao hơn đáng kể so với trình độ "${userLevelLabel}" của bạn. Điều này có thể khiến bạn gặp khó khăn nghiêm trọng trong quá trình học tập.`
+                        : `Khóa học này được thiết kế cho trình độ thấp hơn cấp độ "${userLevelLabel}" hiện tại của bạn. Nội dung có thể quá cơ bản và không mang lại giá trị tương xứng với thời gian đầu tư.`}
+                    </p>
+
+                    {/* Consequence bullet list */}
+                    <ul className={`space-y-1.5 text-xs font-semibold leading-relaxed ${
+                      levelWarning === 'too_hard' ? 'text-rose-400/80' : 'text-amber-400/80'
+                    }`}>
+                      {levelWarning === 'too_hard' ? (
+                        <>
+                          <li className="flex items-start gap-2"><span className="mt-0.5 shrink-0">›</span> Kiến thức nền tảng có thể chưa đủ để theo kịp nội dung</li>
+                          <li className="flex items-start gap-2"><span className="mt-0.5 shrink-0">›</span> Nguy cơ bỏ dở khóa học cao hơn so với mức trung bình</li>
+                          <li className="flex items-start gap-2"><span className="mt-0.5 shrink-0">›</span> VicTeach khuyến nghị hoàn thành các khóa học cấp thấp hơn trước</li>
+                        </>
+                      ) : (
+                        <>
+                          <li className="flex items-start gap-2"><span className="mt-0.5 shrink-0">›</span> Nội dung có thể quá quen thuộc và thiếu kiến thức mới</li>
+                          <li className="flex items-start gap-2"><span className="mt-0.5 shrink-0">›</span> Thời gian học có thể không được tối ưu cho cấp độ của bạn</li>
+                          <li className="flex items-start gap-2"><span className="mt-0.5 shrink-0">›</span> VicTeach khuyến nghị các khóa học phù hợp hơn với trình độ hiện tại</li>
+                        </>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Course Header */}
           <motion.div
@@ -569,9 +673,20 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                     </div>
 
                     {(isAuthenticated && currentCourse.progress === 100) && (
-                        <div className="flex items-center gap-1.5 text-green-500 text-xs font-bold uppercase tracking-wider">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Chúc mừng! Bạn đã hoàn thành khóa học
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                            <div className="flex items-center gap-1.5 text-green-500 text-xs font-bold uppercase tracking-wider">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                Chúc mừng! Bạn đã hoàn thành khóa học
+                            </div>
+                            <Link href={`/certificate/${currentCourse.slug}`} target="_blank">
+                                <Button 
+                                    size="sm" 
+                                    className="rounded-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-widest px-6 shadow-xl shadow-primary/5 transition-all"
+                                >
+                                    <Award className="w-3.5 h-3.5 mr-2" />
+                                    Xem chứng chỉ
+                                </Button>
+                            </Link>
                         </div>
                     )}
                 </div>
