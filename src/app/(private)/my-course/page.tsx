@@ -2,7 +2,7 @@ import { MyCourseList } from "@/modules/my-course/components/MyCourseList";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Khóa học của tôi | VIC Teach",
+  title: "Khóa học của tôi | VICTEACH",
   description: "Quản lý và theo dõi tiến độ các khóa học bạn đã đăng ký.",
 };
 

@@ -67,7 +67,7 @@ const cryptoSteps = [
   },
   {
     title: "06. Thực chiến & Lợi nhuận",
-    description: "Áp dụng toàn bộ kiến thức vào giao dịch thực tế dưới sự dẫn dắt trực tiếp từ các chuyên gia VIC Teach.",
+    description: "Áp dụng toàn bộ kiến thức vào giao dịch thực tế dưới sự dẫn dắt trực tiếp từ các chuyên gia VICTEACH.",
     image: "https://images.unsplash.com/photo-1621761191319-c6fb62004040?q=80&w=2000&auto=format&fit=crop",
     color: "bg-primary/70"
   }
@@ -77,7 +77,7 @@ const testimonials = [
   {
     name: "Nguyễn Văn A",
     handle: "@vanya",
-    review: "VIC Teach đã giúp mình thay đổi lộ trình học tập hoàn toàn. Các khóa học rất thực tế và dễ hiểu.",
+    review: "VICTEACH đã giúp mình thay đổi lộ trình học tập hoàn toàn. Các khóa học rất thực tế và dễ hiểu.",
     avatar: "https://i.pravatar.cc/150?u=a"
   },
   {
@@ -107,7 +107,7 @@ const testimonials = [
   {
     name: "Đặng Thị F",
     handle: "@thif",
-    review: "Cảm ơn VIC Teach đã mang lại những giá trị thiết thực. Chúc nền tảng ngày càng phát triển!",
+    review: "Cảm ơn VICTEACH đã mang lại những giá trị thiết thực. Chúc nền tảng ngày càng phát triển!",
     avatar: "https://i.pravatar.cc/150?u=f"
   }
 ];
@@ -134,7 +134,7 @@ const HomePageContent = observer(() => {
                     Lộ trình <span className="text-primary">Chinh phục Crypto</span>
                 </h2>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-medium">
-                    Từ người mới bắt đầu đến nhà đầu tư chuyên nghiệp cùng VIC Teach
+                    Từ người mới bắt đầu đến nhà đầu tư chuyên nghiệp cùng VICTEACH
                 </p>
             </div>
             
@@ -170,7 +170,7 @@ const HomePageContent = observer(() => {
                                     
                                     <div className="relative z-10">
                                         <span className={`text-[9px] font-black uppercase tracking-widest ${step.color.replace('bg-', 'text-')} opacity-80 mb-1 block`}>
-                                            VIC Teach Roadmap
+                                            VICTEACH Roadmap
                                         </span>
                                         <h3 className={`font-black mb-3 tracking-tighter uppercase leading-tight ${isLast ? "text-2xl md:text-3xl" : "text-xl"}`}>
                                             {step.title.split('. ')[1]} <span className="text-primary italic">.</span>
@@ -205,7 +205,7 @@ const HomePageContent = observer(() => {
 
       <KineticTestimonial 
         title="Học viên nói gì về chúng tôi"
-        subtitle="Hàng ngàn học viên đã và đang thay đổi sự nghiệp cùng VIC Teach"
+        subtitle="Hàng ngàn học viên đã và đang thay đổi sự nghiệp cùng VICTEACH"
         testimonials={testimonials}
       />
 

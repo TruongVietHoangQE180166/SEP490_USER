@@ -15,8 +15,53 @@ import Script from 'next/script';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Next.js App with Legend-App',
-  description: 'A Next.js application with Legend-App state management',
+  title: {
+    default: 'VICTEACH - Nền tảng học hỏi và đầu tư tài chính số 1',
+    template: '%s | VICTEACH'
+  },
+  description: 'VICTEACH cung cấp các khóa học chuyên sâu về Blockchain, Crypto, Phân tích kỹ thuật và Tài chính phi tập trung (DeFi). Bắt đầu hành trình đầu tư thông minh của bạn ngay hôm nay.',
+  keywords: ['VICTEACH', 'học crypto', 'đầu tư tài chính', 'blockchain', 'phân tích kỹ thuật', 'defi', 'tài chính phi tập trung', 'khóa học online'],
+  authors: [{ name: 'VICTEACH Team' }],
+  creator: 'VICTEACH',
+  publisher: 'VICTEACH',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'vi_VN',
+    url: 'https://victeach.io.vn',
+    siteName: 'VICTEACH',
+    title: 'VICTEACH - Học và Đầu tư Tài chính Thông minh',
+    description: 'Nâng tầm kiến thức về thị trường Crypto và Blockchain cùng các chuyên gia hàng đầu.',
+    images: [
+      {
+        url: 'https://victeach.io.vn/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'VICTEACH - Financial Education Platform',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'VICTEACH - Học và Đầu tư Tài chính Thông minh',
+    description: 'Nền tảng giáo dục tài chính số hàng đầu Việt Nam.',
+    images: ['https://victeach.io.vn/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({
