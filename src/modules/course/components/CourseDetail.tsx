@@ -260,6 +260,36 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
   }
 
   return (
+    <>
+      {/* Course JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Course',
+            name: currentCourse.title,
+            description: currentCourse.description,
+            provider: {
+              '@type': 'Organization',
+              name: 'VICTEACH',
+              sameAs: 'https://victeach.io.vn',
+            },
+            image: currentCourse.thumbnailUrl,
+            aggregateRating: currentCourse.totalRate > 0 ? {
+              '@type': 'AggregateRating',
+              ratingValue: currentCourse.averageRate,
+              reviewCount: currentCourse.totalRate,
+            } : undefined,
+            offers: {
+              '@type': 'Offer',
+              category: 'Paid',
+              price: currentCourse.price,
+              priceCurrency: 'VND',
+            },
+          }),
+        }}
+      />
       <main className="relative min-h-screen overflow-hidden bg-background pt-8 pb-8">
       <CustomScrollbarStyle />
       {/* Glassmorphism background blobs */}
@@ -1406,5 +1436,6 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
         </div>
       </div>
     </main>
+    </>
   );
 });
