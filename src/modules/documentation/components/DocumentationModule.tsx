@@ -127,24 +127,26 @@ export const DocumentationModule = () => {
 
   return (
     <div className="flex flex-col lg:flex-row w-full min-h-screen">
-      {/* Left Sidebar - Navigation stack */}
+      {/* Sidebar - Navigation stack */}
       <aside className={cn(
-        "relative lg:border-r border-border/40 bg-muted/2 transition-all duration-300 ease-in-out shrink-0",
-        isSidebarCollapsed ? "w-0 lg:w-20" : "w-full lg:w-80"
+        "fixed inset-y-0 left-0 z-[99999] w-full lg:w-auto lg:relative lg:inset-auto lg:z-0 lg:border-r border-border/40 bg-background lg:bg-muted/2 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shrink-0",
+        isSidebarCollapsed 
+          ? "-translate-x-full lg:translate-x-0 lg:w-20" 
+          : "translate-x-0 lg:w-80"
       )}>
         <div className={cn(
-            "sticky top-32 space-y-10 pt-6 pb-10 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar transition-all duration-300",
-            isSidebarCollapsed ? "px-4 items-center" : "px-8"
+            "sticky top-0 lg:top-32 space-y-12 pt-10 lg:pt-6 pb-10 h-full lg:max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar transition-all duration-300 bg-background lg:bg-transparent",
+            isSidebarCollapsed ? "px-4 items-center" : "px-6 lg:px-8"
         )}>
           {/* Header Title with Icon & Toggle inside */}
-          <div className={cn("flex items-center justify-between gap-3", isSidebarCollapsed && "flex-col-reverse")}>
+          <div className={cn("flex items-center justify-between gap-3 mb-8 lg:mb-6", isSidebarCollapsed && "flex-col-reverse")}>
              <div className={cn("flex items-center gap-3", isSidebarCollapsed && "flex-col")}>
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0 text-foreground">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0 leading-none">
                     <Book size={20} />
                 </div>
                 {!isSidebarCollapsed && (
                     <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-                        <h2 className="text-lg font-black tracking-tight text-foreground">Thư viện VIC</h2>
+                        <h2 className="text-lg font-black tracking-tight text-foreground leading-tight">Thư viện VIC</h2>
                         <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest text-nowrap">Hướng dẫn chuyên sâu</p>
                     </div>
                 )}
@@ -152,29 +154,34 @@ export const DocumentationModule = () => {
              <button 
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className={cn(
-                    "p-2 rounded-lg bg-background border border-border/40 text-muted-foreground hover:text-primary hover:border-primary/20 hover:bg-muted/50 transition-all",
+                    "p-2.5 rounded-xl bg-muted/30 border border-border/40 text-muted-foreground hover:text-primary hover:border-primary/20 hover:bg-background transition-all",
                     isSidebarCollapsed ? "mt-2" : "ml-auto"
                 )}
                 title={isSidebarCollapsed ? "Mở danh mục" : "Thu gọn"}
              >
-                {isSidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+                {isSidebarCollapsed ? <PanelLeftOpen size={20} /> : (
+                  <div className="flex items-center gap-2 font-black text-[10px] uppercase tracking-wider">
+                    <span className="lg:hidden text-primary">Đóng menu</span>
+                    <PanelLeftClose size={18} />
+                  </div>
+                )}
              </button>
           </div>
 
-          {/* Topics List with Custom Rendering for Sidebar Look */}
-          <div className="space-y-4">
+            <div className="space-y-6">
             {!isSidebarCollapsed && (
               <div className="flex items-center gap-2 px-1 animate-in fade-in slide-in-from-left-2">
                  <span className="w-1 h-3 bg-primary rounded-full" />
                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Danh mục bài viết</h3>
               </div>
             )}
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {topics.map((topic) => (
                 <button
                   key={topic.id}
                   onClick={() => {
                     setActiveTopicId(topic.id);
+                    if (window.innerWidth < 1024) setIsSidebarCollapsed(true);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className={cn(
@@ -207,7 +214,7 @@ export const DocumentationModule = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 min-w-0 bg-background pt-6 px-10 pb-10 lg:pt-10 lg:px-16 lg:pl-20 transition-all duration-300">
+      <main className="flex-1 min-w-0 bg-background pt-6 px-4 md:px-10 pb-10 lg:pt-10 lg:px-8 lg:pl-12 transition-all duration-300">
         <div className="max-w-4xl">
           <AnimatePresence mode="wait">
             <motion.div
@@ -216,12 +223,27 @@ export const DocumentationModule = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
+              className="lg:pl-0"
             >
+              {/* Mobile Hamburger Toggle */}
+              <div className="lg:hidden flex items-center gap-4 mb-8 pb-4 border-b border-border/10">
+                <button 
+                  onClick={() => setIsSidebarCollapsed(false)}
+                  className="w-14 h-14 rounded-2xl bg-muted/60 border border-border/40 flex items-center justify-center text-foreground hover:bg-primary/10 hover:text-primary transition-all shadow-md active:scale-95"
+                >
+                  <Menu size={24} />
+                </button>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[16px] font-black uppercase tracking-[0.1em] text-foreground leading-none">Danh mục</span>
+                  <p className="text-[13px] text-primary font-black tracking-tight leading-normal">Tài liệu dự án VICTEACH</p>
+                </div>
+              </div>
+
               <div className="mb-12 space-y-4">
                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20">
                     <Book size={12} /> Tài liệu hướng dẫn
                  </div>
-                 <h1 className="text-5xl font-black tracking-tight text-foreground leading-tight">
+                 <h1 className="text-3xl md:text-5xl font-black tracking-tight text-foreground leading-tight">
                     {activeTopic.title}
                  </h1>
                  <div className="h-1.5 w-20 bg-primary rounded-full shadow-lg shadow-primary/20" />
@@ -286,7 +308,7 @@ export const DocumentationModule = () => {
       </main>
       {/* Right Sidebar - On This Page */}
       <aside className="hidden xl:block w-72 shrink-0 py-10 px-8">
-        <div className="sticky top-32 space-y-6 border-l border-border/40 pl-6 text-right">
+        <div className="sticky top-32 pt-6 space-y-6 border-l border-border/40 pl-6 text-right">
           <AnimatePresence mode="wait">
             {activeTopic.sections.length > 0 ? (
               <motion.div 

@@ -386,13 +386,13 @@ export const TradingChart = observer(function TradingChart({ positions, currentP
       </AnimatePresence>
 
       {/* Timeframe Toolbar */}
-      <div id="tut-chart-timeframes" className="flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-border/40 bg-muted/5 h-9 shrink-0 px-3">
+      <div id="tut-chart-timeframes" className="flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-border/40 bg-muted/5 h-9 shrink-0 px-2 md:px-3">
          {TIMEFRAMES.map(t => (
            <button
              key={t.value}
              onClick={() => onTimeframeChange?.(t.value)}
              className={cn(
-               "px-3 h-6 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
+               "px-2 md:px-3 h-6 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
                timeframe === t.value 
                  ? "bg-primary text-primary-foreground shadow-sm"
                  : "text-muted-foreground hover:bg-muted/20 hover:text-foreground"
@@ -440,43 +440,37 @@ export const TradingChart = observer(function TradingChart({ positions, currentP
 
       <div className="flex-1 relative min-h-0">
         {/* Legend: OHLCV Info - Moved slightly down to compensate for toolbar */}
-        <div className="absolute top-2.5 left-2.5 z-20 flex flex-wrap items-center gap-2.5 text-[9px] pointer-events-none p-1.5 rounded bg-background/40 backdrop-blur-md border border-border/10 shadow-sm">
+        <div className="absolute top-1 left-1 md:top-2.5 md:left-2.5 z-20 flex flex-wrap items-center gap-1.5 md:gap-2.5 text-[8.5px] md:text-[9px] pointer-events-none p-1 md:p-1.5 rounded bg-background/40 backdrop-blur-md border border-border/10 shadow-sm opacity-80 md:opacity-100 max-w-[80vw]">
           {/* Symbol Name & Gold Dot */}
-          <div className="flex items-center gap-1.5 mr-1">
+          <div className="flex items-center gap-1 md:gap-1.5 mr-0.5 md:mr-1">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
-            <span className="font-black text-foreground uppercase tracking-widest text-[10px]">XAUT/USDT</span>
+            <span className="font-black text-foreground uppercase tracking-widest leading-none">XAUT/USDT</span>
           </div>
 
           <div className="h-3 w-px bg-border/20 mx-0.5" />
 
           <div className="flex gap-1 items-center">
-            <span className="text-muted-foreground uppercase font-black opacity-50">O</span>
-            <span className="font-mono font-bold text-foreground">
+            <span className="text-muted-foreground uppercase font-black opacity-50 hidden sm:inline">O</span>
+            <span className="font-mono font-bold text-foreground leading-none">
               {currentCandle ? currentCandle.open.toFixed(2) : '-'}
             </span>
           </div>
           <div className="flex gap-1 items-center">
-            <span className="text-muted-foreground uppercase font-black opacity-50">H</span>
-            <span className="font-mono font-bold text-foreground">
+            <span className="text-muted-foreground uppercase font-black opacity-50 hidden sm:inline">H</span>
+            <span className="font-mono font-bold text-foreground leading-none">
               {currentCandle ? currentCandle.high.toFixed(2) : '-'}
             </span>
           </div>
           <div className="flex gap-1 items-center">
-            <span className="text-muted-foreground uppercase font-black opacity-50">L</span>
-            <span className="font-mono font-bold text-foreground">
+            <span className="text-muted-foreground uppercase font-black opacity-50 hidden sm:inline">L</span>
+            <span className="font-mono font-bold text-foreground leading-none">
               {currentCandle ? currentCandle.low.toFixed(2) : '-'}
             </span>
           </div>
           <div className="flex gap-1 items-center">
-            <span className="text-muted-foreground uppercase font-black opacity-50">C</span>
-            <span className={cn('font-mono font-bold', isUp ? 'text-emerald-500' : 'text-rose-500')}>
+            <span className="text-muted-foreground uppercase font-black opacity-50 hidden sm:inline">C</span>
+            <span className={cn('font-mono font-bold leading-none', isUp ? 'text-emerald-500' : 'text-rose-500')}>
               {currentCandle ? currentCandle.close.toFixed(2) : '-'}
-            </span>
-          </div>
-          <div className="flex gap-1 items-center">
-            <span className="text-muted-foreground uppercase font-black opacity-50">Vol</span>
-            <span className="font-mono font-bold text-foreground/80">
-              {currentCandle ? currentCandle.volume.toFixed(0) : '-'}
             </span>
           </div>
         </div>
@@ -525,7 +519,7 @@ export const TradingChart = observer(function TradingChart({ positions, currentP
                 style={{
                   left: hoverPoint.x + 16,
                   top: Math.max(4, hoverPoint.y - 60),
-                  transform: hoverPoint.x > 260 ? 'translateX(-110%)' : 'translateX(0)',
+                  transform: containerRef.current && hoverPoint.x > containerRef.current.clientWidth / 2 ? 'translateX(-110%)' : 'translateX(0)',
                 }}
               >
                 <div className="bg-background/95 backdrop-blur-md border border-border/40 rounded-lg shadow-xl overflow-hidden min-w-[148px]">

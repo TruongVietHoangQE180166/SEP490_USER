@@ -89,7 +89,7 @@ export const MyCourseList = observer(() => {
   }
 
   return (
-    <div className="relative space-y-12">
+    <div className="relative space-y-12 overflow-hidden">
       {/* Decorative background element */}
       <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-primary/5 blur-[120px] -z-10 pointer-events-none" />
       <div className="absolute top-1/2 -left-24 h-96 w-96 rounded-full bg-primary/5 blur-[120px] -z-10 pointer-events-none" />
@@ -156,12 +156,12 @@ export const MyCourseList = observer(() => {
           )}
         </div>
 
-        <div className="flex items-center gap-2 p-1.5 bg-muted/20 rounded-2xl w-full md:w-auto overflow-x-auto no-scrollbar">
+        <div className="grid grid-cols-3 md:flex items-center gap-2 p-1.5 bg-muted/20 rounded-2xl w-full md:w-auto overflow-hidden">
           {(['all', 'completed', 'ongoing'] as FilterType[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`whitespace-nowrap px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+              className={`whitespace-nowrap px-2 md:px-6 py-2.5 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-wider transition-all ${
                 activeTab === tab 
                 ? 'bg-background text-primary shadow-sm' 
                 : 'text-muted-foreground hover:text-foreground hover:bg-background/40'

@@ -393,52 +393,7 @@ export function TeamSectionBlock() {
           ))}
         </motion.div>
 
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="mt-24 text-center"
-        >
-          <Card className="inline-flex flex-col items-center gap-8 rounded-[40px] border border-primary/20 bg-background/40 px-12 py-10 shadow-2xl backdrop-blur-3xl overflow-hidden relative group">
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700" />
-            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700" />
-            
-            <h3 className="text-3xl font-black font-cinzel text-foreground relative z-10 transition-colors group-hover:text-primary">Trở Thành Một Phần Của Chúng Tôi</h3>
-            <p className="max-w-2xl text-sm text-foreground/60 font-montserrat font-bold relative z-10 uppercase tracking-widest">
-              Chúng tôi luôn chào đón những tài năng mới cùng chung sứ mệnh
-            </p>
-            <Button
-              size="lg"
-              className="group relative overflow-hidden rounded-full bg-primary px-12 py-6 text-primary-foreground shadow-2xl shadow-primary/30 transition-all duration-500 hover:scale-105 hover:shadow-primary/50 relative z-10"
-            >
-              <motion.span
-                className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                animate={
-                  shouldReduceMotion ? undefined : { x: ["-100%", "100%"] }
-                }
-                transition={
-                  shouldReduceMotion
-                    ? undefined
-                    : { repeat: Infinity, duration: 2, ease: "linear" }
-                }
-              />
-              <span className="relative font-black uppercase tracking-[0.2em] font-montserrat">Tham Gia Ngay</span>
-              <motion.span
-                className="relative ml-3"
-                animate={shouldReduceMotion ? undefined : { x: [0, 5, 0] }}
-                transition={
-                  shouldReduceMotion
-                    ? undefined
-                    : { repeat: Infinity, duration: 1.5 }
-                }
-              >
-                →
-              </motion.span>
-            </Button>
-          </Card>
-        </motion.div>
+
       </div>
     </section>
   );

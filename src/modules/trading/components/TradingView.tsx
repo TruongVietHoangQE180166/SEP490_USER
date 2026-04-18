@@ -409,7 +409,7 @@ export const TradingView = observer(function TradingView() {
 
         {/* ── Mobile Layout ────────────────────────────────────────── */}
         <div className="flex lg:hidden flex-col gap-4">
-          <div className="rounded-md border border-border bg-card overflow-hidden h-[400px]">
+          <div className="rounded-md border border-border bg-card overflow-hidden h-[500px] sm:h-[600px] shadow-sm">
              <TradingChart 
                positions={positions} 
                currentPrice={currentPrice} 

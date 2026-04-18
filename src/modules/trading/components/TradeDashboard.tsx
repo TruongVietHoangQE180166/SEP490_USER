@@ -46,8 +46,8 @@ export const TradeDashboard = observer(function TradeDashboard() {
   return (
     <div className="flex flex-col w-full h-full bg-card rounded-md border border-border overflow-hidden">
       {/* Tab Header */}
-      <div className="flex border-b border-border bg-muted/20 items-center justify-between">
-        <div className="flex">
+      <div className="flex w-full border-b border-border bg-muted/20 items-center justify-between overflow-hidden">
+        <div className="flex flex-1 overflow-x-auto no-scrollbar">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -149,7 +149,7 @@ const OpenPositionsTable = observer(({ positions, currentPrice, isUp }: { positi
   if (positions.length === 0) return <EmptyState message="Không có vị thế mở" />;
 
   return (
-    <table className="w-full text-left text-xs">
+    <table className="w-full text-left text-xs min-w-max whitespace-nowrap">
       <thead>
         <tr className="text-muted-foreground border-b border-border/50 bg-muted/5">
           <th className="px-3 py-3 font-medium uppercase tracking-tighter">Cặp / Chiều</th>
@@ -330,7 +330,7 @@ const PendingOrdersTable = observer(({ orders, currentPrice, isUp }: { orders: O
   };
 
   return (
-    <table className="w-full text-left text-xs">
+    <table className="w-full text-left text-xs min-w-max whitespace-nowrap">
       <thead>
         <tr className="text-muted-foreground border-b border-border/50 bg-muted/5">
           <th className="px-4 py-3 font-medium uppercase tracking-tighter">Thời gian</th>
@@ -431,7 +431,7 @@ const FuturePendingOrdersTable = observer(({ orders, currentPrice, isUp }: { ord
   if (orders.length === 0) return <EmptyState message="Không có lệnh Future chờ" />;
 
   return (
-    <table className="w-full text-left text-xs">
+    <table className="w-full text-left text-xs min-w-max whitespace-nowrap">
       <thead>
         <tr className="text-muted-foreground border-b border-border/50 bg-muted/5">
           <th className="px-3 py-3 font-medium uppercase tracking-tighter">Thời gian</th>
@@ -525,7 +525,7 @@ const OrderHistoryTable = observer(({ orders }: { orders: OrderType[] }) => {
   if (orders.length === 0) return <EmptyState message="Lịch sử trống" />;
 
   return (
-    <table className="w-full text-left text-xs">
+    <table className="w-full text-left text-xs min-w-max whitespace-nowrap">
       <thead>
         <tr className="text-muted-foreground border-b border-border/50 bg-muted/5">
           <th className="px-4 py-3 font-medium uppercase tracking-tighter">Thời gian khớp</th>
@@ -588,7 +588,7 @@ const ClosedPositionsTable = observer(({ positions }: { positions: ClosedPositio
   if (positions.length === 0) return <EmptyState message="Lịch sử vị thế trống" />;
 
   return (
-    <table className="w-full text-left text-xs">
+    <table className="w-full text-left text-xs min-w-max whitespace-nowrap">
       <thead>
         <tr className="text-muted-foreground border-b border-border/50 bg-muted/5">
           <th className="px-3 py-3 font-medium uppercase tracking-tighter">Thời gian đóng</th>
