@@ -158,7 +158,7 @@ export const TeacherDashboardModule = () => {
           {
             label: 'Hoàn thành khoá',
             value: summary.rateOfCourseCompletion,
-            display: `${summary.rateOfCourseCompletion}%`,
+            display: `${summary.rateOfCourseCompletion.toFixed(3)}%`,
             icon: CheckCircle2,
             desc: 'Tỉ lệ hoàn thành',
             pct: Math.min(Math.max(summary.rateOfCourseCompletion, 0), 100),
@@ -176,7 +176,7 @@ export const TeacherDashboardModule = () => {
           {
             label: 'Hoạt động tuần',
             value: summary.percentageOfWeeklyActiveStudents,
-            display: `${summary.percentageOfWeeklyActiveStudents}%`,
+            display: `${summary.percentageOfWeeklyActiveStudents.toFixed(1)}%`,
             icon: Activity,
             desc: 'Học viên hoạt động',
             pct: Math.min(Math.max(summary.percentageOfWeeklyActiveStudents, 0), 100),
@@ -185,7 +185,7 @@ export const TeacherDashboardModule = () => {
           {
             label: 'Khoá có Quiz',
             value: summary.percentageOfCoursesWithQuizzes,
-            display: `${summary.percentageOfCoursesWithQuizzes}%`,
+            display: `${summary.percentageOfCoursesWithQuizzes.toFixed(1)}%`,
             icon: BarChart3,
             desc: 'Tích hợp bài kiểm tra',
             pct: Math.min(Math.max(summary.percentageOfCoursesWithQuizzes, 0), 100),
@@ -194,7 +194,7 @@ export const TeacherDashboardModule = () => {
           {
             label: 'Đã đánh giá',
             value: summary.percentageOfRatedCourses,
-            display: `${summary.percentageOfRatedCourses}%`,
+            display: `${summary.percentageOfRatedCourses.toFixed(1)}%`,
             icon: Star,
             desc: 'Khoá có nhận xét',
             pct: Math.min(Math.max(summary.percentageOfRatedCourses, 0), 100),
@@ -203,7 +203,7 @@ export const TeacherDashboardModule = () => {
           {
             label: 'Doanh thu Top',
             value: summary.percentageOfIncomeFromTopPerformingCourses,
-            display: `${summary.percentageOfIncomeFromTopPerformingCourses}%`,
+            display: `${summary.percentageOfIncomeFromTopPerformingCourses.toFixed(1)}%`,
             icon: TrendingUp,
             desc: 'Từ khoá học hàng đầu',
             pct: Math.min(Math.max(summary.percentageOfIncomeFromTopPerformingCourses, 0), 100),
@@ -211,76 +211,44 @@ export const TeacherDashboardModule = () => {
           },
         ].map((item, i) => {
           const isNegative = typeof item.value === 'number' && item.value < 0;
-          const hasTrend = item.trend !== null;
+          const isPercentage = item.display.includes('%');
 
           return (
             <motion.div key={item.label} variants={itemVariants} className="h-full">
-              <Card className="relative h-full border border-border/50 bg-card rounded-2xl overflow-hidden group hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 flex flex-col">
-                {/* Subtle top accent line */}
-                <div className={cn(
-                  "absolute top-0 left-0 right-0 h-[2px] transition-opacity duration-300 opacity-0 group-hover:opacity-100",
-                  isNegative ? "bg-destructive" : "bg-primary"
-                )} />
-
-                <CardContent className="p-5">
-                  {/* Top row: icon + badge */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div className={cn(
-                      "w-9 h-9 rounded-xl flex items-center justify-center",
-                      isNegative
-                        ? "bg-destructive/10 text-destructive"
-                        : "bg-primary/10 text-primary"
-                    )}>
-                      <item.icon size={17} strokeWidth={2.5} />
-                    </div>
-
-                    {hasTrend && (
-                      <div className={cn(
-                        "flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full border",
-                        isNegative
-                          ? "text-destructive bg-destructive/8 border-destructive/20"
-                          : "text-primary bg-primary/8 border-primary/20"
-                      )}>
-                        {isNegative
-                          ? <TrendingDown size={9} />
-                          : <TrendingUp size={9} />
-                        }
-                        {isNegative ? 'Âm' : 'Dương'}
-                      </div>
-                    )}
+              <Card className="group relative overflow-hidden border border-white/10 dark:border-white/5 shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-xl transition-all duration-300 hover:scale-[1.02] flex flex-col h-full">
+                <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                    {item.label}
+                  </CardTitle>
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary transition-all group-hover:bg-primary group-hover:text-white">
+                    <item.icon size={16} />
                   </div>
-
-                  {/* Value */}
-                  <div className="mb-1">
-                    <span className={cn(
-                      "text-2xl font-black tracking-tight leading-none",
-                      isNegative ? "text-destructive" : "text-foreground"
+                </CardHeader>
+                <CardContent className="flex flex-col justify-between flex-grow">
+                  <div>
+                    <div className={cn(
+                        "text-xl font-black tabular-nums break-all",
+                        isPercentage 
+                            ? (item.value >= 0 ? 'text-emerald-500' : 'text-rose-500') 
+                            : 'text-foreground'
                     )}>
                       {item.display}
-                    </span>
+                    </div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60 mt-1">
+                      {item.desc}
+                    </p>
                   </div>
 
-                  {/* Label + description */}
-                  <p className="text-xs font-semibold text-foreground/80 mb-0.5">{item.label}</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight">{item.desc}</p>
-
-                  {/* Progress bar */}
+                  {/* Progress bar integrated like a subtle secondary detail if needed, but keeping it clean like admin */}
                   {item.pct !== null && (
-                    <div className="mt-4">
-                      <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                    <div className="mt-4 space-y-1">
+                      <div className="h-1 w-full bg-muted/30 rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${item.pct}%` }}
-                          transition={{ duration: 1.1, ease: 'circOut', delay: i * 0.07 }}
-                          className={cn(
-                            "h-full rounded-full",
-                            isNegative ? "bg-destructive/70" : "bg-primary"
-                          )}
+                          transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1], delay: i * 0.05 }}
+                          className="h-full bg-primary/60 rounded-full"
                         />
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[9px] text-muted-foreground">0%</span>
-                        <span className="text-[9px] text-muted-foreground font-medium">{item.pct}%</span>
                       </div>
                     </div>
                   )}
@@ -298,31 +266,64 @@ export const TeacherDashboardModule = () => {
 
       {/* 4. BOTTOM CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-border/40 bg-primary/5 rounded-xl p-8 border-dashed relative overflow-hidden group">
-           <div className="relative z-10 space-y-4">
-              <Sparkles size={32} className="text-primary mb-2" />
-              <h4 className="text-xl font-bold italic tracking-tight">Cống hiến &amp; Phát triển</h4>
-              <p className="text-sm text-foreground/60 leading-relaxed font-medium">
-                 Hệ thống VIC luôn trân trọng những giá trị tri thức mà bạn mang lại. Hãy tiếp tục sáng tạo và xây dựng những khóa học chất lượng nhất dành cho cộng đồng học viên.
-              </p>
-              <div className="pt-2">
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg bg-primary/10 text-primary font-bold text-[10px] uppercase tracking-widest">Tiêu chuẩn chất lượng cao</span>
+        <Card className="border-2 border-primary/20 bg-primary/5 rounded-[2rem] p-8 border-dashed relative overflow-hidden group hover:bg-primary/[0.08] transition-all duration-500">
+           <div className="relative z-10 space-y-5">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-inner transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
+                <Sparkles size={32} />
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-2xl font-black tracking-tight italic">Cống hiến &amp; Phát triển</h4>
+                <p className="text-sm text-foreground/60 leading-relaxed font-medium max-w-md">
+                   Hệ thống VIC luôn trân trọng những giá trị tri thức mà bạn mang lại. Hãy tiếp tục sáng tạo và xây dựng những khóa học chất lượng nhất dành cho cộng đồng học viên.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                  <span className="inline-flex items-center px-4 py-1.5 rounded-xl bg-white/80 dark:bg-black/20 text-primary font-black text-[10px] uppercase tracking-[0.2em] shadow-sm backdrop-blur-sm">
+                    Tiêu chuẩn VIC VIP
+                  </span>
+                  <div className="flex -space-x-2">
+                    {[1,2,3].map(i => (
+                        <div key={i} className="w-6 h-6 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-[8px] font-bold">
+                            {i}
+                        </div>
+                    ))}
+                  </div>
               </div>
            </div>
-           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
+           {/* Decorative background circle */}
+           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
         </Card>
 
-        <Card className="border-border/40 bg-card rounded-xl p-8 shadow-sm flex flex-col justify-center gap-6">
-           <div className="flex items-center gap-5">
-              <div className="w-14 h-14 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-xl shadow-primary/20">
-                 <Wallet size={26} />
+        <Card className="border-2 border-border/40 bg-card/60 rounded-[2rem] p-8 shadow-xl shadow-black/5 flex flex-col justify-between gap-8 relative overflow-hidden group border-b-primary/40">
+           <div className="flex items-start justify-between">
+              <div className="space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-foreground/5 text-foreground flex items-center justify-center transition-all duration-500 group-hover:rotate-12 group-hover:bg-primary group-hover:text-primary-foreground shadow-lg">
+                    <Wallet size={26} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mb-1">Thu nhập bình quân</p>
+                    <h4 className="text-3xl font-[1000] tracking-tighter break-all">
+                        {formatCurrency(summary.incomeGeneratedFromCourses / (summary.numberOfCourses || 1))}
+                        <span className="text-sm font-black text-muted-foreground/40 ml-2">/ Khóa</span>
+                    </h4>
+                  </div>
               </div>
-              <div>
-                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Thu nhập bình quân</p>
-                 <h4 className="text-2xl font-black">{formatCurrency(summary.incomeGeneratedFromCourses / summary.numberOfCourses)} / Khóa</h4>
-              </div>
+              <Link href="/teacher/wallet">
+                <Button variant="ghost" size="icon" className="rounded-2xl hover:bg-primary/10 text-primary transition-all active:scale-90">
+                    <ArrowRight size={20} />
+                </Button>
+              </Link>
            </div>
-           <span className="w-fit inline-flex items-center px-4 py-1.5 rounded-lg bg-primary/10 text-primary font-bold text-xs">Quy mô tài chính cấp độ 1</span>
+
+           <div className="flex items-center justify-between pt-6 border-t border-border/40">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Quy mô tài chính cấp độ 1</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-muted/50 rounded-lg border border-border/20 text-[9px] font-black text-muted-foreground uppercase">
+                    <PieChart size={12} /> Phân tích tự động
+                </div>
+           </div>
         </Card>
       </div>
     </motion.div>

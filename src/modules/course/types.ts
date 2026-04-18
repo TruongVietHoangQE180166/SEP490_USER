@@ -110,6 +110,9 @@ export interface Course {
   courseLevel?: string | null;
   countEnrolledStudents?: number | null;
   profileResponse?: UserProfile;
+  whatYouWillLearn?: string[];
+  targetAudiences?: string[];
+  benefits?: string[];
 }
 
 export interface CourseApiResponse<T> {

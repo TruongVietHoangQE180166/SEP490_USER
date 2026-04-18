@@ -38,7 +38,10 @@ export const TeacherCourseCreatePanel = () => {
     thumbnail: null,
     thumbnailUrl: '',
     previewVideo: null,
-    assets: []
+    assets: [],
+    whatYouWillLearn: [],
+    targetAudiences: [],
+    benefit: []
   });
 
   const handleCreateCourse = async () => {

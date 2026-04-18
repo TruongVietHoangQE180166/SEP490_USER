@@ -38,41 +38,66 @@ import { cn } from '@/lib/utils';
 import { TradeOrder } from '../../types';
 import { fmt } from '../../utils';
 
+import { FutureOrderType } from '@/modules/trading/types';
+
 interface TradeOrderHistoryProps {
-  orders: TradeOrder[];
+  tradeOrders: TradeOrder[];
+  futureOrders?: FutureOrderType[];
 }
 
 const PAGE_SIZE = 10;
 
-export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ orders }) => {
+export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrders = [], futureOrders = [] }) => {
+  const [activeTab, setActiveTab] = React.useState<'SPOT' | 'FUTURE'>('SPOT');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filterType, setFilterType] = React.useState<'ALL' | 'BUY' | 'SELL'>('ALL');
   const [filterStatus, setFilterStatus] = React.useState<'ALL' | 'PENDING' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const [currentPage, setCurrentPage] = React.useState(1);
 
   const filteredOrders = React.useMemo(() => {
-    return orders.filter((order) => {
-      const matchesSearch =
-        order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.status.toLowerCase().includes(searchQuery.toLowerCase());
+    if (activeTab === 'SPOT') {
+      return tradeOrders.filter((order) => {
+        const matchesSearch =
+          order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.status.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesType = filterType === 'ALL' || order.type === filterType;
-      const matchesStatus =
-        filterStatus === 'ALL' ||
-        (filterStatus === 'COMPLETED' && (order.status === 'COMPLETED' || order.completed)) ||
-        (filterStatus === 'PENDING' && order.status === 'PENDING') ||
-        (filterStatus === 'CANCELLED' && order.status === 'CANCELLED');
+        const matchesType = filterType === 'ALL' || order.type === filterType;
+        const matchesStatus =
+          filterStatus === 'ALL' ||
+          (filterStatus === 'COMPLETED' && (order.status === 'COMPLETED' || order.completed)) ||
+          (filterStatus === 'PENDING' && order.status === 'PENDING') ||
+          (filterStatus === 'CANCELLED' && order.status === 'CANCELLED');
 
-      return matchesSearch && matchesType && matchesStatus;
-    });
-  }, [orders, searchQuery, filterType, filterStatus]);
+        return matchesSearch && matchesType && matchesStatus;
+      });
+    } else {
+      return futureOrders.filter((order) => {
+        const matchesSearch =
+          order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.side.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.status.toLowerCase().includes(searchQuery.toLowerCase());
+
+        // For future, map filterType 'BUY' to 'LONG', 'SELL' to 'SHORT' if needed
+        const mappedType = filterType === 'BUY' ? 'LONG' : filterType === 'SELL' ? 'SHORT' : 'ALL';
+        const matchesType = mappedType === 'ALL' || order.side === mappedType;
+        const matchesStatus =
+          filterStatus === 'ALL' ||
+          (filterStatus === 'COMPLETED' && (order.status === 'COMPLETED' || order.status === 'CLOSED')) ||
+          (filterStatus === 'PENDING' && order.status === 'OPEN') ||
+          (filterStatus === 'CANCELLED' && order.status === 'CANCELLED');
+
+        return matchesSearch && matchesType && matchesStatus;
+      });
+    }
+  }, [tradeOrders, futureOrders, activeTab, searchQuery, filterType, filterStatus]);
 
   // Reset to first page when filters change
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, filterType, filterStatus]);
+  }, [searchQuery, filterType, filterStatus, activeTab]);
 
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
   const paginatedOrders = React.useMemo(() => {
@@ -89,14 +114,14 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ orders }) 
 
   const typeOptions = [
     { label: 'Tất cả lệnh', value: 'ALL' },
-    { label: 'Lệnh MUA', value: 'BUY' },
-    { label: 'Lệnh BÁN', value: 'SELL' },
+    { label: activeTab === 'SPOT' ? 'Lệnh MUA' : 'Vị thế LONG', value: 'BUY' },
+    { label: activeTab === 'SPOT' ? 'Lệnh BÁN' : 'Vị thế SHORT', value: 'SELL' },
   ];
 
   const statusOptions = [
     { label: 'Tất cả Trạng thái', value: 'ALL' },
-    { label: 'Khớp lệnh', value: 'COMPLETED' },
-    { label: 'Đang chờ', value: 'PENDING' },
+    { label: activeTab === 'SPOT' ? 'Khớp lệnh' : 'Đã đóng (Closed)', value: 'COMPLETED' },
+    { label: activeTab === 'SPOT' ? 'Đang chờ' : 'Đang mở (Open)', value: 'PENDING' },
     { label: 'Đã hủy/Lỗi', value: 'CANCELLED' },
   ];
 
@@ -110,19 +135,36 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ orders }) 
       transition={{ delay: 0.4 }}
       className="rounded-3xl bg-card border border-border/40 shadow-2xl overflow-hidden"
     >
-      {/* header */}
-      <div className="px-10 py-8 border-b border-border/40 bg-muted/10 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <h3 className="text-xl font-black uppercase tracking-tight text-foreground italic flex items-center gap-3">
-            <TrendingUp size={18} className="text-amber-400" />
-            Lịch sử giao dịch Vàng
-          </h3>
-          <p className="text-xs text-muted-foreground font-medium opacity-70">
-            Chi tiết các lệnh mua/bán XAUT/USDT
-          </p>
+      {/* Header and Tabs */}
+      <div className="flex flex-col lg:flex-row justify-between lg:items-end border-b border-border/40 bg-muted/10 pr-0">
+        <div className="px-10 pt-8 pb-4 flex flex-col space-y-6 flex-1">
+          <div className="space-y-1">
+            <h3 className="text-xl font-black uppercase tracking-tight text-foreground italic flex items-center gap-3">
+              <TrendingUp size={18} className="text-amber-400" />
+              Lịch sử giao dịch Vàng
+            </h3>
+            <p className="text-xs text-muted-foreground font-medium opacity-70">
+              Chi tiết các lệnh mua/bán XAUT/USDT và Vị thế Future
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-8 -mb-4 pt-2 border-b-2 border-transparent">
+             <button 
+               onClick={() => setActiveTab('SPOT')} 
+               className={cn("pb-3 text-sm font-black uppercase tracking-wider transition-colors border-b-2", activeTab === 'SPOT' ? "border-amber-400 text-amber-400" : "border-transparent text-muted-foreground hover:text-foreground")}
+             >
+               Giao dịch Spot
+             </button>
+             <button 
+               onClick={() => setActiveTab('FUTURE')} 
+               className={cn("pb-3 text-sm font-black uppercase tracking-wider transition-colors border-b-2", activeTab === 'FUTURE' ? "border-amber-400 text-amber-400" : "border-transparent text-muted-foreground hover:text-foreground")}
+             >
+               Lịch sử Future
+             </button>
+          </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center gap-4">
+        <div className="px-10 py-6 lg:py-8 lg:bg-transparent flex flex-col md:flex-row items-center gap-4 border-t lg:border-t-0 border-border/20">
           <div className="relative group w-full md:w-[320px]">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-amber-400" />
             <Input
@@ -196,19 +238,31 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ orders }) 
             <table className="w-full text-left border-separate border-spacing-0">
               <thead>
                 <tr className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-black bg-muted/5">
-                  <th className="px-10 py-5 border-b border-border/40">Lệnh</th>
-                  <th className="px-10 py-5 border-b border-border/40">Loại/Giá</th>
-                  <th className="px-10 py-5 border-b border-border/40">Khối lượng</th>
+                  <th className="px-10 py-5 border-b border-border/40">Lệnh/Vị thế</th>
+                  <th className="px-10 py-5 border-b border-border/40">Loại/Vào lệnh</th>
+                  <th className="px-10 py-5 border-b border-border/40">Khối lượng{activeTab === 'FUTURE' ? ' (Đòn bẩy)' : ''}</th>
                   <th className="px-10 py-5 border-b border-border/40">TP/SL</th>
-                  <th className="px-10 py-5 border-b border-border/40 text-right">Tổng/Trung bình</th>
+                  <th className="px-10 py-5 border-b border-border/40 text-right">{activeTab === 'SPOT' ? 'Tổng/Trung bình' : 'Margin/PnL'}</th>
                   <th className="px-10 py-5 border-b border-border/40 text-center">Trạng thái</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/20">
                 <AnimatePresence mode="popLayout">
-                  {paginatedOrders.map((order, idx) => (
+                  {paginatedOrders.map((itm, idx) => {
+                    const id = activeTab === 'SPOT' ? (itm as TradeOrder).id : (itm as FutureOrderType).id;
+                    const type = activeTab === 'SPOT' ? (itm as TradeOrder).type : (itm as FutureOrderType).side === 'LONG' ? 'BUY' : 'SELL';
+                    const symbol = itm.symbol;
+                    const createdDate = itm.createdDate;
+                    const category = activeTab === 'SPOT' ? (itm as TradeOrder).category : (itm as FutureOrderType).orderCategory;
+                    const quantity = itm.quantity;
+                    const takeProfit = itm.takeProfit;
+                    const stopLoss = itm.stopLoss;
+                    const status = activeTab === 'SPOT' ? (itm as TradeOrder).status : (itm as FutureOrderType).status === 'CLOSED' ? 'COMPLETED' : itm.status === 'OPEN' ? 'PENDING' : 'CANCELLED';
+                    const completed = activeTab === 'SPOT' ? (itm as TradeOrder).completed : itm.status === 'CLOSED';
+
+                    return (
                   <motion.tr
-                    key={order.id}
+                    key={id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.03 + 0.5 }}
@@ -216,16 +270,16 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ orders }) 
                   >
                     <td className="px-10 py-6">
                       <div className="flex items-center gap-4">
-                        <OrderIcon type={order.type} />
+                        <OrderIcon type={type} />
                         <div>
                           <span className={cn(
                             "text-xs font-black uppercase tracking-tighter block leading-tight group-hover:text-amber-500 transition-colors",
-                            order.type === 'BUY' ? 'text-emerald-400' : 'text-rose-400'
+                            type === 'BUY' ? 'text-emerald-400' : 'text-rose-400'
                           )}>
-                            {order.type} {order.symbol}
+                            {(itm as any).side || type} {symbol}
                           </span>
                           <span className="text-[9px] text-muted-foreground/60 font-mono tracking-widest uppercase">
-                            ID:{order.id.slice(-8)}
+                            ID:{id.slice(-8)}
                           </span>
                         </div>
                       </div>
@@ -234,13 +288,17 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ orders }) 
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
                           <Tag size={10} className="text-muted-foreground/40" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">{order.category}</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">{category}</span>
                         </div>
                         <p className="text-xs font-bold text-foreground/90">
-                          {order.category === 'LIMIT' ? (
-                            <>Limit: <span className="text-amber-400">${renderValue(order.limitPrice, true)}</span></>
+                          {activeTab === 'SPOT' ? (
+                            category === 'LIMIT' ? (
+                              <>Limit: <span className="text-amber-400">${renderValue((itm as TradeOrder).limitPrice, true)}</span></>
+                            ) : (
+                              <span className="text-muted-foreground font-medium italic">Khớp lệnh thị trường</span>
+                            )
                           ) : (
-                            <span className="text-muted-foreground font-medium italic">Khớp lệnh thị trường</span>
+                            <>Vào: <span className="text-amber-400">${renderValue((itm as FutureOrderType).entryPrice, true)}</span></>
                           )}
                         </p>
                       </div>
@@ -248,10 +306,17 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ orders }) 
                     <td className="px-10 py-6">
                       <div className="space-y-0.5">
                         <p className="text-sm font-black text-foreground/80 tabular-nums">
-                          {fmt(order.quantity, 4)} <span className="text-[10px] text-muted-foreground font-bold">XAUT</span>
+                          {fmt(quantity, 4)} <span className="text-[10px] text-muted-foreground font-bold">XAUT</span>
                         </p>
+                        {activeTab === 'FUTURE' && (
+                          <div className="flex gap-1 items-center">
+                            <span className="inline-block text-[8px] px-1 py-0.5 bg-primary/20 text-primary font-black rounded uppercase">
+                              x{(itm as FutureOrderType).leverage || 1}
+                            </span>
+                          </div>
+                        )}
                         <p className="text-[10px] text-muted-foreground/50 font-mono italic">
-                          {order.createdDate ? new Date(order.createdDate).toLocaleDateString('vi-VN') + ' ' + new Date(order.createdDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--'}
+                          {createdDate ? new Date(createdDate).toLocaleDateString('vi-VN') + ' ' + new Date(createdDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--'}
                         </p>
                       </div>
                     </td>
@@ -259,30 +324,45 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ orders }) 
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <Target size={10} className="text-emerald-400/60" />
-                          <span className="text-[10px] font-bold text-emerald-400/80 tracking-tighter uppercase">TP: {renderValue(order.takeProfit, true)}</span>
+                          <span className="text-[10px] font-bold text-emerald-400/80 tracking-tighter uppercase">TP: {renderValue(takeProfit, true)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <ShieldAlert size={10} className="text-rose-400/60" />
-                          <span className="text-[10px] font-bold text-rose-400/80 tracking-tighter uppercase">SL: {renderValue(order.stopLoss, true)}</span>
+                          <span className="text-[10px] font-bold text-rose-400/80 tracking-tighter uppercase">SL: {renderValue(stopLoss, true)}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-10 py-6 whitespace-nowrap text-right">
-                      <div className="space-y-0.5 mt-1">
-                        <p className="text-base font-black font-mono tracking-tighter text-foreground">
-                          ${renderValue(order.totalMoney, true)}
-                        </p>
-                        <div className="flex items-center justify-end gap-1.5">
-                          <span className="text-[9px] font-black uppercase text-muted-foreground/40">Avg Price:</span>
-                          <span className="text-[10px] font-bold text-amber-400/60 font-mono italic">{renderValue(order.avgPrice, true)}</span>
+                      {activeTab === 'SPOT' ? (
+                        <div className="space-y-0.5 mt-1">
+                          <p className="text-base font-black font-mono tracking-tighter text-foreground">
+                            ${renderValue((itm as TradeOrder).totalMoney, true)}
+                          </p>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <span className="text-[9px] font-black uppercase text-muted-foreground/40">Avg Price:</span>
+                            <span className="text-[10px] font-bold text-amber-400/60 font-mono italic">{renderValue((itm as TradeOrder).avgPrice, true)}</span>
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="space-y-0.5 mt-1">
+                          <p className="text-sm font-black font-mono tracking-tighter text-foreground">
+                            Margin: <span className="text-amber-400">${renderValue((itm as FutureOrderType).margin, true)}</span>
+                          </p>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <span className="text-[9px] font-black uppercase text-muted-foreground/40">PnL:</span>
+                            <span className={cn("text-[10px] font-bold font-mono italic", ((itm as FutureOrderType).realizedPnl || 0) >= 0 ? "text-emerald-400" : "text-rose-400")}>
+                               {((itm as FutureOrderType).realizedPnl || 0) >= 0 ? '+' : ''}{renderValue((itm as FutureOrderType).realizedPnl, true)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </td>
                     <td className="px-10 py-6 text-center">
-                      <StatusBadge status={order.status} completed={order.completed} />
+                      <StatusBadge status={status as any} completed={completed} />
                     </td>
                   </motion.tr>
-                ))}
+                  );
+                })}
               </AnimatePresence>
             </tbody>
           </table>

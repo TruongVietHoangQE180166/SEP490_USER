@@ -48,7 +48,10 @@ export const TeacherCourseEditPanel = ({ courseId, onBack }: TeacherCourseEditPa
     thumbnail: null,
     thumbnailUrl: '',
     previewVideo: null,
-    assets: []
+    assets: [],
+    whatYouWillLearn: [],
+    targetAudiences: [],
+    benefit: []
   });
 
   // Sync state when course data is loaded
@@ -81,7 +84,10 @@ export const TeacherCourseEditPanel = ({ courseId, onBack }: TeacherCourseEditPa
         thumbnail: null,
         thumbnailUrl: course.thumbnailUrl || '', 
         previewVideo: null,
-        assets: course.assets || []
+        assets: course.assets || [],
+        whatYouWillLearn: course.whatYouWillLearn || [],
+        targetAudiences: course.targetAudiences || [],
+        benefit: course.benefits || []
       });
     }
   }, [course]);

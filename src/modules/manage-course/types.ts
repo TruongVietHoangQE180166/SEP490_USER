@@ -39,6 +39,9 @@ export interface AdminCourse {
   countEnrolledStudents?: number | null;
   courseLevel?: string | null;
   categoryName?: string;
+  whatYouWillLearn?: string[];
+  targetAudiences?: string[];
+  benefits?: string[];
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
