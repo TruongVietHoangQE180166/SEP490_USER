@@ -1,360 +1,176 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { useEffect, useRef } from "react";
-
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
+import { ArrowRight, Sparkles, Binary, GraduationCap, Globe2, Cpu } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-type Point = {
-  x: number;
-  y: number;
-};
-
-interface WaveConfig {
-  offset: number;
-  amplitude: number;
-  frequency: number;
-  color: string;
-  opacity: number;
-}
-
-const highlightPills = [
-  "Công Nghệ AI",
-  "Hệ Thống Thông Minh",
-  "Cộng Đồng Sáng Tạo",
-] as const;
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, staggerChildren: 0.12 },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};
+const highlightItems = [
+  { icon: Binary, label: "Kết nối công nghệ", color: "text-[#9B99FE]" },
+  { icon: GraduationCap, label: "Đào tạo chuyên sâu", color: "text-[#2BC8B7]" },
+  { icon: Globe2, label: "Cộng đồng toàn cầu", color: "text-[#9B99FE]" },
+  { icon: Cpu, label: "Hệ thống thông minh", color: "text-[#2BC8B7]" },
+];
 
 export function GlowyWavesHero() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const mouseRef = useRef<Point>({ x: 0, y: 0 });
-  const targetMouseRef = useRef<Point>({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return undefined;
-
-    let animationId: number;
-    let time = 0;
-
-    const computeThemeColors = () => {
-      const rootStyles = getComputedStyle(document.documentElement);
-
-      // Helper to convert any CSS color to a Canvas-compatible format
-      const resolveColor = (variables: string[], alpha = 1) => {
-        const tempEl = document.createElement("div");
-        tempEl.style.position = "absolute";
-        tempEl.style.visibility = "hidden";
-        tempEl.style.width = "1px";
-        tempEl.style.height = "1px";
-        document.body.appendChild(tempEl);
-
-        let color = `rgba(255, 255, 255, ${alpha})`;
-
-        for (const variable of variables) {
-          const value = rootStyles.getPropertyValue(variable).trim();
-          if (value) {
-            tempEl.style.backgroundColor = `var(${variable})`;
-            const computedColor = getComputedStyle(tempEl).backgroundColor;
-
-            if (computedColor && computedColor !== "rgba(0, 0, 0, 0)") {
-              if (alpha < 1) {
-                const rgbMatch = computedColor.match(
-                  /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/
-                );
-                if (rgbMatch) {
-                  color = `rgba(${rgbMatch[1]}, ${rgbMatch[2]}, ${rgbMatch[3]}, ${alpha})`;
-                } else {
-                  color = computedColor;
-                }
-              } else {
-                color = computedColor;
-              }
-              break;
-            }
-          }
-        }
-
-        document.body.removeChild(tempEl);
-        return color;
-      };
-
-      return {
-        backgroundTop: resolveColor(["--background"], 1),
-        backgroundBottom: resolveColor(["--muted", "--background"], 0.95),
-        wavePalette: [
-          {
-            offset: 0,
-            amplitude: 70,
-            frequency: 0.003,
-            color: resolveColor(["--primary"], 0.8),
-            opacity: 0.45,
-          },
-          {
-            offset: Math.PI / 2,
-            amplitude: 90,
-            frequency: 0.0026,
-            color: resolveColor(["--accent", "--primary"], 0.7),
-            opacity: 0.35,
-          },
-          {
-            offset: Math.PI,
-            amplitude: 60,
-            frequency: 0.0034,
-            color: resolveColor(["--secondary", "--foreground"], 0.65),
-            opacity: 0.3,
-          },
-          {
-            offset: Math.PI * 1.5,
-            amplitude: 80,
-            frequency: 0.0022,
-            color: resolveColor(["--primary-foreground", "--foreground"], 0.25),
-            opacity: 0.25,
-          },
-          {
-            offset: Math.PI * 2,
-            amplitude: 55,
-            frequency: 0.004,
-            color: resolveColor(["--foreground"], 0.2),
-            opacity: 0.2,
-          },
-        ] satisfies WaveConfig[],
-      };
-    };
-
-    let themeColors = computeThemeColors();
-
-    const handleThemeMutation = () => {
-      themeColors = computeThemeColors();
-    };
-
-    const observer = new MutationObserver(handleThemeMutation);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class", "data-theme"],
-    });
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    const mouseInfluence = prefersReducedMotion ? 10 : 70;
-    const influenceRadius = prefersReducedMotion ? 160 : 320;
-    const smoothing = prefersReducedMotion ? 0.04 : 0.1;
-
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    const recenterMouse = () => {
-      const centerPoint = { x: canvas.width / 2, y: canvas.height / 2 };
-      mouseRef.current = centerPoint;
-      targetMouseRef.current = centerPoint;
-    };
-
-    const handleResize = () => {
-      resizeCanvas();
-      recenterMouse();
-    };
-
-    const handleMouseMove = (event: MouseEvent) => {
-      targetMouseRef.current = { x: event.clientX, y: event.clientY };
-    };
-
-    const handleMouseLeave = () => {
-      recenterMouse();
-    };
-
-    resizeCanvas();
-    recenterMouse();
-
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseleave", handleMouseLeave);
-
-    const drawWave = (wave: WaveConfig) => {
-      ctx.save();
-      ctx.beginPath();
-
-      for (let x = 0; x <= canvas.width; x += 4) {
-        const dx = x - mouseRef.current.x;
-        const dy = canvas.height / 2 - mouseRef.current.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const influence = Math.max(0, 1 - distance / influenceRadius);
-        const mouseEffect =
-          influence *
-          mouseInfluence *
-          Math.sin(time * 0.001 + x * 0.01 + wave.offset);
-
-        const y =
-          canvas.height / 2 +
-          Math.sin(x * wave.frequency + time * 0.002 + wave.offset) *
-            wave.amplitude +
-          Math.sin(x * wave.frequency * 0.4 + time * 0.003) *
-            (wave.amplitude * 0.45) +
-          mouseEffect;
-
-        if (x === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      }
-
-      ctx.lineWidth = 2.5;
-      ctx.strokeStyle = wave.color;
-      ctx.globalAlpha = wave.opacity;
-      ctx.shadowBlur = 35;
-      ctx.shadowColor = wave.color;
-      ctx.stroke();
-
-      ctx.restore();
-    };
-
-    const animate = () => {
-      time += 1;
-
-      mouseRef.current.x +=
-        (targetMouseRef.current.x - mouseRef.current.x) * smoothing;
-      mouseRef.current.y +=
-        (targetMouseRef.current.y - mouseRef.current.y) * smoothing;
-
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, themeColors.backgroundTop);
-      gradient.addColorStop(1, themeColors.backgroundBottom);
-
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
-
-      themeColors.wavePalette.forEach(drawWave);
-
-      animationId = window.requestAnimationFrame(animate);
-    };
-
-    animationId = window.requestAnimationFrame(animate);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseleave", handleMouseLeave);
-      cancelAnimationFrame(animationId);
-      observer.disconnect();
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  const springConfig = { damping: 25, stiffness: 150 };
+  const mouseXSpring = useSpring(mouseX, springConfig);
+  const mouseYSpring = useSpring(mouseY, springConfig);
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [10, -10]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [-10, 10]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isMobile || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(x);
+    mouseY.set(y);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   return (
     <section
-      className="relative isolate flex min-h-screen w-full items-center justify-center overflow-hidden bg-background"
-      role="region"
-      aria-label="Glowing waves hero section"
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative flex min-h-[90vh] md:min-h-screen w-full items-center justify-center overflow-hidden bg-background py-20"
     >
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 h-full w-full"
-        aria-hidden="true"
-      />
-
-      <div className="absolute inset-0 -z-10 pointer-events-none">
-        <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-foreground/[0.035] blur-[140px] dark:bg-foreground/[0.06]" />
-        <div className="absolute bottom-0 right-0 h-[360px] w-[360px] rounded-full bg-foreground/[0.025] blur-[120px] dark:bg-foreground/[0.05]" />
-        <div className="absolute top-1/2 left-1/4 h-[400px] w-[400px] rounded-full bg-primary/[0.02] blur-[150px] dark:bg-primary/[0.05]" />
+      {/* Background Layer */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Animated Grid */}
+        <div className="absolute inset-x-0 top-0 h-full w-full bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)]" />
+        
+        {/* Glow Spheres */}
+        <motion.div 
+            style={{ x: useTransform(mouseXSpring, [-0.5, 0.5], [-50, 50]), y: useTransform(mouseYSpring, [-0.5, 0.5], [-50, 50]) }}
+            className="absolute left-1/4 top-1/4 h-[400px] w-[400px] rounded-full bg-[#9B99FE]/10 blur-[120px] dark:bg-[#9B99FE]/20" 
+        />
+        <motion.div 
+            style={{ x: useTransform(mouseXSpring, [-0.5, 0.5], [50, -50]), y: useTransform(mouseYSpring, [-0.5, 0.5], [50, -50]) }}
+            className="absolute right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full bg-[#2BC8B7]/10 blur-[120px] dark:bg-[#2BC8B7]/20" 
+        />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-6 py-24 text-center md:px-8 lg:px-12">
+      <div className="container relative z-10 mx-auto px-6 text-center">
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="w-full"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          style={{ 
+            rotateX: isMobile ? 0 : rotateX, 
+            rotateY: isMobile ? 0 : rotateY, 
+            transformStyle: "preserve-3d" 
+          }}
+          className="flex flex-col items-center"
         >
+          {/* Badge */}
           <motion.div
-            variants={itemVariants}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/40 bg-background/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-foreground/70 dark:border-border/60 dark:bg-background/70 dark:text-foreground/80 font-montserrat"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-primary backdrop-blur-sm"
           >
-            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-            Về chúng tôi
+            <Sparkles className="h-3.5 w-3.5" />
+            Về VicTeach
           </motion.div>
 
+          {/* Heading */}
           <motion.h1
-            variants={itemVariants}
-            className="mb-6 text-4xl font-black tracking-tight text-foreground md:text-6xl lg:text-7xl font-cinzel"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="relative z-20 mb-8 max-w-5xl text-4xl font-black leading-tight tracking-normal md:tracking-tight text-foreground md:text-7xl lg:text-8xl md:leading-[1.1] font-cinzel text-balance px-4 overflow-visible"
           >
-            Định Hình Tương Lai{" "}
-            <span className="bg-gradient-to-r from-primary via-primary/60 to-foreground/80 bg-clip-text text-transparent">
-              Giáo Dục Thông Minh
+            Khát Vọng <br className="hidden md:block" />
+            <span className="bg-gradient-to-r from-[#9B99FE] via-[#2BC8B7] to-[#9B99FE] bg-clip-text text-transparent italic pr-4">
+              Nâng Tầm Tri Thức
             </span>
           </motion.h1>
 
+          {/* Description */}
           <motion.p
-            variants={itemVariants}
-            className="mx-auto mb-10 max-w-3xl text-lg text-foreground/70 md:text-2xl font-montserrat leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mx-auto mb-12 max-w-3xl text-lg font-medium text-foreground/60 md:text-xl font-montserrat leading-relaxed"
           >
-            VicTeach không chỉ là một nền tảng học tập, mà là một hệ sinh thái toàn diện, nơi tri thức được lan tỏa qua công nghệ hiện đại và cộng đồng học tập sáng tạo.
+            Chúng tôi kiến tạo môi trường giáo dục thông minh vượt giới hạn, 
+            kết nối hàng triệu học viên với công nghệ tương lai và những giá trị cốt lõi.
           </motion.p>
 
+          {/* CTA Buttons */}
           <motion.div
-            variants={itemVariants}
-            className="mb-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-16 flex flex-col items-center gap-4 sm:flex-row"
           >
             <Button
               size="lg"
-              className="group gap-2 rounded-full px-10 text-base uppercase tracking-[0.2em] font-bold"
+              className="h-14 rounded-full bg-primary px-10 text-xs font-black uppercase tracking-[0.2em] shadow-[0_10px_30px_-10px_rgba(var(--primary-rgb),0.5)] transition-all hover:scale-105 active:scale-95"
             >
-              Khám Phá Ngay
-              <ArrowRight
-                className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                aria-hidden="true"
-              />
+              Cùng bắt đầu
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="rounded-full border-border/40 bg-background/60 px-10 text-base text-foreground/80 backdrop-blur transition-all hover:border-border/60 hover:bg-background/70 dark:border-border/50 dark:bg-background/40 dark:text-foreground/70 dark:hover:border-border/70 dark:hover:bg-background/50 font-bold"
+              className="h-14 rounded-full border-primary/20 bg-background/50 px-10 text-xs font-black uppercase tracking-[0.2em] backdrop-blur transition-all hover:bg-primary/10"
             >
-              Tìm hiểu thêm
+              Hành trình của chúng tôi
             </Button>
           </motion.div>
 
-          <motion.ul
-            variants={itemVariants}
-            className="mb-12 flex flex-wrap items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] text-foreground/70 dark:text-foreground/80 font-montserrat"
+          {/* Feature Grid - Cinematic Cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="grid grid-cols-2 gap-4 md:grid-cols-4"
           >
-            {highlightPills.map((pill) => (
-              <li
-                key={pill}
-                className="rounded-full border border-border/40 bg-background/60 px-5 py-2.5 backdrop-blur dark:border-border/60 dark:bg-background/70 shadow-sm"
+            {highlightItems.map((item, idx) => (
+              <motion.div
+                key={item.label}
+                whileHover={{ y: -5 }}
+                className="group relative flex flex-col items-center gap-4 rounded-3xl border border-border/60 bg-card/40 p-6 backdrop-blur-xl transition-all hover:border-primary/30"
               >
-                {pill}
-              </li>
+                <div className={`rounded-2xl bg-background/60 p-4 shadow-sm transition-transform group-hover:scale-110 ${item.color}`}>
+                  <item.icon className="h-6 w-6" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60 font-montserrat">
+                  {item.label}
+                </span>
+                
+                {/* Decorative glow item */}
+                <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+              </motion.div>
             ))}
-          </motion.ul>
+          </motion.div>
         </motion.div>
       </div>
+
+      {/* Modern Decorator Elements */}
+      <div className="absolute bottom-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-border to-transparent" />
     </section>
   );
 }
+
