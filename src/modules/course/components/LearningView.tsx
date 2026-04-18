@@ -10,6 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { ThunderLoader } from '@/components/thunder-loader';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export const LearningView = observer(({ slug }: { slug: string }) => {
   const { course, refresh } = useCourseDetail(slug);
@@ -74,10 +76,24 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
   return (
     <>
     <div className={`flex fixed inset-0 z-50 bg-background overflow-hidden transition-all duration-500 ${isLoading ? 'pointer-events-none blur-sm opacity-50' : ''}`}>
+      {/* Mobile Sidebar Overlay Backdrop */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar - Course Content */}
       <div className={`
-        ${isSidebarOpen ? 'w-96' : 'w-0'} 
-        transition-all duration-300 border-r border-border/50 bg-card/30 backdrop-blur-xl flex flex-col overflow-hidden
+        fixed md:relative inset-y-0 left-0 z-50 
+        ${isSidebarOpen ? 'w-full md:w-96 translate-x-0' : 'w-full md:w-0 -translate-x-full md:translate-x-0 h-0 md:h-full overflow-hidden'} 
+        transition-all duration-300 border-r border-border/50 bg-card/95 md:bg-card/30 backdrop-blur-2xl md:backdrop-blur-xl flex flex-col
       `}>
         <div className="p-6 border-b border-border/50 flex items-center justify-between">
           <h2 className="font-black text-xl line-clamp-1">{currentCourse?.title || 'Đang tải khóa học...'}</h2>
@@ -128,7 +144,10 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
                           <button
                             key={lesson.id}
                             disabled={isLocked}
-                            onClick={() => courseActions.setCurrentLesson(lesson)}
+                            onClick={() => {
+                              courseActions.setCurrentLesson(lesson);
+                              if (window.innerWidth < 1024) setIsSidebarOpen(false);
+                            }}
                             className={`
                               w-full flex items-center gap-3 py-4 pl-10 pr-6 transition-all text-left border-t border-border/10
                               ${isLocked ? 'opacity-60 cursor-not-allowed text-muted-foreground' : (isActive ? 'bg-primary/5 text-primary border-l-4 border-l-primary' : 'hover:bg-muted/50 text-muted-foreground')}
@@ -163,24 +182,22 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full bg-muted/10 relative">
+      <div className="flex-1 flex flex-col h-full bg-muted/10 relative overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 border-b border-border/50 bg-card/30 backdrop-blur-md flex items-center justify-between px-6 z-10">
-          <div className="flex items-center gap-4">
-            {!isSidebarOpen && (
-              <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
-                <Menu className="h-5 w-5" />
-              </Button>
-            )}
-            <Link href={`/course/${currentCourse?.slug || '#'}`} className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-2">
-              <ChevronLeft className="h-4 w-4" /> Quay lại trang giới thiệu
+        <header className="h-16 shrink-0 border-b border-border/50 bg-card/30 backdrop-blur-md flex items-center justify-between px-4 md:px-6 z-10">
+          <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className={cn(!isSidebarOpen ? "bg-primary/10 text-primary" : "")}>
+              <Menu className="h-5 w-5" />
+            </Button>
+            <Link href={`/course/${currentCourse?.slug || '#'}`} className="text-[10px] md:text-sm font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 md:gap-2 shrink-0">
+              <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Quay lại trang giới thiệu</span>
             </Link>
           </div>
           
-          <div className="flex items-center gap-6">
-             <div className="hidden md:flex flex-col items-end">
-                <span className="text-xs font-bold text-muted-foreground uppercase">Tiến trình học ({Math.round(currentCourse?.progress || 0)}%)</span>
-                <div className="w-32 h-2 bg-muted rounded-full mt-1 overflow-hidden">
+          <div className="flex items-center gap-3 md:gap-6 shrink-0">
+             <div className="flex flex-col items-end">
+                <span className="text-[9px] md:text-xs font-black text-muted-foreground uppercase tracking-tight">Tiến trình {Math.round(currentCourse?.progress || 0)}%</span>
+                <div className="w-16 md:w-32 h-1.5 md:h-2 bg-muted rounded-full mt-0.5 md:mt-1 overflow-hidden">
                     <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${currentCourse?.progress || 0}%` }} />
                 </div>
              </div>
@@ -189,7 +206,7 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
-          <div className="max-w-5xl mx-auto p-8 lg:p-12 mb-8">
+          <div className="max-w-5xl mx-auto p-4 md:p-8 lg:p-12 mb-8">
             {validLesson ? (
               <LessonContent lesson={validLesson} onRefresh={refresh} />
             ) : (
@@ -197,32 +214,34 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
                  <div className="p-10 rounded-full bg-primary/5 animate-pulse">
                     <PlayCircle className="h-20 w-20 text-primary opacity-20" />
                  </div>
-                 <h2 className="text-2xl font-bold text-muted-foreground">Chọn một bài học để bắt đầu</h2>
+                 <h2 className="text-xl md:text-2xl font-bold text-muted-foreground text-center px-4">Chọn một bài học để bắt đầu</h2>
               </div>
             )}
           </div>
         </div>
 
         {/* Bottom Navigation */}
-        <footer className="h-16 shrink-0 border-t border-border/50 bg-card/30 backdrop-blur-md flex items-center justify-between px-8 z-10">
+        <footer className="h-16 shrink-0 border-t border-border/50 bg-card/30 backdrop-blur-md flex items-center justify-between px-4 md:px-8 z-10 gap-2">
             <Button 
                 variant="ghost" 
-                className="font-bold gap-2 text-muted-foreground"
+                size="sm"
+                className="font-bold gap-1 md:gap-2 text-muted-foreground shrink-0"
                 disabled={!previousLesson || previousLesson.isLocked}
                 onClick={() => previousLesson && courseActions.setCurrentLesson(previousLesson as any)}
             >
-                <ChevronLeft className="h-4 w-4" /> Bài trước
+                <ChevronLeft className="h-4 w-4" /> <span className="hidden xs:inline">Trước</span>
             </Button>
-            <div className="text-sm font-bold text-muted-foreground">
-                Đang xem: <span className="text-foreground">{validLesson?.title || '...'}</span>
+            <div className="text-[10px] md:text-sm font-bold text-muted-foreground line-clamp-1 text-center flex-1">
+                <span className="hidden md:inline">Đang xem: </span><span className="text-foreground">{validLesson?.title || '...'}</span>
             </div>
             <Button 
                 variant="default" 
-                className="font-bold gap-2 bg-primary text-white disabled:opacity-50"
+                size="sm"
+                className="font-bold gap-1 md:gap-2 bg-primary text-white disabled:opacity-50 shrink-0"
                 disabled={!nextLesson || nextLesson.isLocked}
                 onClick={() => nextLesson && courseActions.setCurrentLesson(nextLesson as any)}
             >
-                Bài tiếp theo <ChevronLeft className="h-4 w-4 rotate-180" />
+                <span className="hidden xs:inline">Tiếp theo</span> <ChevronLeft className="h-4 w-4 rotate-180" />
             </Button>
         </footer>
       </div>

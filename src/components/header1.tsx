@@ -91,11 +91,9 @@ export const HeroHeader = observer(() => {
                             <Link
                                 href="/"
                                 aria-label="home"
-                                className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shadow-inner">
-                                    <LogoIcon className="h-6 w-6" />
-                                </div>
-                                <span className="text-2xl font-black tracking-tighter text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                                className="flex items-center gap-0">
+                                <LogoIcon className="h-14 w-14" />
+                                <span className="text-[26px] font-black tracking-[-0.05em] text-primary">
                                     VICTEACH
                                 </span>
                             </Link>
@@ -118,7 +116,7 @@ export const HeroHeader = observer(() => {
                                             <Link
                                                 href={item.href}
                                                 className="text-muted-foreground hover:text-accent-foreground flex items-center gap-2 duration-150 py-1">
-                                                {item.icon && React.cloneElement(item.icon as React.ReactElement, { className: 'w-4 h-4' })}
+                                                {item.icon && React.cloneElement(item.icon as React.ReactElement<{ className?: string }>, { className: 'w-4 h-4' })}
                                                 <span>{item.name}</span>
                                             </Link>
                                         </li>
@@ -331,11 +329,9 @@ export const HeroHeader = observer(() => {
                             <Link
                                 href="/"
                                 onClick={() => setMenuState(false)}
-                                className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shadow-inner">
-                                    <LogoIcon className="h-6 w-6" />
-                                </div>
-                                <span className="text-2xl font-black tracking-tighter text-foreground">
+                                className="flex items-center gap-0">
+                                <LogoIcon className="h-14 w-14" />
+                                <span className="text-[26px] font-black tracking-[-0.05em] text-primary">
                                     VICTEACH
                                 </span>
                             </Link>
@@ -370,7 +366,7 @@ export const HeroHeader = observer(() => {
                                             className="flex items-center gap-5 text-2xl font-black tracking-tight text-foreground hover:text-primary transition-all group py-2"
                                             onClick={() => setMenuState(false)}>
                                             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors border border-transparent group-hover:border-primary/20">
-                                                {item.icon && React.cloneElement(item.icon as React.ReactElement, { className: 'size-7' })}
+                                                {item.icon && React.cloneElement(item.icon as React.ReactElement<{ className?: string }>, { className: 'size-7' })}
                                             </div>
                                             <span>{item.name}</span>
                                         </Link>
