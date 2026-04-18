@@ -1,5 +1,6 @@
 export type TransactionType = 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER' | 'PAYMENT' | 'REFUND';
 export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+import { FutureOrderType } from '@/modules/trading/types';
 
 // --- Wallet Info from REST API ---
 export interface WalletInfo {
@@ -118,6 +119,7 @@ export interface WalletState {
   pnl: WalletPnL | null;
   transactions: WalletTransaction[];
   tradeOrders: TradeOrder[];
+  futureOrders: FutureOrderType[];
   currentPayment: PaymentInfo | null;
   isLoading: boolean;
   isPnlConnected: boolean;

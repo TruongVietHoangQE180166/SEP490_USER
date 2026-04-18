@@ -8,6 +8,7 @@ export const walletState$ = observable<WalletState>({
   pnl: null,
   transactions: [],
   tradeOrders: [],
+  futureOrders: [],
   currentPayment: null,
   isLoading: false,
   isPnlConnected: false,
@@ -32,6 +33,9 @@ export const walletActions = {
   },
   setTradeOrders: (tradeOrders: WalletState['tradeOrders']) => {
     walletState$.tradeOrders.set(tradeOrders);
+  },
+  setFutureOrders: (futureOrders: WalletState['futureOrders']) => {
+    walletState$.futureOrders.set(futureOrders);
   },
   setLoading: (isLoading: boolean) => {
     walletState$.isLoading.set(isLoading);

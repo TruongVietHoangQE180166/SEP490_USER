@@ -41,7 +41,7 @@ export function useOrderPanel() {
     }
 
     const isBuy = side === 'LONG';
-    const isLimit = kind === 'LIMIT';
+    const isLimit = kind === 'LIMIT' || kind === 'TP/SL';
 
     if (marketType === 'FUTURE') {
       const payload: PlaceFutureOrderRequest = {
@@ -55,12 +55,16 @@ export function useOrderPanel() {
       };
 
       if (isLimit) {
-        const limitP = parseFloat(price);
-        if (isNaN(limitP) || limitP <= 0) {
-          toast.error('Giá Limit không hợp lệ');
-          return;
+        if (kind === 'TP/SL') {
+          payload.entryPrice = tradingState$.currentPrice.get();
+        } else {
+          const limitP = parseFloat(price);
+          if (isNaN(limitP) || limitP <= 0) {
+            toast.error('Giá Limit không hợp lệ');
+            return;
+          }
+          payload.entryPrice = limitP;
         }
-        payload.entryPrice = limitP;
       }
 
       if (takeProfit && takeProfit.trim() !== '') {
@@ -84,12 +88,10 @@ export function useOrderPanel() {
             tradingActions.refreshWalletData();
           }, 1000);
           // Fetch lần 2: bắt trường hợp lệnh LIMIT Future khớp ngay
-          // và backend đã chuyển trạng thái PENDING → OPEN
           if (isLimit) {
             setTimeout(() => {
               tradingActions.fetchAndSetOrders();
             }, 3000);
-            // Fetch lần 3: safety net nếu backend cần thêm thời gian
             setTimeout(() => {
               tradingActions.fetchAndSetOrders();
             }, 6000);
@@ -117,12 +119,16 @@ export function useOrderPanel() {
 
     // Construct request payload fields based on side and category
     if (isLimit) {
-      const limitP = parseFloat(price);
-      if (isNaN(limitP) || limitP <= 0) {
-        toast.error('Giá Limit không hợp lệ');
-        return;
+      if (kind === 'TP/SL') {
+        payload.limitPrice = tradingState$.currentPrice.get();
+      } else {
+        const limitP = parseFloat(price);
+        if (isNaN(limitP) || limitP <= 0) {
+          toast.error('Giá Limit không hợp lệ');
+          return;
+        }
+        payload.limitPrice = limitP;
       }
-      payload.limitPrice = limitP;
     }
 
     if (isBuy) {

@@ -248,7 +248,64 @@ export const AdminCourseDetailPage = ({ courseId, onBack }: AdminCourseDetailPag
                 <h1 className="text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
                   {course.title}
                 </h1>
-                <p className="max-w-3xl text-foreground/70">{course.description}</p>
+                <p className="max-w-3xl text-foreground/70 leading-relaxed font-medium">{course.description}</p>
+
+                {/* Additional Detailed Info for Admin Review */}
+                <div className="space-y-4 mt-6">
+                  <div className="rounded-2xl border border-border/30 bg-background/40 p-5 space-y-4">
+                    <div className="flex items-center gap-2 text-amber-600 font-bold uppercase text-[10px] tracking-widest">
+                      <Target className="h-4 w-4" /> Mục tiêu bài học
+                    </div>
+                    <div className="space-y-2">
+                       {(!course.whatYouWillLearn || course.whatYouWillLearn.length === 0) ? (
+                         <p className="text-xs text-muted-foreground italic">Chưa có thông tin mục tiêu bài học.</p>
+                       ) : (
+                         course.whatYouWillLearn.map((item, i) => (
+                           <div key={i} className="flex items-start gap-2">
+                             <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-amber-500 mt-0.5" />
+                             <span className="text-xs text-foreground/80 leading-relaxed font-medium">{item}</span>
+                           </div>
+                         ))
+                       )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-border/30 bg-background/40 p-5 space-y-4">
+                    <div className="flex items-center gap-2 text-emerald-600 font-bold uppercase text-[10px] tracking-widest">
+                      <Award className="h-4 w-4" /> Kỹ năng đạt được
+                    </div>
+                    <div className="space-y-2">
+                       {(!course.targetAudiences || course.targetAudiences.length === 0) ? (
+                         <p className="text-xs text-muted-foreground italic">Chưa có thông tin kỹ năng đạt được.</p>
+                       ) : (
+                         course.targetAudiences.map((item, i) => (
+                           <div key={i} className="flex items-start gap-2">
+                             <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500 mt-0.5" />
+                             <span className="text-xs text-foreground/80 leading-relaxed font-medium">{item}</span>
+                           </div>
+                         ))
+                       )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-border/30 bg-background/40 p-5 space-y-4 mt-4">
+                  <div className="flex items-center gap-2 text-blue-600 font-bold uppercase text-[10px] tracking-widest">
+                    <BookOpen className="h-4 w-4" /> Tham chiếu & Uy tín
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                     {(!course.benefits || course.benefits.length === 0) ? (
+                       <p className="text-xs text-muted-foreground italic">Chưa có thông tin tham chiếu.</p>
+                     ) : (
+                       course.benefits.map((item, i) => (
+                         <div key={i} className="flex items-start gap-2">
+                           <div className="h-1.5 w-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                           <span className="text-xs text-foreground/80 leading-relaxed font-medium">{item}</span>
+                         </div>
+                       ))
+                     )}
+                  </div>
+                </div>
 
                 {/* Stats */}
                 <div className="flex flex-wrap items-center gap-3 text-sm">

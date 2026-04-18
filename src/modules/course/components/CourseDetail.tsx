@@ -5,7 +5,7 @@ import { useCourseDetail } from '../hooks/useCourseDetail';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle,
   Award,
@@ -34,7 +34,13 @@ import {
   MessageCircle,
   Twitter,
   Globe,
-  Phone
+  Phone,
+  Target,
+  GraduationCap,
+  Bookmark,
+  Sparkles,
+  ShieldCheck,
+  Lightbulb
 } from "lucide-react";
 import { UserInformation } from '@/modules/profile/types';
 import Link from 'next/link';
@@ -127,6 +133,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
   const [ratingSort, setRatingSort] = useState<'newest' | 'lowest' | 'highest'>('newest');
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [activeInfoTab, setActiveInfoTab] = useState<'learn' | 'skills' | 'trust'>('learn');
   const filterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const triggerFilter = useCallback((fn: () => void) => {
@@ -279,8 +286,67 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
             <span>Quay lại danh sách khóa học</span>
           </motion.button>
 
-          {/* ... existing header content ... */}
-          {/* (I'll keep the overall structure but I need to find the right place for the slider) */}
+          {/* Course Completion Banner */}
+          {isAuthenticated && currentCourse.progress === 100 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, type: "spring", bounce: 0.4 }}
+              className="mb-8 relative overflow-hidden rounded-3xl border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-background/60 p-8 backdrop-blur-xl shadow-2xl shadow-emerald-500/10"
+            >
+              {/* Animated sparkles/confetti background effect */}
+              <div className="absolute inset-0 pointer-events-none opacity-30">
+                <div className="absolute top-0 left-1/4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '0.2s' }} />
+                <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-yellow-400 rounded-full animate-ping" style={{ animationDelay: '0.8s' }} />
+                <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '1.5s' }} />
+              </div>
+
+              <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-emerald-500/20 blur-2xl rounded-full animate-pulse" />
+                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-2xl shadow-emerald-500/40 transform -rotate-3 transition-transform hover:rotate-0 duration-500">
+                    <Award className="h-10 w-10" />
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 bg-yellow-500 text-white rounded-full p-1.5 shadow-lg border-2 border-background animate-bounce">
+                    <Star className="h-4 w-4 fill-current" />
+                  </div>
+                </div>
+
+                <div className="flex-1 text-center md:text-left space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest mb-2">
+                    <Zap className="h-3 w-3 fill-current" />
+                    Thành tích tuyệt vời
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+                    Chúc mừng! Bạn đã hoàn thành khóa học
+                  </h3>
+                  <p className="text-foreground/70 font-medium text-base md:text-lg leading-relaxed">
+                    Bạn đã xuất sắc chinh phục toàn bộ nội dung của khóa học. 
+                    Mọi nỗ lực học tập của bạn đều đã được đền đáp xứng đáng.
+                  </p>
+                </div>
+
+                <div className="shrink-0 w-full md:w-auto">
+                  <Link href={`/certificate/${currentCourse.slug}`} target="_blank">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="relative group"
+                    >
+                      <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 opacity-60 blur-md group-hover:opacity-100 transition-opacity animate-pulse" />
+                      <Button 
+                        size="lg"
+                        className="relative w-full md:w-auto h-16 px-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-none font-black text-lg shadow-xl"
+                      >
+                        <Award className="mr-3 h-6 w-6" />
+                        Nhận chứng chỉ
+                      </Button>
+                    </motion.div>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Level Warning Banner */}
           {levelWarning && (
@@ -694,9 +760,181 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
             )}
 
             <div className="grid gap-6 lg:grid-cols-3">
-              {/* Curriculum */}
-              <div className="lg:col-span-2">
-                <motion.div variants={itemVariants} className="group relative overflow-hidden rounded-2xl border border-border/40 bg-background/60 p-6 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg">
+              <div className="lg:col-span-2 space-y-6">
+                {/* Course Additional Info Section - Integrated gracefully */}
+                <div className="space-y-8">
+                  {/* Tab Switcher */}
+                  <div className="flex flex-wrap items-center gap-2 bg-background/40 p-2 rounded-[2rem] border border-white/10 backdrop-blur-2xl shadow-xl">
+                    {[
+                      { id: 'learn', label: 'Bài học', fullLabel: 'Những gì bạn sẽ học', icon: <FileText className="w-5 h-5" />, color: 'primary' },
+                      { id: 'skills', label: 'Kỹ năng', fullLabel: 'Kỹ năng nhận được', icon: <GraduationCap className="w-5 h-5" />, color: 'emerald-500' },
+                      { id: 'trust', label: 'Uy tín', fullLabel: 'Uy tín & Tham khảo', icon: <Award className="w-5 h-5" />, color: 'amber-500' }
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveInfoTab(tab.id as any)}
+                        className={cn(
+                          "relative flex-1 min-w-[120px] flex items-center justify-center gap-2.5 px-6 py-4 rounded-[1.5rem] text-sm font-black uppercase tracking-widest transition-all duration-300 overflow-hidden group",
+                          activeInfoTab === tab.id ? "text-white" : "text-foreground/40 hover:text-foreground/70"
+                        )}
+                      >
+                        {activeInfoTab === tab.id && (
+                          <motion.div
+                            layoutId="activeTabGlow"
+                            className={cn(
+                              "absolute inset-0 shadow-2xl",
+                              tab.id === 'learn' ? "bg-indigo-600 shadow-indigo-600/40" : 
+                              tab.id === 'skills' ? "bg-emerald-600 shadow-emerald-600/40" : 
+                              "bg-amber-600 shadow-amber-600/40"
+                            )}
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                          />
+                        )}
+                        <span className="relative z-10 flex items-center gap-2.5">
+                          <span className={cn(
+                            "transition-transform duration-500",
+                            activeInfoTab === tab.id ? "scale-110 rotate-12" : "group-hover:scale-110"
+                          )}>
+                            {tab.icon}
+                          </span>
+                          <span className="hidden sm:inline">{tab.fullLabel}</span>
+                          <span className="sm:hidden">{tab.label}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Tab Content */}
+                  <div className="relative min-h-[400px]">
+                    <AnimatePresence mode="wait">
+                      {activeInfoTab === 'learn' && (
+                        <motion.div
+                          key="learn"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.4, ease: "easeOut" }}
+                          className="group relative overflow-hidden rounded-[3rem] border border-white/10 bg-background/20 p-10 md:p-12 backdrop-blur-3xl transition-all duration-700 hover:shadow-[0_0_80px_-15px_rgba(var(--primary-rgb),0.2)] hover:border-primary/40"
+                        >
+                          <div className="absolute -top-24 -left-24 h-80 w-80 bg-primary/15 blur-[120px] rounded-full animate-pulse pointer-events-none" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
+
+                          <h3 className="relative z-10 text-3xl font-black tracking-tight text-foreground flex items-center gap-5 mb-10">
+                            <div className="relative flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-2xl shadow-indigo-500/30 transform group-hover:scale-110 transition-all">
+                              <FileText className="h-8 w-8" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-black uppercase tracking-[0.3em] text-indigo-500/60 mb-1">Kiến thức trọng tâm</span>
+                              <span>Những gì bạn sẽ học</span>
+                            </div>
+                          </h3>
+                          
+                          <div className="relative z-10 grid gap-x-12 gap-y-7 sm:grid-cols-2">
+                            {(!currentCourse.whatYouWillLearn || currentCourse.whatYouWillLearn.length === 0) ? (
+                              <p className="text-sm text-foreground/50 italic col-span-2 py-8 text-center bg-white/5 rounded-2xl border border-white/5">Chưa có thông tin cập nhật.</p>
+                            ) : (
+                              currentCourse.whatYouWillLearn.map((item, i) => (
+                                <motion.div 
+                                  key={i} 
+                                  whileHover={{ x: 10 }}
+                                  className="group/item flex items-start gap-5 p-4 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
+                                >
+                                  <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-500">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                  </div>
+                                  <span className="text-lg font-bold text-foreground/80 leading-snug group-hover/item:text-foreground">{item}</span>
+                                </motion.div>
+                              ))
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {activeInfoTab === 'skills' && (
+                        <motion.div
+                          key="skills"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.4, ease: "easeOut" }}
+                          className="group relative overflow-hidden rounded-[3rem] border border-white/5 bg-gradient-to-br from-emerald-500/[0.03] via-background/40 to-teal-500/[0.03] p-10 md:p-12 backdrop-blur-2xl transition-all duration-700 hover:border-emerald-500/30 hover:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)]"
+                        >
+                          <div className="absolute -right-16 -top-16 h-64 w-64 bg-emerald-500/10 blur-[100px] rounded-full transition-all group-hover:bg-emerald-500/20 pointer-events-none" />
+                          
+                          <h3 className="relative z-10 text-2xl font-black tracking-tight text-foreground flex items-center gap-5 mb-10">
+                            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-xl shadow-emerald-500/30 transform group-hover:scale-110 transition-all">
+                              <GraduationCap className="h-7 w-7" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/60 mb-1">Achievement</span>
+                              <span>Kỹ năng nhận được</span>
+                            </div>
+                          </h3>
+                          
+                          <div className="relative z-10 grid gap-x-12 gap-y-7 sm:grid-cols-2">
+                            {(!currentCourse.targetAudiences || currentCourse.targetAudiences.length === 0) ? (
+                              <div className="py-10 text-center bg-white/5 rounded-3xl border border-dashed border-white/10 text-foreground/40 text-sm col-span-2">Chưa có thông tin cập nhật.</div>
+                            ) : (
+                              currentCourse.targetAudiences.map((item, i) => (
+                                <motion.div 
+                                  key={i} 
+                                  whileHover={{ x: 10 }}
+                                  className="group/item flex items-center gap-5 p-4 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
+                                >
+                                  <div className="h-3 w-3 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                  <span className="text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
+                                </motion.div>
+                              ))
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {activeInfoTab === 'trust' && (
+                        <motion.div
+                          key="trust"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.4, ease: "easeOut" }}
+                          className="group relative overflow-hidden rounded-[3rem] border border-white/5 bg-gradient-to-br from-amber-500/[0.03] via-background/40 to-orange-500/[0.03] p-10 md:p-12 backdrop-blur-2xl transition-all duration-700 hover:border-amber-500/30 hover:shadow-[0_0_60px_-15px_rgba(245,158,11,0.15)]"
+                        >
+                          <div className="absolute -right-16 -top-16 h-64 w-64 bg-amber-500/10 blur-[100px] rounded-full transition-all group-hover:bg-amber-500/20 pointer-events-none" />
+                          
+                          <h3 className="relative z-10 text-2xl font-black tracking-tight text-foreground flex items-center gap-5 mb-10">
+                            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-600 text-white shadow-xl shadow-amber-500/30 transform group-hover:scale-110 transition-all">
+                              <Award className="h-7 w-7" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500/60 mb-1">Verify</span>
+                              <span>Uy tín & Tham khảo</span>
+                            </div>
+                          </h3>
+                          
+                          <div className="relative z-10 grid gap-x-12 gap-y-7 sm:grid-cols-2">
+                            {(!currentCourse.benefits || currentCourse.benefits.length === 0) ? (
+                                <div className="py-10 text-center bg-white/5 rounded-3xl border border-dashed border-white/10 text-foreground/40 text-sm col-span-2">Chưa có thông tin cập nhật.</div>
+                            ) : (
+                              currentCourse.benefits.map((item, i) => (
+                                <motion.div 
+                                  key={i} 
+                                  whileHover={{ x: 10 }}
+                                  className="group/item flex items-center gap-5 p-4 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
+                                >
+                                  <div className="h-3 w-3 shrink-0 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                                  <span className="text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
+                                </motion.div>
+                              ))
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                {/* Curriculum Section */}
+                <motion.div variants={itemVariants} className="group relative overflow-hidden rounded-3xl border border-border/40 bg-background/60 p-6 md:p-8 backdrop-blur transition-all hover:border-border/60 hover:shadow-lg">
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-foreground">Nội dung khóa học</h3>
@@ -989,15 +1227,14 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
             </div>
             
             {/* Ratings Section */}
-            {(totalRatings > 0 || isRatingsLoading) && (
-              <motion.div
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={itemVariants}
-                className="mt-10 border-t border-border/40 pt-10"
-              >
-                <div className="flex items-center gap-3 mb-8">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={itemVariants}
+              className="mt-10 border-t border-border/40 pt-10"
+            >
+              <div className="flex items-center gap-3 mb-8">
                   <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
                     <Star className="h-4 w-4 fill-amber-500" />
                   </div>
@@ -1102,8 +1339,10 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           </div>
                         ) : displayedRatings.length === 0 ? (
                           <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground/50">
-                            <Star className="h-10 w-10" />
-                            <p className="text-sm font-medium">Không có đánh giá nào phù hợp</p>
+                            <Star className="h-10 w-10 text-muted-foreground/20" />
+                            <p className="text-sm font-medium">
+                              {totalRatings === 0 ? "Chưa có đánh giá nào cho khóa học này" : "Không có đánh giá nào phù hợp"}
+                            </p>
                           </div>
                         ) : displayedRatings.map((review) => (
                           <div
@@ -1140,8 +1379,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                     </div>
                   </div>
                 )}
-              </motion.div>
-            )}
+            </motion.div>
 
              {/* Related Courses Slider */}
              {relatedCourses.length > 0 ? (

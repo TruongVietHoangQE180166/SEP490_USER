@@ -3,7 +3,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { UploadCloud, Image as ImageIcon, Video, Info, Sparkles, DollarSign, Tag, Layers } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  UploadCloud, 
+  Image as ImageIcon, 
+  Video, 
+  Info, 
+  Sparkles, 
+  DollarSign, 
+  Tag, 
+  Layers, 
+  Plus, 
+  Minus, 
+  Trash2, 
+  FileText, 
+  GraduationCap, 
+  Bookmark 
+} from 'lucide-react';
 import { COURSE_LEVELS, BasicInfo, COURSE_ASSETS } from './types';
 import { cn } from '@/lib/utils';
 
@@ -201,6 +217,84 @@ export const StepBasicInfo = ({ basicInfo, setBasicInfo }: StepBasicInfoProps) =
         </div>
       </CardSection>
 
+      {/* Dynamic Lists Sections */}
+      <div className="grid grid-cols-1 gap-8">
+        {[
+          { 
+            key: 'whatYouWillLearn' as const, 
+            title: 'Mục tiêu khóa học', 
+            icon: FileText, 
+            desc: 'Những kiến thức/kỹ năng học viên sẽ có được',
+            placeholder: 'VD: Phân tích kỹ thuật chuyên sâu'
+          },
+          { 
+            key: 'targetAudiences' as const, 
+            title: 'Kỹ năng sẽ nhận được', 
+            icon: GraduationCap, 
+            desc: 'Những kỹ năng thực tế học viên đạt được',
+            placeholder: 'VD: Quản trị vốn, Đọc hiểu nến Nhật'
+          },
+          { 
+            key: 'benefit' as const, 
+            title: 'Tham chiếu & Uy tín', 
+            icon: Bookmark, 
+            desc: 'Nguồn uy tín hoặc các lợi ích đặc biệt',
+            placeholder: 'VD: Theo chuẩn CME Group'
+          }
+        ].map((list) => (
+          <CardSection key={list.key} title={list.title} icon={list.icon} description={list.desc}>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3">
+                {basicInfo[list.key]?.map((item, index) => (
+                  <motion.div 
+                    key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex gap-2"
+                  >
+                    <Input 
+                      value={item}
+                      placeholder={list.placeholder}
+                      onChange={(e) => {
+                        const newList = [...(basicInfo[list.key] || [])];
+                        newList[index] = e.target.value;
+                        setBasicInfo({ ...basicInfo, [list.key]: newList });
+                      }}
+                      className="rounded-xl bg-background border-border/60 font-medium"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        const newList = (basicInfo[list.key] || []).filter((_, i) => i !== index);
+                        setBasicInfo({ ...basicInfo, [list.key]: newList });
+                      }}
+                      className="shrink-0 rounded-xl hover:bg-destructive/10 hover:text-destructive text-muted-foreground/30"
+                    >
+                      <Trash2 size={18} />
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const newList = [...(basicInfo[list.key] || []), ''];
+                  setBasicInfo({ ...basicInfo, [list.key]: newList });
+                }}
+                className="w-full h-12 rounded-xl border-dashed border-2 border-border/40 hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-all font-bold gap-2"
+              >
+                <Plus size={16} />
+                Thêm nội dung mới
+              </Button>
+            </div>
+          </CardSection>
+        ))}
+      </div>
+
       {/* Pricing Section */}
       <CardSection 
         title="Quản lý chi phí" 
@@ -226,16 +320,43 @@ export const StepBasicInfo = ({ basicInfo, setBasicInfo }: StepBasicInfoProps) =
                 {!basicInfo.isFree && <Sparkles size={14} className="text-primary/40 animate-pulse" />}
               </div>
 
-              <div className="relative group">
-                <Input 
-                  type="number" 
-                  placeholder="0" 
-                  className="rounded-xl bg-muted/5 h-16 px-6 text-2xl font-black border-2 border-border/40 focus:border-border/40 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none transition-all shadow-none placeholder:text-muted-foreground/20 pr-16"
-                  value={basicInfo.price}
-                  onChange={(e) => setBasicInfo({ ...basicInfo, price: e.target.value })}
-                  disabled={basicInfo.isFree}
-                />
-                <div className="absolute right-6 top-1/2 -translate-y-1/2 text-sm font-black text-muted-foreground/60 tracking-wider">VND</div>
+              <div className="relative group flex items-center gap-3">
+                <div className="relative flex-1 group">
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    className="rounded-xl bg-muted/5 h-16 px-6 text-2xl font-black border-2 border-border/40 focus:border-border/40 focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none transition-all shadow-none placeholder:text-muted-foreground/20 pr-16 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    value={basicInfo.price}
+                    onChange={(e) => setBasicInfo({ ...basicInfo, price: e.target.value })}
+                    disabled={basicInfo.isFree}
+                  />
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground/40 tracking-widest uppercase pointer-events-none">VND</div>
+                </div>
+                
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    disabled={basicInfo.isFree}
+                    onClick={() => {
+                      const current = parseInt(basicInfo.price || '0');
+                      setBasicInfo({ ...basicInfo, price: (current + 10000).toString() });
+                    }}
+                    className="flex h-[30px] w-12 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white transition-all active:scale-90 disabled:opacity-20 disabled:pointer-events-none"
+                  >
+                    <Plus size={16} strokeWidth={3} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={basicInfo.isFree || parseInt(basicInfo.price || '0') <= 0}
+                    onClick={() => {
+                      const current = parseInt(basicInfo.price || '0');
+                      setBasicInfo({ ...basicInfo, price: Math.max(0, current - 10000).toString() });
+                    }}
+                    className="flex h-[30px] w-12 items-center justify-center rounded-lg bg-muted border border-border/40 text-muted-foreground hover:bg-destructive hover:text-white hover:border-destructive transition-all active:scale-90 disabled:opacity-20 disabled:pointer-events-none"
+                  >
+                    <Minus size={16} strokeWidth={3} />
+                  </button>
+                </div>
               </div>
 
               {/* Discount Box */}

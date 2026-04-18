@@ -7,7 +7,8 @@ import {
   ArrowLeft, AlertTriangle, RefreshCw, 
   LayoutDashboard, ListTree, Save, 
   Sparkles, Settings, Eye, 
-  Layers, BarChart3, Info
+  Layers, BarChart3, Info,
+  GraduationCap, Bookmark, FileText, CheckCircle2
 } from 'lucide-react';
 import { ThunderLoader } from '@/components/thunder-loader';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -249,6 +250,83 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
                                     <p className="text-muted-foreground leading-relaxed font-medium whitespace-pre-wrap">
                                         {course.description || "Chưa có mô tả cho khóa học này."}
                                     </p>
+                                </div>
+                            </motion.div>
+
+                            {/* Additional Info: Skills & Goals */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="space-y-6"
+                            >
+                                <div className="bg-card border-2 border-border/40 p-8 rounded-xl shadow-sm space-y-6">
+                                    <div className="flex items-center gap-3 pb-4 border-b border-border/40">
+                                        <div className="w-10 h-10 rounded-xl bg-amber-500/5 flex items-center justify-center text-amber-600">
+                                            <FileText size={20} />
+                                        </div>
+                                        <h3 className="text-xl font-black tracking-tight uppercase">Mục tiêu bài học</h3>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {(!course.whatYouWillLearn || course.whatYouWillLearn.length === 0) ? (
+                                            <p className="text-sm text-foreground/40 italic">Chưa có thông tin mục tiêu bài học.</p>
+                                        ) : (
+                                            course.whatYouWillLearn.map((item, i) => (
+                                                <div key={i} className="flex items-start gap-3">
+                                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-500 mt-1" />
+                                                    <span className="text-sm font-medium text-foreground/80 leading-relaxed">{item}</span>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="bg-card border-2 border-border/40 p-8 rounded-xl shadow-sm space-y-6">
+                                    <div className="flex items-center gap-3 pb-4 border-b border-border/40">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/5 flex items-center justify-center text-emerald-600">
+                                            <GraduationCap size={20} />
+                                        </div>
+                                        <h3 className="text-xl font-black tracking-tight uppercase">Kỹ năng đạt được</h3>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {(!course.targetAudiences || course.targetAudiences.length === 0) ? (
+                                            <p className="text-sm text-foreground/40 italic">Chưa có thông tin kỹ năng.</p>
+                                        ) : (
+                                            course.targetAudiences.map((item, i) => (
+                                                <div key={i} className="flex items-start gap-3">
+                                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-1" />
+                                                    <span className="text-sm font-medium text-foreground/80 leading-relaxed">{item}</span>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Additional Info: Benefits/References */}
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.4 }}
+                                className="bg-card border-2 border-border/40 p-8 rounded-xl shadow-sm space-y-6"
+                            >
+                                <div className="flex items-center gap-3 pb-4 border-b border-border/40">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/5 flex items-center justify-center text-blue-600">
+                                        <Bookmark size={20} />
+                                    </div>
+                                    <h3 className="text-xl font-black tracking-tight uppercase">Tham chiếu & Uy tín</h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
+                                    {(!course.benefits || course.benefits.length === 0) ? (
+                                        <p className="text-sm text-foreground/40 italic">Chưa có thông tin tham chiếu.</p>
+                                    ) : (
+                                        course.benefits.map((item, i) => (
+                                            <div key={i} className="flex items-start gap-3">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
+                                                <span className="text-sm font-medium text-foreground/80 leading-relaxed">{item}</span>
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </motion.div>
                         </div>

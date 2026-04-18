@@ -2,6 +2,7 @@ import { ApiConfigService, API_BASE_URL } from '@/services/apiConfig';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { WalletInfo, WalletPnL, WalletTransaction, UserAsset, TradeOrder } from './types';
+import { FutureOrderType } from '@/modules/trading/types';
 
 const BASE_URL = API_BASE_URL;
 
@@ -82,6 +83,22 @@ export const WalletService = {
       const direction = 'desc';
       const response = await ApiConfigService.get<ApiResponse<{ content: TradeOrder[] }>>(
         `/api/v1/trade-orders?page=${page}&size=${size}&field=${field}&direction=${direction}`
+      );
+      if (response?.success && response.data?.content) {
+        return response.data.content;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  async getFutureOrders(page: number = 1, size: number = 1000): Promise<FutureOrderType[]> {
+    try {
+      const field = 'createdDate';
+      const direction = 'desc';
+      const response = await ApiConfigService.get<{ data?: { content: FutureOrderType[] }, success?: boolean }>(
+        `/api/v1/futures/my-positions?page=${page}&size=${size}&field=${field}&direction=${direction}`
       );
       if (response?.success && response.data?.content) {
         return response.data.content;

@@ -42,6 +42,9 @@ export interface TeacherCourse {
   hasCourseLevel?: string;
   countEnrolledStudents?: number | null;
   courseLevel?: string | null;
+  whatYouWillLearn?: string[];
+  targetAudiences?: string[];
+  benefits?: string[];
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -108,6 +111,9 @@ export interface CreateCourseRequest {
   courseStatus: string;
   assets: string[];
   courseLevel: string;
+  whatYouWillLearn?: string[];
+  targetAudiences?: string[];
+  benefit?: string[];
 }
 
 export interface ImageUploadResponse {

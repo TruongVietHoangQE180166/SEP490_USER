@@ -40,6 +40,9 @@ export interface BasicInfo {
   previewVideo: File | null;
   previewVideoUrl?: string;
   assets: string[];
+  whatYouWillLearn?: string[];
+  targetAudiences?: string[];
+  benefit?: string[];
 }
 
 export const COURSE_ASSETS = [

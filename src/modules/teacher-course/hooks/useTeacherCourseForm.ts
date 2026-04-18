@@ -33,7 +33,10 @@ export const useTeacherCourseForm = () => {
         discountPercent: isNaN(Number(basicInfo.discountPercent)) ? 0 : Number(basicInfo.discountPercent),
         courseStatus: 'DRAFT',
         assets: basicInfo.assets || [],
-        courseLevel: levelLabel
+        courseLevel: levelLabel,
+        whatYouWillLearn: basicInfo.whatYouWillLearn || [],
+        targetAudiences: basicInfo.targetAudiences || [],
+        benefit: basicInfo.benefit || []
       };
 
       const createdCourse = await teacherCourseService.createCourse(requestData);
@@ -69,7 +72,10 @@ export const useTeacherCourseForm = () => {
         discountPercent: isNaN(Number(basicInfo.discountPercent)) ? 0 : Number(basicInfo.discountPercent),
         courseStatus: 'DRAFT',
         assets: basicInfo.assets || [],
-        courseLevel: levelLabel
+        courseLevel: levelLabel,
+        whatYouWillLearn: basicInfo.whatYouWillLearn || [],
+        targetAudiences: basicInfo.targetAudiences || [],
+        benefit: basicInfo.benefit || []
       };
 
       const updatedCourse = await teacherCourseService.updateCourse(courseId, requestData);
