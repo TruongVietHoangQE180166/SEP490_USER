@@ -115,6 +115,26 @@ export default function RootLayout({
         <PageLoadingIndicator />
         <LoadingOverlay />
         <ToastContainer />
+        
+        {/* Organization JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'VICTEACH',
+              url: 'https://victeach.io.vn',
+              logo: 'https://victeach.io.vn/logo.png',
+              sameAs: [
+                'https://facebook.com/victeach',
+                'https://twitter.com/victeach',
+                'https://youtube.com/victeach',
+              ],
+              description: 'Nền tảng giáo dục tài chính số 1 về Blockchain và Crypto.',
+            }),
+          }}
+        />
       </body>
     </html>
   );

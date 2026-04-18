@@ -15,21 +15,35 @@ interface CardsSliderProps {
 
 export function CardsSlider({ courses, title, isLoading }: CardsSliderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const x = useMotionValue(0);
 
   useEffect(() => {
-    if (containerRef.current) {
-      setWidth(
-        Math.max(0, containerRef.current.scrollWidth - containerRef.current.offsetWidth)
-      );
-    }
+    const calculateWidth = () => {
+      if (innerRef.current && containerRef.current) {
+        const totalWidth = innerRef.current.scrollWidth;
+        const visibleWidth = containerRef.current.offsetWidth;
+        setWidth(Math.max(0, totalWidth - visibleWidth));
+      }
+    };
+
+    calculateWidth();
+    const timer = setTimeout(calculateWidth, 100);
+    window.addEventListener('resize', calculateWidth);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', calculateWidth);
+    };
   }, [courses, isLoading]);
 
   const scrollTo = (direction: "left" | "right") => {
     const currentX = x.get();
     const containerWidth = containerRef.current?.offsetWidth || 0;
-    const scrollAmount = containerWidth * 0.8; 
+    
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    // On mobile: 300px card + 16px gap = 316px. Desktop: 320px card + 24px gap = 344px.
+    const scrollAmount = isMobile ? 316 : 344; 
 
     let newX =
       direction === "left" ? currentX + scrollAmount : currentX - scrollAmount;
@@ -38,9 +52,8 @@ export function CardsSlider({ courses, title, isLoading }: CardsSliderProps) {
 
     animate(x, newX, {
       type: "spring",
-      stiffness: 300,
-      damping: 30,
-      mass: 1,
+      stiffness: isMobile ? 400 : 300,
+      damping: 40,
     });
   };
 
@@ -50,7 +63,7 @@ export function CardsSlider({ courses, title, isLoading }: CardsSliderProps) {
     <div className="w-full max-w-8xl mx-auto px-6 py-2 relative group/slider overflow-hidden">
       {(title || isLoading) && (
         <div className="flex items-center justify-between mb-4">
-            <h2 className="text-3xl font-black tracking-tight text-foreground uppercase italic px-1">
+            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground uppercase italic px-1">
                 {title || (isLoading && <div className="flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-primary animate-pulse" /><span className="text-muted-foreground/40 italic lowercase text-sm font-medium tracking-widest">đang tải dữ liệu...</span></div>)}
             </h2>
             {!isLoading && (
@@ -80,22 +93,23 @@ export function CardsSlider({ courses, title, isLoading }: CardsSliderProps) {
         whileTap={{ cursor: "grabbing" }}
       >
         <motion.div
+          ref={innerRef}
           drag="x"
           dragConstraints={{ right: 0, left: -width }}
           dragElastic={0.1}
           style={{ x }}
-          className="flex gap-6"
+          className="flex gap-4 md:gap-6"
         >
           {isLoading 
             ? Array.from({ length: 5 }).map((_, idx) => (
-                <div key={idx} className="min-w-[320px] max-w-[320px]">
+                <div key={idx} className="min-w-[300px] max-w-[300px] md:min-w-[320px] md:max-w-[320px] shrink-0">
                   <CourseSkeleton />
                 </div>
               ))
             : courses.map((course) => (
                 <motion.div
                   key={course.id}
-                  className="min-w-[320px] max-w-[320px]"
+                  className="min-w-[300px] max-w-[300px] md:min-w-[320px] md:max-w-[320px] shrink-0"
                 >
                   <CourseCard course={course} />
                 </motion.div>

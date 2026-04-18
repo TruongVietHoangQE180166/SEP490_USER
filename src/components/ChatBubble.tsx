@@ -198,7 +198,7 @@ export const ChatBubble = observer(() => {
           }}
           whileHover={{ scale: 1.1, y: 0 }}
           whileTap={{ scale: 0.9 }}
-          className="group fixed bottom-8 right-8 z-[9999] flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] shadow-primary/40 ring-4 ring-primary/20 cursor-pointer pointer-events-auto"
+          className="group fixed bottom-8 right-4 md:right-8 z-[9999] flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] shadow-primary/40 ring-4 ring-primary/20 cursor-pointer pointer-events-auto"
         >
           <MessageCircle size={28} className="relative z-10 group-hover:rotate-12 transition-transform duration-300" />
           <Sparkles size={16} className="absolute top-2 right-2 text-primary-foreground/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
