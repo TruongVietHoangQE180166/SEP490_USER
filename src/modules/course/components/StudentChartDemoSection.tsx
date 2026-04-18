@@ -353,6 +353,7 @@ function ChartDemoModal({
       setWalletBalance(res.data.walletMoney);
       setHistoryKey(k => k + 1); // Refresh history
       setTradeMoney('');
+      setTradeQuantity('');
       setLimitDateStr('');
     } else {
       toast.error(res?.message?.messageDetail || 'Đặt lệnh thất bại');
@@ -369,18 +370,15 @@ function ChartDemoModal({
       className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex flex-col"
     >
       {/* ── Sticky header ───────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 px-5 py-3.5 border-b border-border/30 bg-background/95 backdrop-blur shrink-0 sticky top-0 z-10">
-        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
-          <BarChart3 size={18} className="text-primary" />
+      <div className="flex items-center gap-2 md:gap-3 px-3 md:px-5 py-3 border-b border-border/30 bg-background/95 backdrop-blur shrink-0 sticky top-0 z-10">
+        <div className="h-8 w-8 md:h-9 md:w-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+          <BarChart3 size={16} className="text-primary" />
         </div>
-        <div className="flex-1 min-w-0 flex items-center gap-4">
-          <div>
-            <h2 className="text-sm font-black text-foreground truncate">
+        <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
+          <div className="min-w-0">
+            <h2 className="text-[11px] md:text-sm font-black text-foreground truncate">
               Chart Demo – {demo.videoTitle}
             </h2>
-            <p className="text-[10px] text-muted-foreground font-medium">
-              {demo.candles?.length || 0} nến · Thực hành phân tích biểu đồ
-            </p>
           </div>
           
           <AnimatePresence>
@@ -388,29 +386,32 @@ function ChartDemoModal({
                <motion.div 
                  initial={{ scale: 0.8, opacity: 0 }}
                  animate={{ scale: 1, opacity: 1 }}
-                 className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-500 shadow-sm"
+                 className="w-fit px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-1.5 text-[8px] md:text-[10px] font-black uppercase tracking-wider text-emerald-500 shadow-sm"
                >
-                 <span className="relative flex h-2 w-2">
+                 <span className="relative flex h-1.5 w-1.5 md:h-2 md:w-2">
                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-emerald-500"></span>
                  </span>
-                 Hoàn Thành Chỉ Tiêu
+                 <span className="md:inline hidden">Hoàn Thành Chỉ Tiêu</span>
+                 <span className="md:hidden">Hoàn Thành</span>
                </motion.div>
              )}
           </AnimatePresence>
         </div>
 
-        {/* Reset button — prominent in header */}
-        <ResetButton chartId={demo.id} onResetSuccess={handleResetSuccess} />
+        <div className="flex items-center gap-1.5">
+          {/* Reset button — prominent in header */}
+          <ResetButton chartId={demo.id} onResetSuccess={handleResetSuccess} />
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="text-muted-foreground hover:text-foreground rounded-xl shrink-0"
-        >
-          <X size={18} />
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-8 w-8 md:h-10 md:w-10 text-muted-foreground hover:text-foreground rounded-xl shrink-0 p-0"
+          >
+            <X size={18} />
+          </Button>
+        </div>
       </div>
 
       {/* ── Scrollable body ─────────────────────────────────────────────────── */}
@@ -435,7 +436,7 @@ function ChartDemoModal({
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="px-6 pb-4 grid grid-cols-2 lg:grid-cols-2 gap-4">
+                <div className="px-6 pb-4 grid grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="bg-background/80 rounded-xl p-3 border border-border/40 space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
                       <Calendar size={10} /> Bắt đầu Chart
@@ -505,100 +506,96 @@ function ChartDemoModal({
         {/* Order Panel */}
         {isCompleted ? (
           <div className="px-4 py-6 mx-4 mt-2 mb-4 bg-emerald-500/5 border border-emerald-500/30 rounded-xl shadow-inner flex flex-col items-center justify-center gap-3 text-center">
-             <div className="h-14 w-14 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
-                <CheckCircle2 size={28} className="text-emerald-500" />
+             <div className="h-10 w-10 md:h-14 md:w-14 bg-emerald-500/10 rounded-full flex items-center justify-center border border-emerald-500/20">
+                <CheckCircle2 size={24} className="text-emerald-500" />
              </div>
              <div>
-               <h3 className="text-[13px] font-black text-emerald-600 uppercase tracking-widest mb-1.5 mt-1">Thử thách Hoàn Thành Xuất Sắc!</h3>
-               <p className="text-xs text-muted-foreground font-medium max-w-[450px]">
-                 Xin chúc mừng! Tài sản của bạn đã đạt hoặc vượt qua chỉ tiêu mục tiêu mà phiên thực hành này yêu cầu. Hệ thống đã khóa tính năng đặt cược.
+               <h3 className="text-[11px] md:text-[13px] font-black text-emerald-600 uppercase tracking-widest mb-1 mt-1">Hoàn Thành Thử thách!</h3>
+               <p className="text-[10px] md:text-xs text-muted-foreground font-medium max-w-[450px]">
+                 Xin chúc mừng! Tài sản của bạn đã đạt chỉ tiêu mục tiêu. Hệ thống đã khóa tính năng đặt cược.
                </p>
              </div>
-             <p className="text-[10px] uppercase font-black tracking-widest text-emerald-500/70 mt-1 bg-emerald-500/10 px-3 py-1 rounded-full">
+             <p className="text-[9px] uppercase font-black tracking-widest text-emerald-500/70 mt-1 bg-emerald-500/10 px-3 py-1 rounded-full">
                * Hãy nhấn [RESET] phía trên để chơi lại
              </p>
           </div>
         ) : (
-          <div className="px-4 py-3 mx-4 mt-2 mb-4 bg-muted/20 border border-border/40 rounded-xl shadow-inner flex flex-wrap lg:flex-nowrap items-end gap-4">
-            <div className="flex-1 min-w-[200px]">
-               <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 flex justify-between">
-                  Loại lệnh
-               </label>
-               <div className="flex bg-background border border-border/40 rounded-lg p-1 w-full">
-                 <button 
-                   onClick={() => setOrderType('BUY')}
-                   className={cn('flex-1 py-2 rounded-md text-xs font-bold transition-colors', orderType === 'BUY' ? 'bg-emerald-500 text-white shadow-sm' : 'text-emerald-500/60 hover:bg-emerald-500/10')}
-                 >
-                   BUY (Long)
-                 </button>
-                 <button 
-                   onClick={() => setOrderType('SELL')}
-                   className={cn('flex-1 py-2 rounded-md text-xs font-bold transition-colors', orderType === 'SELL' ? 'bg-rose-500 text-white shadow-sm' : 'text-rose-500/60 hover:bg-rose-500/10')}
-                 >
-                   SELL (Short)
-                 </button>
-               </div>
-               <p className="text-[9px] text-muted-foreground/70 mt-1 italic">* BUY (Giá tăng), SELL (Giá giảm)</p>
-            </div>
-            
-            <div className="flex-1 min-w-[150px]">
-               <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 flex justify-between">
-                  {orderType === 'BUY' ? 'Số tiền đầu tư ($)' : 'Khối lượng bán'}
-               </label>
-               <div className="relative">
-                 {orderType === 'BUY' && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">$</span>}
-                 {orderType === 'BUY' ? (
-                   <input 
-                     type="number" 
-                     placeholder="Nhập số tiền..." 
-                     value={tradeMoney}
-                     onChange={e => setTradeMoney(e.target.value)}
-                     className="w-full bg-background border border-border/40 rounded-lg pl-8 pr-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none appearance-none"
-                     min="0"
-                   />
-                 ) : (
-                   <input 
-                     type="number" 
-                     placeholder="Nhập khối lượng..." 
-                     value={tradeQuantity}
-                     onChange={e => setTradeQuantity(e.target.value)}
-                     className="w-full bg-background border border-border/40 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none appearance-none"
-                     min="0"
-                   />
-                 )}
-               </div>
-               {orderType === 'BUY' ? (
-                 <p className="text-[9px] text-muted-foreground/70 mt-1 italic">* Ví của bạn: <strong>${walletBalance.toLocaleString()}</strong></p>
-               ) : (
-                 <div className="flex justify-between items-center mt-1">
-                   <p className="text-[9px] text-muted-foreground/70 italic">* Max: <strong>{availableQuantity.toFixed(4)}</strong> (Price: ${currentPrice})</p>
-                   <button onClick={() => setTradeQuantity(availableQuantity.toString())} className="text-[9px] font-bold text-primary hover:underline uppercase">Max</button>
+          <div className="px-4 py-3 mx-4 mt-2 mb-4 bg-muted/20 border border-border/40 rounded-xl shadow-inner flex flex-col lg:flex-row items-stretch lg:items-end gap-3 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 flex-1">
+              <div className="space-y-1.5">
+                 <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground flex justify-between">
+                    Loại lệnh
+                 </label>
+                 <div className="flex bg-background border border-border/40 rounded-lg p-1 w-full">
+                   <button 
+                     onClick={() => setOrderType('BUY')}
+                     className={cn('flex-1 py-1.5 rounded-md text-[10px] font-bold transition-colors', orderType === 'BUY' ? 'bg-emerald-500 text-white shadow-sm' : 'text-emerald-500/60 hover:bg-emerald-500/10')}
+                   >
+                     BUY
+                   </button>
+                   <button 
+                     onClick={() => setOrderType('SELL')}
+                     className={cn('flex-1 py-1.5 rounded-md text-[10px] font-bold transition-colors', orderType === 'SELL' ? 'bg-rose-500 text-white shadow-sm' : 'text-rose-500/60 hover:bg-rose-500/10')}
+                   >
+                     SELL
+                   </button>
                  </div>
-               )}
-            </div>
+              </div>
+              
+              <div className="space-y-1.5">
+                 <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground flex justify-between">
+                    {orderType === 'BUY' ? 'Số tiền ($)' : 'Khối lượng'}
+                 </label>
+                 <div className="relative">
+                   {orderType === 'BUY' && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">$</span>}
+                   {orderType === 'BUY' ? (
+                     <input 
+                       type="number" 
+                       placeholder="Nhập tiền..." 
+                       value={tradeMoney}
+                       onChange={e => setTradeMoney(e.target.value)}
+                       className="w-full bg-background border border-border/40 rounded-lg pl-7 pr-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary/20"
+                       min="0"
+                     />
+                   ) : (
+                     <input 
+                       type="number" 
+                       placeholder="Nhập Qty..." 
+                       value={tradeQuantity}
+                       onChange={e => setTradeQuantity(e.target.value)}
+                       className="w-full bg-background border border-border/40 rounded-lg px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary/20"
+                       min="0"
+                     />
+                   )}
+                 </div>
+                 <div className="flex justify-between items-center px-1">
+                    <span className="text-[8px] text-muted-foreground font-bold uppercase">{orderType === 'BUY' ? 'Ví' : 'Max'}: {orderType === 'BUY' ? walletBalance.toLocaleString() : availableQuantity.toFixed(2)}</span>
+                    {orderType === 'SELL' && <button onClick={() => setTradeQuantity(availableQuantity.toString())} className="text-[8px] font-black text-primary uppercase">MAX</button>}
+                 </div>
+              </div>
 
-            <div className="flex-1 min-w-[200px]">
-               <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 flex justify-between">
-                  Ngày đóng lệnh 
-               </label>
-               <input 
-                 type="date" 
-                 value={limitDateStr}
-                 onClick={(e) => { (e.target as any).showPicker?.(); }}
-                 onChange={e => setLimitDateStr(e.target.value)}
-                 min={new Date(demo.closeTs + 86400000).toISOString().split('T')[0]} 
-                 max={new Date(demo.limitTs).toISOString().split('T')[0]}
-                 className="w-full bg-background border border-border/40 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-               />
-               <p className="text-[9px] text-muted-foreground/70 mt-1 italic">* Phải nằm giữa nến hiện tại và giới hạn</p>
+              <div className="space-y-1.5">
+                 <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground flex justify-between">
+                    Ngày đóng 
+                 </label>
+                 <input 
+                   type="date" 
+                   value={limitDateStr}
+                   onClick={(e) => { (e.target as any).showPicker?.(); }}
+                   onChange={e => setLimitDateStr(e.target.value)}
+                   min={new Date(demo.closeTs + 86400000).toISOString().split('T')[0]} 
+                   max={new Date(demo.limitTs).toISOString().split('T')[0]}
+                   className="w-full bg-background border border-border/40 rounded-lg px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary/20"
+                 />
+              </div>
             </div>
 
             <Button 
               onClick={handleValidation}
               disabled={isPlacingOrder || demo.done}
-              className="w-full lg:w-auto mt-auto mb-5 h-10 px-8 rounded-lg font-black text-xs shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
+              className="w-full lg:w-40 h-10 lg:h-12 rounded-lg font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
             >
-              {isPlacingOrder ? <Loader2 size={16} className="animate-spin" /> : 'ĐẶT LỆNH'}
+              {isPlacingOrder ? <Loader2 size={14} className="animate-spin" /> : 'ĐẶT LỆNH'}
             </Button>
           </div>
         )}
@@ -682,28 +679,29 @@ export const StudentChartDemoSection: React.FC<StudentChartDemoProps> = ({ video
 
   return (
     <>
-      <div className="mt-6 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-background to-emerald-500/5 p-5 flex items-center gap-5 shadow-lg shadow-primary/5 hover:shadow-primary/10 transition-shadow">
-        <div className="h-14 w-14 shrink-0 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
-          <BarChart3 size={26} className="text-primary" />
+      <div className="mt-6 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-background to-emerald-500/5 p-4 md:p-5 flex flex-col sm:flex-row items-center sm:items-center gap-4 md:gap-5 shadow-lg shadow-primary/5 hover:shadow-primary/10 transition-shadow">
+        <div className="h-12 w-12 md:h-14 md:w-14 shrink-0 rounded-xl md:rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner">
+          <BarChart3 size={20} className="text-primary md:hidden" />
+          <BarChart3 size={26} className="text-primary hidden md:block" />
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
+        <div className="flex-1 min-w-0 text-center sm:text-left">
+          <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
               Chart Demo
             </span>
           </div>
-          <h3 className="text-sm font-black text-foreground">Thực hành phân tích biểu đồ</h3>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5 line-clamp-1">
+          <h3 className="text-xs md:text-sm font-black text-foreground">Thực hành phân tích biểu đồ</h3>
+          <p className="text-[10px] md:text-xs text-muted-foreground font-medium mt-0.5 line-clamp-1">
             {chartDemo.description ||
               `${chartDemo.candles?.length || 0} nến · Mục tiêu $${chartDemo.objectDone?.toLocaleString()}`}
           </p>
         </div>
         <Button
           onClick={() => setIsOpen(true)}
-          className="shrink-0 h-10 px-5 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 gap-2"
+          className="w-full sm:w-auto shrink-0 h-10 px-6 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 gap-2"
         >
-          <Play size={14} className="fill-white" />
-          Thực hành ngay
+          <Play size={12} className="fill-white" />
+          Thực hành
         </Button>
       </div>
 

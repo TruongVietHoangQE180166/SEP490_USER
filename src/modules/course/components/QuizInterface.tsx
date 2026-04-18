@@ -174,21 +174,21 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
   if (isSubmitted && currentQuestionIdx === -1) {
     const isPassed = score >= (lesson?.passingScore || 80);
     return (
-      <div className="max-w-2xl mx-auto py-12 px-4 text-center animate-in zoom-in-95 duration-500">
-        <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full mb-8 shadow-2xl ${isPassed ? 'bg-green-500/10 text-green-500 shadow-green-500/20' : 'bg-red-500/10 text-red-500 shadow-red-500/20'}`}>
-          {isPassed ? <CheckCircle2 className="w-12 h-12" /> : <AlertCircle className="w-12 h-12" />}
+      <div className="max-w-2xl mx-auto py-6 md:py-12 px-4 text-center animate-in zoom-in-95 duration-500">
+        <div className={`inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 rounded-full mb-6 md:mb-8 shadow-2xl ${isPassed ? 'bg-green-500/10 text-green-500 shadow-green-500/20' : 'bg-red-500/10 text-red-500 shadow-red-500/20'}`}>
+          {isPassed ? <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12" /> : <AlertCircle className="w-10 h-10 md:w-12 md:h-12" />}
         </div>
-        <h2 className="text-4xl font-black mb-4">{isPassed ? 'Chúc mừng!' : 'Rất tiếc!'}</h2>
-        <p className="text-xl text-muted-foreground mb-8">
-          Bạn đã hoàn thành bài kiểm tra với tỷ lệ chính xác: <span className={`font-black ${isPassed ? 'text-green-500' : 'text-red-500'}`}>{score}%</span>
+        <h2 className="text-3xl md:text-4xl font-black mb-3 md:mb-4">{isPassed ? 'Chúc mừng!' : 'Rất tiếc!'}</h2>
+        <p className="text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 px-2">
+          Kết quả: <span className={`font-black ${isPassed ? 'text-green-500' : 'text-red-500'}`}>{score}%</span>
         </p>
         
-        <div className="p-8 rounded-xl bg-card border border-border/50 shadow-xl mb-12">
-           <div className="flex justify-between items-center mb-4">
+        <div className="p-5 md:p-8 rounded-xl bg-card border border-border/50 shadow-xl mb-8 md:mb-12 text-sm md:text-base">
+           <div className="flex justify-between items-center mb-3 md:mb-4">
               <span className="text-muted-foreground font-medium">Kết quả:</span>
               <span className={`font-bold ${isPassed ? 'text-green-500' : 'text-red-500'}`}>{isPassed ? 'ĐẠT' : 'KHÔNG ĐẠT'}</span>
            </div>
-           <div className="flex justify-between items-center mb-4">
+           <div className="flex justify-between items-center mb-3 md:mb-4">
               <span className="text-muted-foreground font-medium">Số câu đúng:</span>
               <span className="font-bold">{correctAnswersCount} / {questions.length}</span>
            </div>
@@ -198,12 +198,12 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
            </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
            {!isPassed && (
              <Button 
                variant="outline" 
                size="lg" 
-               className="rounded-xl px-10 h-14 font-bold"
+               className="rounded-xl px-8 md:px-10 h-12 md:h-14 font-bold text-sm md:text-base"
                onClick={() => {
                  setIsSubmitted(false);
                  setCurrentQuestionIdx(0);
@@ -218,14 +218,14 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
            <Button 
              variant="secondary"
              size="lg" 
-             className="rounded-xl px-10 h-14 font-bold"
+             className="rounded-xl px-8 md:px-10 h-12 md:h-14 font-bold text-sm md:text-base"
              onClick={() => setCurrentQuestionIdx(0)}
            >
              Xem lại bài làm
            </Button>
            <Button 
              size="lg" 
-             className="rounded-xl px-10 h-14 font-bold shadow-xl shadow-primary/20"
+             className="rounded-xl px-8 md:px-10 h-12 md:h-14 font-bold shadow-xl shadow-primary/20 text-sm md:text-base"
              onClick={handleExitConfirm}
            >
              Quay lại bài học
@@ -239,11 +239,11 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
 
   return (
     <>
-    <div className="max-w-7xl mx-auto py-8 px-4 lg:px-8 h-full">
-      <div className="flex flex-col lg:flex-row gap-8 items-start relative h-full">
+    <div className="max-w-7xl mx-auto py-4 md:py-8 px-4 lg:px-8 h-full">
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-8 items-start relative h-full">
         
         {/* Left Sidebar: Question Navigator */}
-        <div className="w-full lg:w-80 shrink-0 sticky top-8 space-y-6">
+        <div className="w-full lg:w-80 shrink-0 lg:sticky top-4 md:top-8 space-y-4 md:space-y-6 order-2 lg:order-1">
           <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-primary" />
             
@@ -254,7 +254,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
               </div>
             </div>
 
-            <div className="grid grid-cols-5 sm:grid-cols-8 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-4 gap-2 md:gap-3">
               {questions.map((q, idx) => {
                 const isAnswered = !!userAnswers[q.id];
                 const isFlagged = flaggedQuestions[q.id];
@@ -266,7 +266,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                     key={q.id}
                     onClick={() => setCurrentQuestionIdx(idx)}
                     className={cn(
-                      "aspect-square rounded-lg flex items-center justify-center font-bold text-sm transition-all hover:scale-105 active:scale-95 border",
+                      "aspect-square rounded-lg flex items-center justify-center font-bold text-xs md:text-sm transition-all hover:scale-105 active:scale-95 border",
                       isActive 
                         ? "bg-primary text-white shadow-lg shadow-primary/30 ring-2 ring-primary ring-offset-2 ring-offset-background border-primary" 
                         : isSubmitted
@@ -300,7 +300,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
               {!isSubmitted ? (
                 <Button
                   size="lg"
-                  className="w-full rounded-xl h-14 font-black bg-primary text-white shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all gap-2"
+                  className="w-full rounded-xl h-12 md:h-14 font-black bg-primary text-white shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all gap-2 text-sm md:text-base"
                   onClick={() => setShowSubmitDialog(true)}
                 >
                   Nộp bài thi <Target className="w-5 h-5" />
@@ -309,7 +309,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="w-full rounded-xl h-14 font-black transition-all gap-2"
+                  className="w-full rounded-xl h-12 md:h-14 font-black transition-all gap-2 text-sm md:text-base"
                   onClick={() => setCurrentQuestionIdx(-1)}
                 >
                   Xem tổng kết <Target className="w-5 h-5" />
@@ -338,18 +338,18 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
         </div>
 
         {/* Right Content: Question Card */}
-        <div className="flex-1 w-full min-h-0">
-          <div className="bg-card border border-border/50 rounded-2xl p-6 md:p-10 shadow-xl relative min-h-[600px] flex flex-col">
+        <div className="flex-1 w-full min-h-0 order-1 lg:order-2">
+          <div className="bg-card border border-border/50 rounded-2xl p-5 md:p-10 shadow-xl relative min-h-[300px] md:min-h-[600px] flex flex-col">
             
             {/* Question Header */}
-            <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center justify-between mb-6 md:mb-10">
               <div className="flex items-center gap-4">
-                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl shadow-inner">
+                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-lg md:text-xl shadow-inner">
                     {currentQuestionIdx + 1}
                  </div>
                  <div className="space-y-0.5">
-                    <div className="text-xs font-black text-muted-foreground uppercase tracking-widest">Câu hỏi hiện tại</div>
-                    <div className="text-sm font-bold">Lĩnh vực: {lesson?.title}</div>
+                    <div className="text-[10px] md:text-xs font-black text-muted-foreground uppercase tracking-widest">Câu hỏi hiện tại</div>
+                    <div className="text-xs md:text-sm font-bold">Lĩnh vực: {lesson?.title}</div>
                  </div>
               </div>
               <div className="flex items-center gap-3">
@@ -358,29 +358,29 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                    size="sm"
                    onClick={() => toggleFlag(currentQuestion?.id)}
                    className={cn(
-                     "rounded-full gap-2 px-4 font-bold transition-all",
+                     "rounded-full gap-2 px-3 md:px-4 font-bold transition-all text-xs md:text-sm",
                      flaggedQuestions[currentQuestion?.id] 
                        ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20" 
                        : "text-muted-foreground hover:bg-muted"
                    )}
                 >
                    <Flag className={cn("w-4 h-4", flaggedQuestions[currentQuestion?.id] && "fill-current")} />
-                   {flaggedQuestions[currentQuestion?.id] ? "Đang phân vân" : "Đánh dấu phân vân"}
+                   <span className="hidden md:inline">{flaggedQuestions[currentQuestion?.id] ? "Đang phân vân" : "Đánh dấu phân vân"}</span>
                 </Button>
 
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border/50">
-                   <div className="flex -space-x-1">
+                <div className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-muted/50 border border-border/50">
+                   <div className="md:flex hidden -space-x-1">
                       {questions.slice(0, 3).map((_, i) => (
                         <div key={i} className="w-2 h-2 rounded-full bg-primary/30" />
                       ))}
                    </div>
-                   <span className="text-xs font-bold text-muted-foreground">{currentQuestionIdx + 1} / {questions.length}</span>
+                   <span className="text-[10px] md:text-xs font-bold text-muted-foreground">{currentQuestionIdx + 1} / {questions.length}</span>
                 </div>
               </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full h-1 bg-muted rounded-full mb-12 overflow-hidden">
+            <div className="w-full h-1 bg-muted rounded-full mb-6 md:mb-12 overflow-hidden">
               <motion.div 
                  className="h-full bg-primary"
                  initial={{ width: 0 }}
@@ -397,24 +397,23 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 1.02, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="space-y-10"
+                  className="space-y-6 md:space-y-10"
                 >
-                  <h3 className="text-2xl md:text-4xl font-black text-foreground leading-[1.2] tracking-tight">
+                  <h3 className="text-xl md:text-3xl lg:text-4xl font-black text-foreground leading-snug tracking-tight">
                     {currentQuestion?.content}
                   </h3>
 
                   <div className="grid grid-cols-1 gap-4">
                     {currentQuestion?.answers.map((answer, aIdx) => {
                       const isSelected = userAnswers[currentQuestion.id] === answer.id;
-                      const label = String.fromCharCode(65 + aIdx); // A, B, C, D
-                      
+                      const label = String.fromCharCode(65 + aIdx);
                       return (
                         <button
                           key={answer.id}
                           disabled={isSubmitted}
                           onClick={() => handleSelectAnswer(currentQuestion.id, answer.id)}
                           className={cn(
-                            "p-5 md:p-6 rounded-2xl border-2 text-left transition-all duration-200 group relative flex items-center gap-5",
+                            "p-3 md:p-6 rounded-2xl border-2 text-left transition-all duration-200 group relative flex items-center gap-3 md:gap-5",
                             isSelected 
                               ? (isSubmitted 
                                   ? (answer.isCorrect ? "border-green-500 bg-green-50/50" : "border-red-500 bg-red-50/50")
@@ -425,7 +424,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                           )}
                         >
                           <div className={cn(
-                            "w-12 h-12 rounded-xl border-2 flex items-center justify-center font-black transition-all shrink-0",
+                            "w-8 h-8 md:w-12 md:h-12 rounded-lg md:rounded-xl border-2 flex items-center justify-center font-black transition-all shrink-0 text-xs md:text-base",
                             isSelected 
                               ? (isSubmitted
                                   ? (answer.isCorrect ? "border-green-500 bg-green-500 text-white" : "border-red-500 bg-red-500 text-white")
@@ -437,7 +436,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                             {label}
                           </div>
                           <span className={cn(
-                            "text-lg md:text-xl font-bold transition-colors flex-1",
+                            "text-sm md:text-xl font-bold transition-colors flex-1 leading-tight",
                             isSelected 
                               ? (isSubmitted ? (answer.isCorrect ? "text-green-700" : "text-red-700") : "text-foreground")
                               : (isSubmitted && answer.isCorrect ? "text-green-700" : "text-muted-foreground group-hover:text-foreground")
@@ -445,19 +444,19 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                             {answer.content}
                           </span>
                           {isSubmitted && answer.isCorrect && (
-                             <CheckCircle2 className="w-6 h-6 text-green-500" />
+                             <CheckCircle2 className="w-5 md:w-6 h-5 md:h-6 text-green-500 shrink-0" />
                           )}
                           {isSubmitted && isSelected && !answer.isCorrect && (
-                             <XCircle className="w-6 h-6 text-red-500" />
+                             <XCircle className="w-5 md:w-6 h-5 md:h-6 text-red-500 shrink-0" />
                           )}
                           {!isSubmitted && isSelected && (
                             <motion.div 
                               layoutId="active-check"
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
-                              className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
+                              className="w-5 md:w-6 h-5 md:h-6 rounded-full bg-primary flex items-center justify-center shrink-0"
                             >
-                               <CheckCircle2 className="w-4 h-4 text-white" />
+                               <CheckCircle2 className="w-3.5 md:w-4 h-3.5 md:h-4 text-white" />
                             </motion.div>
                           )}
                         </button>
@@ -469,25 +468,29 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
             </div>
 
             {/* Navigation Footer */}
-            <div className="flex items-center justify-between mt-12 pt-8 border-t border-border/20">
+            <div className="flex items-center justify-between mt-6 md:mt-12 pt-5 md:pt-8 border-t border-border/20">
               <Button
                 variant="ghost"
                 size="lg"
-                className="rounded-xl px-8 h-14 font-bold gap-2 text-muted-foreground hover:bg-muted"
+                className="rounded-xl px-3 md:px-8 h-12 md:h-14 font-bold gap-2 text-muted-foreground hover:bg-muted text-xs md:text-sm"
                 disabled={currentQuestionIdx === 0}
                 onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
               >
-                <ChevronLeft className="w-5 h-5" /> Quay lại
+                <ChevronLeft className="w-4 md:w-5 h-4 md:h-5" /> <span className="md:inline hidden">Quay lại</span>
               </Button>
+              
+              <div className="text-[10px] md:text-xs font-black text-muted-foreground md:hidden uppercase tracking-widest bg-muted/50 px-3 py-1.5 rounded-full border border-border/50">
+                {currentQuestionIdx + 1} / {questions.length}
+              </div>
 
               <div className="flex gap-4">
                 <Button
                   size="lg"
-                  className="rounded-xl px-10 h-14 font-black bg-foreground text-background hover:bg-foreground/90 transition-all gap-2 disabled:opacity-30"
+                  className="rounded-xl px-4 md:px-10 h-12 md:h-14 font-black bg-foreground text-background hover:bg-foreground/90 transition-all gap-2 disabled:opacity-30 text-xs md:text-sm shadow-lg shadow-foreground/10"
                   disabled={currentQuestionIdx === questions.length - 1}
                   onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
                 >
-                  Tiếp theo <ChevronRight className="w-5 h-5" />
+                  <span className="md:inline hidden">Tiếp theo</span> <ChevronRight className="w-4 md:w-5 h-4 md:h-5" />
                 </Button>
               </div>
             </div>

@@ -844,22 +844,22 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -20 }}
                           transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="group relative overflow-hidden rounded-[3rem] border border-white/10 bg-background/20 p-10 md:p-12 backdrop-blur-3xl transition-all duration-700 hover:shadow-[0_0_80px_-15px_rgba(var(--primary-rgb),0.2)] hover:border-primary/40"
+                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/10 bg-background/20 p-6 md:p-12 backdrop-blur-3xl transition-all duration-700 hover:shadow-[0_0_80px_-15px_rgba(var(--primary-rgb),0.2)] hover:border-primary/40"
                         >
                           <div className="absolute -top-24 -left-24 h-80 w-80 bg-primary/15 blur-[120px] rounded-full animate-pulse pointer-events-none" />
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
 
-                          <h3 className="relative z-10 text-3xl font-black tracking-tight text-foreground flex items-center gap-5 mb-10">
-                            <div className="relative flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-2xl shadow-indigo-500/30 transform group-hover:scale-110 transition-all">
-                              <FileText className="h-8 w-8" />
+                          <h3 className="relative z-10 text-xl md:text-3xl font-black tracking-tight text-foreground flex items-center gap-4 md:gap-5 mb-6 md:mb-10">
+                            <div className="relative flex h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-xl md:rounded-[1.25rem] bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-2xl shadow-indigo-500/30 transform group-hover:scale-110 transition-all">
+                              <FileText className="h-6 w-6 md:h-8 md:w-8" />
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-sm font-black uppercase tracking-[0.3em] text-indigo-500/60 mb-1">Kiến thức trọng tâm</span>
+                              <span className="text-[10px] md:text-sm font-black uppercase tracking-[0.3em] text-indigo-500/60 mb-1">Kiến thức trọng tâm</span>
                               <span>Những gì bạn sẽ học</span>
                             </div>
                           </h3>
                           
-                          <div className="relative z-10 grid gap-x-12 gap-y-7 sm:grid-cols-2">
+                          <div className="relative z-10 grid gap-x-12 gap-y-4 md:gap-y-7 sm:grid-cols-2">
                             {(!currentCourse.whatYouWillLearn || currentCourse.whatYouWillLearn.length === 0) ? (
                               <p className="text-sm text-foreground/50 italic col-span-2 py-8 text-center bg-white/5 rounded-2xl border border-white/5">Chưa có thông tin cập nhật.</p>
                             ) : (
@@ -867,12 +867,12 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                                 <motion.div 
                                   key={i} 
                                   whileHover={{ x: 10 }}
-                                  className="group/item flex items-start gap-5 p-4 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
+                                  className="group/item flex items-start gap-4 md:gap-5 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
                                 >
-                                  <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-500">
-                                    <CheckCircle2 className="h-4 w-4" />
+                                  <div className="mt-1 flex h-6 w-6 md:h-7 md:w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-500">
+                                    <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
                                   </div>
-                                  <span className="text-lg font-bold text-foreground/80 leading-snug group-hover/item:text-foreground">{item}</span>
+                                  <span className="text-sm md:text-lg font-bold text-foreground/80 leading-snug group-hover/item:text-foreground">{item}</span>
                                 </motion.div>
                               ))
                             )}
@@ -887,21 +887,21 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -20 }}
                           transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="group relative overflow-hidden rounded-[3rem] border border-white/5 bg-gradient-to-br from-emerald-500/[0.03] via-background/40 to-teal-500/[0.03] p-10 md:p-12 backdrop-blur-2xl transition-all duration-700 hover:border-emerald-500/30 hover:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)]"
+                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-gradient-to-br from-emerald-500/[0.03] via-background/40 to-teal-500/[0.03] p-6 md:p-12 backdrop-blur-2xl transition-all duration-700 hover:border-emerald-500/30 hover:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)]"
                         >
                           <div className="absolute -right-16 -top-16 h-64 w-64 bg-emerald-500/10 blur-[100px] rounded-full transition-all group-hover:bg-emerald-500/20 pointer-events-none" />
                           
-                          <h3 className="relative z-10 text-2xl font-black tracking-tight text-foreground flex items-center gap-5 mb-10">
-                            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-xl shadow-emerald-500/30 transform group-hover:scale-110 transition-all">
-                              <GraduationCap className="h-7 w-7" />
+                          <h3 className="relative z-10 text-xl md:text-2xl font-black tracking-tight text-foreground flex items-center gap-4 md:gap-5 mb-6 md:mb-10">
+                            <div className="relative flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-xl md:rounded-2xl bg-emerald-600 text-white shadow-xl shadow-emerald-500/30 transform group-hover:scale-110 transition-all">
+                              <GraduationCap className="h-6 w-6 md:h-7 md:w-7" />
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/60 mb-1">Achievement</span>
+                              <span className="text-[10px] md:text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500/60 mb-1">Achievement</span>
                               <span>Kỹ năng nhận được</span>
                             </div>
                           </h3>
                           
-                          <div className="relative z-10 grid gap-x-12 gap-y-7 sm:grid-cols-2">
+                          <div className="relative z-10 grid gap-x-12 gap-y-4 md:gap-y-7 sm:grid-cols-2">
                             {(!currentCourse.targetAudiences || currentCourse.targetAudiences.length === 0) ? (
                               <div className="py-10 text-center bg-white/5 rounded-3xl border border-dashed border-white/10 text-foreground/40 text-sm col-span-2">Chưa có thông tin cập nhật.</div>
                             ) : (
@@ -909,10 +909,10 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                                 <motion.div 
                                   key={i} 
                                   whileHover={{ x: 10 }}
-                                  className="group/item flex items-center gap-5 p-4 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
+                                  className="group/item flex items-center gap-4 md:gap-5 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
                                 >
-                                  <div className="h-3 w-3 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                                  <span className="text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
+                                  <div className="h-2 w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                  <span className="text-sm md:text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
                                 </motion.div>
                               ))
                             )}
@@ -927,21 +927,21 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -20 }}
                           transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="group relative overflow-hidden rounded-[3rem] border border-white/5 bg-gradient-to-br from-amber-500/[0.03] via-background/40 to-orange-500/[0.03] p-10 md:p-12 backdrop-blur-2xl transition-all duration-700 hover:border-amber-500/30 hover:shadow-[0_0_60px_-15px_rgba(245,158,11,0.15)]"
+                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-gradient-to-br from-amber-500/[0.03] via-background/40 to-orange-500/[0.03] p-6 md:p-12 backdrop-blur-2xl transition-all duration-700 hover:border-amber-500/30 hover:shadow-[0_0_60px_-15px_rgba(245,158,11,0.15)]"
                         >
                           <div className="absolute -right-16 -top-16 h-64 w-64 bg-amber-500/10 blur-[100px] rounded-full transition-all group-hover:bg-amber-500/20 pointer-events-none" />
                           
-                          <h3 className="relative z-10 text-2xl font-black tracking-tight text-foreground flex items-center gap-5 mb-10">
-                            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-600 text-white shadow-xl shadow-amber-500/30 transform group-hover:scale-110 transition-all">
-                              <Award className="h-7 w-7" />
+                          <h3 className="relative z-10 text-xl md:text-2xl font-black tracking-tight text-foreground flex items-center gap-4 md:gap-5 mb-6 md:mb-10">
+                            <div className="relative flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-xl md:rounded-2xl bg-amber-600 text-white shadow-xl shadow-amber-500/30 transform group-hover:scale-110 transition-all">
+                              <Award className="h-6 w-6 md:h-7 md:w-7" />
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-500/60 mb-1">Verify</span>
+                              <span className="text-[10px] md:text-[10px] font-black uppercase tracking-[0.4em] text-amber-500/60 mb-1">Verify</span>
                               <span>Uy tín & Tham khảo</span>
                             </div>
                           </h3>
                           
-                          <div className="relative z-10 grid gap-x-12 gap-y-7 sm:grid-cols-2">
+                          <div className="relative z-10 grid gap-x-12 gap-y-4 md:gap-y-7 sm:grid-cols-2">
                             {(!currentCourse.benefits || currentCourse.benefits.length === 0) ? (
                                 <div className="py-10 text-center bg-white/5 rounded-3xl border border-dashed border-white/10 text-foreground/40 text-sm col-span-2">Chưa có thông tin cập nhật.</div>
                             ) : (
@@ -949,10 +949,10 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                                 <motion.div 
                                   key={i} 
                                   whileHover={{ x: 10 }}
-                                  className="group/item flex items-center gap-5 p-4 rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
+                                  className="group/item flex items-center gap-4 md:gap-5 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
                                 >
-                                  <div className="h-3 w-3 shrink-0 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-                                  <span className="text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
+                                  <div className="h-2 w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                                  <span className="text-sm md:text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
                                 </motion.div>
                               ))
                             )}

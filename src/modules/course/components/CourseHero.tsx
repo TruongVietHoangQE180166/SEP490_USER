@@ -27,7 +27,7 @@ export const CourseHero = ({ featuredCourses }: { featuredCourses: Course[] }) =
   return (
     <div className="grid grid-cols-1 md:grid-cols-6 gap-6 h-auto md:h-[650px]">
       {/* Main Carousel - Bento Item 1 - Larger span */}
-      <div className="md:col-span-4 md:row-span-2 relative group overflow-hidden rounded-3xl bg-neutral-900 border border-border/50 shadow-2xl shadow-primary/10">
+      <div className="h-[250px] md:h-auto md:col-span-4 md:row-span-2 relative group overflow-hidden rounded-3xl bg-neutral-900 border border-border/50 shadow-2xl shadow-primary/10">
         <motion.div
           key={currentIndex}
           initial={{ opacity: 0, scale: 1.1 }}
@@ -41,21 +41,21 @@ export const CourseHero = ({ featuredCourses }: { featuredCourses: Course[] }) =
             className="w-full h-full object-cover opacity-100"
           />
           {/* Dark scrim for white text contrast */}
-          <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none" />
+          <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
         </motion.div>
 
         {/* Floating background glow */}
-        <div className="absolute top-0 right-0 h-96 w-96 bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute top-0 right-0 h-64 w-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
 
-        <div className="absolute inset-0 p-8 md:p-14 flex flex-col justify-end pb-24 space-y-8">
-          <div className="space-y-5 max-w-2xl">
+        <div className="absolute inset-0 p-5 md:p-14 flex flex-col justify-end pb-10 md:pb-24 space-y-3 md:space-y-8">
+          <div className="space-y-1.5 md:space-y-5 max-w-2xl">
              <motion.div
                initial={{ opacity: 0, y: 10 }}
                animate={{ opacity: 1, y: 0 }}
                key={`badge-${currentIndex}`}
              >
-               <Badge className="w-fit bg-primary/20 backdrop-blur-xl text-primary border border-primary/30 font-black uppercase tracking-[0.2em] text-[10px] px-4 py-1.5 rounded-full shadow-lg">
-                  <Sparkles className="h-3 w-3 mr-2 text-primary" />
+               <Badge className="w-fit bg-primary/20 backdrop-blur-xl text-primary border border-primary/30 font-black uppercase tracking-[0.2em] text-[7px] md:text-[10px] px-2.5 md:px-4 py-0.5 md:py-1 rounded-full shadow-lg">
+                  <Sparkles className="h-2 w-2 md:h-3 md:w-3 mr-1 md:mr-2 text-primary" />
                   Khóa học tiêu điểm
                </Badge>
              </motion.div>
@@ -65,7 +65,7 @@ export const CourseHero = ({ featuredCourses }: { featuredCourses: Course[] }) =
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: 0.1 }}
-               className="text-3xl md:text-6xl font-black text-white leading-[1.05] tracking-tight drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)]"
+               className="text-lg md:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-xl line-clamp-2"
              >
                {currentCourse.title}
              </motion.h2>
@@ -75,86 +75,75 @@ export const CourseHero = ({ featuredCourses }: { featuredCourses: Course[] }) =
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-white/90 font-bold max-w-xl text-base md:text-xl leading-relaxed line-clamp-2 drop-shadow-lg"
+                className="text-white/80 font-bold max-w-xl text-[10px] md:text-xl leading-relaxed line-clamp-1 md:line-clamp-2"
              >
                {currentCourse.description}
              </motion.p>
           </div>
           
-          <div key={currentCourse.id} className="flex flex-wrap items-center gap-6 pt-4">
+          <div key={currentCourse.id} className="pt-1">
             <Link href={`/course/${currentCourse.slug}`}>
-              <Button size="lg" className="h-14 px-10 rounded-2xl font-black gap-3 shadow-[0_20px_40px_-10px_rgba(var(--primary),0.5)] hover:scale-105 active:scale-95 transition-all text-lg bg-primary hover:bg-primary/90 text-primary-foreground border-none">
-                <PlayCircle className="h-6 w-6" /> Bắt đầu học ngay
+              <Button size="sm" className="md:h-14 md:px-10 h-9 px-5 rounded-xl md:rounded-2xl font-black gap-2 shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-[11px] md:text-lg bg-primary hover:bg-primary/90 text-primary-foreground border-none">
+                <PlayCircle className="h-3.5 w-3.5 md:h-6 md:w-6" /> Học ngay
               </Button>
             </Link>
-            <div className="flex items-center gap-4 bg-black/40 backdrop-blur-2xl border border-white/20 rounded-2xl px-6 py-3">
-                <div className="flex -space-x-4">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-10 w-10 rounded-full border-2 border-white/30 overflow-hidden ring-2 ring-primary/30">
-                            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 888}`} className="h-full w-full object-cover" alt="" />
-                        </div>
-                    ))}
-                </div>
-                <div className="flex flex-col">
-                    <span className="text-sm font-black text-white tracking-wide">12,000+ Học viên</span>
-                    <span className="text-[10px] font-bold text-white/60 uppercase tracking-tighter">Đang tham gia học</span>
-                </div>
-            </div>
           </div>
         </div>
 
         {/* Bottom Slide Indicators */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+        <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 md:gap-3 z-20">
           {featuredCourses.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrentIndex(i)}
-              className={`h-2 rounded-full transition-all duration-500 hover:bg-white/50 ${i === currentIndex ? 'w-12 bg-primary shadow-[0_0_20px_rgba(var(--primary),0.8)]' : 'w-3 bg-white/30'}`}
+              className={`h-1 md:h-2 rounded-full transition-all duration-500 hover:bg-white/50 ${i === currentIndex ? 'w-8 md:w-12 bg-primary' : 'w-2 md:w-3 bg-white/30'}`}
             />
           ))}
         </div>
       </div>
 
       {/* Side Promotion 1 - Top Right */}
-      <div className="md:col-span-2 relative overflow-hidden rounded-3xl bg-card border border-border/50 p-8 flex flex-col justify-between group cursor-pointer shadow-xl transition-all hover:translate-y-[-4px] hover:border-primary/50">
-        <div className="absolute -right-10 -top-10 bg-primary/10 rounded-full h-48 w-48 blur-[80px] group-hover:scale-150 transition-transform duration-1000" />
-        <div className="absolute -left-10 -bottom-10 bg-primary/5 rounded-full h-48 w-48 blur-[80px]" />
+      <div className="h-[220px] md:h-auto md:col-span-2 relative overflow-hidden rounded-3xl bg-card border border-border/50 p-6 md:p-8 flex flex-col justify-between group cursor-pointer shadow-xl transition-all hover:translate-y-[-4px] hover:border-primary/50">
+        <div className="absolute -right-10 -top-10 bg-primary/10 rounded-full h-40 w-40 blur-[60px]" />
         
-        <div className="relative z-10 space-y-4">
-          <div className="bg-primary/10 backdrop-blur-xl w-fit p-3.5 rounded-2xl border border-primary/20 shadow-inner">
-            <Sparkles className="h-6 w-6 text-primary" />
+        <div className="relative z-10 space-y-3 md:space-y-4">
+          <div className="bg-primary/10 backdrop-blur-xl w-fit p-2.5 md:p-3.5 rounded-xl border border-primary/20 shadow-inner">
+            <Sparkles className="h-4 w-4 md:h-6 md:w-6 text-primary" />
           </div>
-          <h3 className="text-3xl md:text-4xl font-black text-foreground leading-tight tracking-tighter">
-            Ưu đãi sinh viên <br /> <span className="text-4xl md:text-5xl text-primary drop-shadow-sm">-50% OFF</span>
+          <h3 className="text-2xl md:text-4xl font-black text-foreground leading-tight tracking-tighter">
+            Ưu đãi sinh viên <br /> <span className="text-3xl md:text-5xl text-primary drop-shadow-sm">-50% OFF</span>
           </h3>
-          <p className="text-muted-foreground text-[10px] font-black tracking-[0.2em] uppercase bg-muted/50 w-fit px-3 py-1 rounded-lg border border-border/50">Mã: SINHVIEN2024</p>
+          <p className="text-[9px] md:text-[10px] text-muted-foreground font-black tracking-[0.2em] uppercase bg-muted/50 w-fit px-2 py-0.5 rounded-md border border-border/50">Mã: SINHVIEN2024</p>
         </div>
-        <div className="relative z-10 flex items-center justify-between">
-          <Button className="h-14 rounded-2xl bg-primary text-primary-foreground border-none font-black px-8 hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all flex items-center gap-2">
-            Lấy mã ngay <ChevronRight className="h-4 w-4" />
+        <div className="relative z-10">
+          <Button className="h-10 md:h-14 rounded-xl md:rounded-2xl bg-primary text-primary-foreground border-none font-black px-6 md:px-8 hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all text-xs md:text-base flex items-center gap-2">
+            Lấy mã ngay <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
           </Button>
         </div>
       </div>
 
-      {/* Row 2 - Bottom Right 1 */}
-      <div className="md:col-span-1 relative overflow-hidden rounded-3xl bg-card border border-border/50 p-8 flex flex-col justify-between group cursor-pointer hover:border-primary/50 transition-all hover:bg-accent/5 shadow-lg">
-        <div className="bg-primary/10 h-16 w-16 rounded-2xl flex items-center justify-center border border-primary/20 group-hover:bg-primary group-hover:scale-110 transition-all duration-500 shadow-md shadow-primary/10">
-          <Rocket className="h-8 w-8 text-primary group-hover:text-primary-foreground transition-colors" />
+      {/* Bottom Row - Career & Gift (Single row on mobile, separate cells on desktop) */}
+      <div className="grid grid-cols-2 gap-6 md:contents md:col-span-2">
+        {/* Row 2 - Bottom Right 1 */}
+        <div className="h-[140px] md:h-full md:col-span-1 relative overflow-hidden rounded-3xl bg-card border border-border/50 p-6 md:p-8 flex flex-col justify-between group cursor-pointer hover:border-primary/50 transition-all hover:bg-accent/5 shadow-lg">
+          <div className="bg-primary/10 h-10 w-10 md:h-16 md:w-16 rounded-xl md:rounded-2xl flex items-center justify-center border border-primary/20 group-hover:bg-primary transition-all shadow-md">
+            <Rocket className="h-5 w-5 md:h-8 md:w-8 text-primary group-hover:text-primary-foreground transition-colors" />
+          </div>
+          <div className="space-y-1 pt-2 md:pt-4">
+            <h3 className="text-sm md:text-xl font-black leading-tight text-foreground">Lộ trình <br /> Sự nghiệp</h3>
+            <p className="text-[7px] md:text-[10px] font-black text-primary uppercase tracking-[0.2em]">Miễn phí 1-1</p>
+          </div>
         </div>
-        <div className="space-y-1.5 pt-4">
-          <h3 className="text-xl font-black leading-tight text-foreground">Lộ trình <br /> Sự nghiệp</h3>
-          <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Miễn phí 1-1</p>
-        </div>
-      </div>
 
-      {/* Row 2 - Bottom Right 2 */}
-      <div className="md:col-span-1 relative overflow-hidden rounded-3xl bg-card border border-border/50 p-8 flex flex-col justify-between group cursor-pointer hover:border-primary/50 transition-all hover:bg-accent/5 shadow-lg">
-        <div className="bg-primary/10 h-16 w-16 rounded-2xl flex items-center justify-center border border-primary/20 group-hover:bg-primary group-hover:scale-110 transition-all duration-500 shadow-md shadow-primary/10">
-          <Gift className="h-8 w-8 text-primary group-hover:text-primary-foreground transition-colors" />
-        </div>
-        <div className="space-y-1.5 pt-4">
-          <h3 className="text-xl font-black leading-tight text-foreground">Quà tặng <br /> Tân thủ</h3>
-          <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Nhận ngay 200k</p>
+        {/* Row 2 - Bottom Right 2 */}
+        <div className="h-[140px] md:h-full md:col-span-1 relative overflow-hidden rounded-3xl bg-card border border-border/50 p-6 md:p-8 flex flex-col justify-between group cursor-pointer hover:border-primary/50 transition-all hover:bg-accent/5 shadow-lg">
+          <div className="bg-primary/10 h-10 w-10 md:h-16 md:w-16 rounded-xl md:rounded-2xl flex items-center justify-center border border-primary/20 group-hover:bg-primary transition-all shadow-md">
+            <Gift className="h-5 w-5 md:h-8 md:w-8 text-primary group-hover:text-primary-foreground transition-colors" />
+          </div>
+          <div className="space-y-1 pt-2 md:pt-4">
+            <h3 className="text-sm md:text-xl font-black leading-tight text-foreground">Quà tặng <br /> Tân thủ</h3>
+            <p className="text-[7px] md:text-[10px] font-black text-primary uppercase tracking-[0.2em]">Nhận ngay 200k</p>
+          </div>
         </div>
       </div>
     </div>
