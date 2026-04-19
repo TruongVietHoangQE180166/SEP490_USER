@@ -872,7 +872,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                                   <div className="mt-1 flex h-6 w-6 md:h-7 md:w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/15 text-indigo-500">
                                     <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
                                   </div>
-                                  <span className="text-sm md:text-lg font-bold text-foreground/80 leading-snug group-hover/item:text-foreground">{item}</span>
+                                  <span className="flex-1 min-w-0 break-words text-sm md:text-lg font-bold text-foreground/80 leading-snug group-hover/item:text-foreground">{item}</span>
                                 </motion.div>
                               ))
                             )}
@@ -911,8 +911,10 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                                   whileHover={{ x: 10 }}
                                   className="group/item flex items-center gap-4 md:gap-5 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
                                 >
-                                  <div className="h-2 w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                                  <span className="text-sm md:text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
+                                  <div className="mt-1 flex h-6 w-6 md:h-7 md:w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500">
+                                    <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                                  </div>
+                                  <span className="flex-1 min-w-0 break-words text-sm md:text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
                                 </motion.div>
                               ))
                             )}
@@ -951,8 +953,10 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                                   whileHover={{ x: 10 }}
                                   className="group/item flex items-center gap-4 md:gap-5 p-3 md:p-4 rounded-xl md:rounded-2xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
                                 >
-                                  <div className="h-2 w-2 md:h-3 md:w-3 shrink-0 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-                                  <span className="text-sm md:text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
+                                  <div className="mt-1 flex h-6 w-6 md:h-7 md:w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-500">
+                                    <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                                  </div>
+                                  <span className="flex-1 min-w-0 break-words text-sm md:text-lg font-semibold text-foreground/70 leading-tight group-hover/item:text-foreground">{item}</span>
                                 </motion.div>
                               ))
                             )}

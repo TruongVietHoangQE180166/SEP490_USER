@@ -256,14 +256,16 @@ export const AdminCourseDetailPage = ({ courseId, onBack }: AdminCourseDetailPag
                     <div className="flex items-center gap-2 text-amber-600 font-bold uppercase text-[10px] tracking-widest">
                       <Target className="h-4 w-4" /> Mục tiêu bài học
                     </div>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                        {(!course.whatYouWillLearn || course.whatYouWillLearn.length === 0) ? (
-                         <p className="text-xs text-muted-foreground italic">Chưa có thông tin mục tiêu bài học.</p>
+                         <p className="text-xs text-muted-foreground italic col-span-2">Chưa có thông tin mục tiêu bài học.</p>
                        ) : (
                          course.whatYouWillLearn.map((item, i) => (
-                           <div key={i} className="flex items-start gap-2">
-                             <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-amber-500 mt-0.5" />
-                             <span className="text-xs text-foreground/80 leading-relaxed font-medium">{item}</span>
+                           <div key={i} className="flex items-start gap-3 p-1 rounded-lg transition-all hover:bg-muted/50">
+                             <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-600">
+                               <CheckCircle2 className="h-3 w-3" />
+                             </div>
+                             <span className="flex-1 min-w-0 break-words text-xs text-foreground/80 leading-relaxed font-bold">{item}</span>
                            </div>
                          ))
                        )}
@@ -274,14 +276,16 @@ export const AdminCourseDetailPage = ({ courseId, onBack }: AdminCourseDetailPag
                     <div className="flex items-center gap-2 text-emerald-600 font-bold uppercase text-[10px] tracking-widest">
                       <Award className="h-4 w-4" /> Kỹ năng đạt được
                     </div>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                        {(!course.targetAudiences || course.targetAudiences.length === 0) ? (
-                         <p className="text-xs text-muted-foreground italic">Chưa có thông tin kỹ năng đạt được.</p>
+                         <p className="text-xs text-muted-foreground italic col-span-2">Chưa có thông tin kỹ năng đạt được.</p>
                        ) : (
                          course.targetAudiences.map((item, i) => (
-                           <div key={i} className="flex items-start gap-2">
-                             <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500 mt-0.5" />
-                             <span className="text-xs text-foreground/80 leading-relaxed font-medium">{item}</span>
+                           <div key={i} className="flex items-start gap-3 p-1 rounded-lg transition-all hover:bg-muted/50">
+                             <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+                               <CheckCircle2 className="h-3 w-3" />
+                             </div>
+                             <span className="flex-1 min-w-0 break-words text-xs text-foreground/80 leading-relaxed font-bold">{item}</span>
                            </div>
                          ))
                        )}
@@ -293,14 +297,16 @@ export const AdminCourseDetailPage = ({ courseId, onBack }: AdminCourseDetailPag
                   <div className="flex items-center gap-2 text-blue-600 font-bold uppercase text-[10px] tracking-widest">
                     <BookOpen className="h-4 w-4" /> Tham chiếu & Uy tín
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                      {(!course.benefits || course.benefits.length === 0) ? (
-                       <p className="text-xs text-muted-foreground italic">Chưa có thông tin tham chiếu.</p>
+                       <p className="text-xs text-muted-foreground italic col-span-2">Chưa có thông tin tham chiếu.</p>
                      ) : (
                        course.benefits.map((item, i) => (
-                         <div key={i} className="flex items-start gap-2">
-                           <div className="h-1.5 w-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
-                           <span className="text-xs text-foreground/80 leading-relaxed font-medium">{item}</span>
+                         <div key={i} className="flex items-start gap-3 p-1 rounded-lg transition-all hover:bg-muted/50">
+                           <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-blue-600">
+                             <CheckCircle2 className="h-3 w-3" />
+                           </div>
+                           <span className="flex-1 min-w-0 break-words text-xs text-foreground/80 leading-relaxed font-bold">{item}</span>
                          </div>
                        ))
                      )}
