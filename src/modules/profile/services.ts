@@ -74,5 +74,50 @@ export const profileService = {
       throw new Error(response?.message?.messageDetail || 'Failed to fetch user progress');
     }
     return response.data;
+  },
+
+  async getClaimedLevelRewards(userId: string): Promise<string[]> {
+    const { supabase } = await import('@/lib/supabase');
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from('user_level_rewards')
+        .select('level_id')
+        .eq('user_id', userId);
+        
+      if (error) throw error;
+      return data.map((row) => row.level_id);
+    } catch (e) {
+      console.error('Failed to get claimed level rewards:', e);
+      return [];
+    }
+  },
+
+  async claimLevelReward(userId: string, levelId: string, amount: number): Promise<boolean> {
+    const { supabase } = await import('@/lib/supabase');
+    if (!supabase) return false;
+    try {
+      // Gọi API cộng USDT
+      const response = await ApiConfigService.post<any>(`/api/v1/wallets/add-balance?userId=${userId}&amount=${amount}`);
+      
+      if (response && response.success) {
+        // Lưu vào DB
+        const { error } = await supabase
+          .from('user_level_rewards')
+          .insert({
+            user_id: userId,
+            level_id: levelId,
+            amount: amount,
+            claimed_at: new Date().toISOString()
+          });
+          
+        if (error) throw error;
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error('Failed to claim level reward:', e);
+      return false;
+    }
   }
 };

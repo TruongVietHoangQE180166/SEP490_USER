@@ -8,6 +8,8 @@ const initialProfileState: ProfileState = {
   isEditing: false,
   progress: null,
   isProgressLoading: false,
+  claimedLevels: [],
+  isClaiming: false,
 };
 
 export const profileState$ = observable<ProfileState>(initialProfileState);
@@ -58,4 +60,32 @@ export const profileActions = {
       profileState$.isLoading.set(false);
     }
   },
+
+  fetchClaimedLevels: async (userId: string) => {
+    try {
+      const claimedLevelIds = await profileService.getClaimedLevelRewards(userId);
+      profileState$.claimedLevels.set(claimedLevelIds as any);
+    } catch (e) {
+      console.error(e);
+    }
+  },
+
+  claimLevel: async (userId: string, levelId: string, amount: number) => {
+    try {
+      profileState$.isClaiming.set(true);
+      const success = await profileService.claimLevelReward(userId, levelId, amount);
+      if (success) {
+        // Cập nhật lại state
+        const current = profileState$.claimedLevels.get() || [];
+        profileState$.claimedLevels.set([...current, levelId as any]);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error(e);
+      return false;
+    } finally {
+      profileState$.isClaiming.set(false);
+    }
+  }
 };

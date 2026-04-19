@@ -47,6 +47,8 @@ export interface ProfileState {
   isEditing: boolean;
   progress: UserProgress | null;
   isProgressLoading: boolean;
+  claimedLevels: UserLevel[];
+  isClaiming: boolean;
 }
 
 export interface ChangePasswordData {
@@ -153,6 +155,8 @@ export interface UserProgress {
 export interface ProgressState {
   progress: UserProgress | null;
   isLoading: boolean;
+  claimedLevels: UserLevel[];
+  isClaiming: boolean;
 }
 
 export interface ProgressApiResponse {

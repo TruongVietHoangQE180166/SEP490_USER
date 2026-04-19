@@ -1,12 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Award, Download, Printer, Share2, ShieldCheck, Star, CheckCircle2, QrCode, Globe, BookOpen, Clock, Zap } from 'lucide-react';
+import { Award, Download, ShieldCheck, Star, CheckCircle2, QrCode, Globe, BookOpen, Zap } from 'lucide-react';
 import { Course } from '../types';
 import { UserProfile } from '@/modules/profile/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 interface CourseCertificateProps {
   course: Course;
   profile: UserProfile;
@@ -14,16 +15,40 @@ interface CourseCertificateProps {
 
 export const CourseCertificate = ({ course, profile }: CourseCertificateProps) => {
   const certificateRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = async () => {
+    if (!certificateRef.current) return;
+    setIsDownloading(true);
+    try {
+      const { toPng } = await import('html-to-image');
+      const jsPDF = (await import('jspdf')).default;
+
+      // Capture at 2x scale for high resolution
+      const dataUrl = await toPng(certificateRef.current, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        skipFonts: false,
+      });
+
+      // A4 landscape in mm
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`VICTEACH_Certificate_${profile.fullName || profile.username || 'Student'}.pdf`);
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const certificateId = `VICT-${course.id.substring(0, 4)}-${profile.id.substring(0, 4)}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
 
   return (
-    <div className="flex flex-col items-center gap-12 py-10 print:p-0 print:m-0">
-      {/* Combined High-end Fonts & Global Print Styles */}
+    <div className="flex flex-col items-center gap-2 sm:gap-12 py-0 sm:py-10 print:p-0 print:m-0 w-full overflow-hidden">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Montserrat:wght@300;400;700;900&family=Pinyon+Script&display=swap');
         
@@ -34,91 +59,85 @@ export const CourseCertificate = ({ course, profile }: CourseCertificateProps) =
 
         @media print {
           @page {
-            size: landscape;
+            size: A4 landscape;
             margin: 0;
           }
+
+          /* Force single page by clamping document height */
           html, body {
+            width: 297mm !important;
+            height: 210mm !important;
+            overflow: hidden !important;
             margin: 0 !important;
             padding: 0 !important;
             background: white !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          /* Hide all content by default */
+
+          /* Hide everything visually */
           body * {
             visibility: hidden !important;
           }
-          /* Specifically show the certificate path with clean backgrounds */
-          .certificate-page, 
-          .certificate-page * {
-            visibility: visible !important;
-            background-color: transparent !important;
-            background-image: none !important;
-            box-shadow: none !important;
-          }
-          .certificate-layout, 
+
+          /* Show only the certificate */
+          .certificate-layout,
           .certificate-layout * {
             visibility: visible !important;
-            /* Re-enable background graphics for the certificate content itself */
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          /* Position the certificate to dominate the first page */
+
+          /* Position certificate centered using zoom + translate */
           .certificate-layout {
             position: absolute !important;
-            top: 0 !important;
+            top: 50% !important;
             left: 50% !important;
-            transform: translateX(-50%) scale(0.98) !important;
-            width: 297mm !important;
-            height: 210mm !important;
+            zoom: 0.926 !important;
+            transform: translate(-50%, -50%) !important;
             margin: 0 !important;
             padding: 0 !important;
-            z-index: 9999 !important;
-            background: white !important; /* The certificate's own white background */
-            display: block !important;
             overflow: visible !important;
             box-shadow: none !important;
-            border: none !important;
           }
-          /* Hide the floating action dock during print */
+
           .print\:hidden {
             display: none !important;
           }
         }
 
-          /* Decoration Utilities */
-          .clip-ribbon {
-            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 85%, 0% 100%);
-          }
-          .scalloped-edges {
-            background: radial-gradient(circle at 50% 0%, #C5A059 10%, transparent 11%),
-                        radial-gradient(circle at 100% 50%, #C5A059 10%, transparent 11%),
-                        radial-gradient(circle at 50% 100%, #C5A059 10%, transparent 11%),
-                        radial-gradient(circle at 0% 50%, #C5A059 10%, transparent 11%);
-            background-size: 20px 20px;
-          }
+        .clip-ribbon {
+          clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 85%, 0% 100%);
         }
       `}</style>
-
-      {/* Main Certificate Container */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: "easeOut" }}
-        className="relative scale-[0.5] sm:scale-100 origin-center sm:origin-top"
-      >
-        <div 
-          ref={certificateRef}
-          className="certificate-layout relative text-[#1a1a1a] w-[1123px] h-[794px] shadow-[0_60px_120px_-10px_rgba(0,0,0,0.3)] p-[32px] overflow-hidden print:shadow-none print:m-0 print:border-none ring-1 ring-black/5 flex-shrink-0"
-          style={{
-            background: 'radial-gradient(circle at center, #ffffff 0%, #fcfcfc 100%)',
-            border: '24px solid transparent',
-            borderImage: 'linear-gradient(135deg, #8B6E3C 0%, #C5A059 25%, #FFF2B2 50%, #C5A059 75%, #8B6E3C 100%) 1',
-          }}
+      
+      {/* Main Certificate Container with a specialized wrapper to handle scaling space */}
+      <div className="w-full flex items-center justify-center overflow-hidden h-[230px] min-[350px]:h-[265px] min-[400px]:h-[320px] min-[500px]:h-[400px] sm:h-[550px] md:h-[650px] lg:h-[850px] transition-all duration-500">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.2 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="relative flex items-center justify-center scale-[0.28] min-[350px]:scale-[0.32] min-[400px]:scale-[0.38] min-[500px]:scale-[0.48] sm:scale-[0.6] md:scale-[0.75] lg:scale-[0.85] xl:scale-100 origin-center transition-all duration-500 flex-shrink-0"
         >
+          {/* Gradient border wrapper — avoids border-image which breaks in html-to-image */}
+          <div
+            ref={certificateRef}
+            className="certificate-layout relative flex-shrink-0 flex-shrink-0"
+            style={{
+              width: '1123px',
+              height: '794px',
+              padding: '24px',
+              background: 'linear-gradient(135deg, #8B6E3C 0%, #C5A059 25%, #FFF2B2 50%, #C5A059 75%, #8B6E3C 100%)',
+              boxShadow: '0 60px 120px -10px rgba(0,0,0,0.3)',
+            }}
+          >
+            {/* White paper inner layer */}
+            <div
+              className="relative w-full h-full text-[#1a1a1a] overflow-hidden"
+              style={{ background: 'radial-gradient(circle at center, #ffffff 0%, #fcfcfc 100%)' }}
+            >
           {/* Outer Deep Border Shadow Layer */}
-          <div className="absolute inset-[-24px] pointer-events-none border-[1px] border-black/10 z-20" />
-          <div className="absolute inset-[0px] pointer-events-none border-[1px] border-white/40 z-20 shadow-[inset_0_0_20px_rgba(0,0,0,0.1)]" />
+          <div className="absolute inset-0 pointer-events-none border-[1px] border-white/40 z-20 shadow-[inset_0_0_20px_rgba(0,0,0,0.1)]" />
 
           {/* Paper Texture Overlay */}
           <div className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
@@ -135,11 +154,13 @@ export const CourseCertificate = ({ course, profile }: CourseCertificateProps) =
   
               {/* Platform Brand Header */}
               <div className="flex justify-between items-start w-full relative z-10">
-                 <div className="flex items-center gap-3">
-                    <div className="bg-[#1a1a1a] p-2 rounded-xl rotate-3 shadow-lg">
-                      <Zap className="w-6 h-6 text-[#C5A059] fill-[#C5A059]" />
-                    </div>
-                    <div className="text-left font-cinzel">
+                  <div className="flex items-center gap-0">
+                     <img 
+                       src="/favicon_io/android-chrome-512x512.png" 
+                       alt="VicTeach Logo"
+                       className="w-16 h-16 object-contain drop-shadow-md"
+                     />
+                     <div className="text-left font-cinzel">
                        <p className="font-black text-xl tracking-tight text-[#1a1a1a]">VIC<span className="text-[#C5A059]">TEACH</span></p>
                        <p className="text-[8px] font-black uppercase tracking-[0.4em] text-zinc-400 leading-none">Excellence in Education</p>
                     </div>
@@ -292,27 +313,40 @@ export const CourseCertificate = ({ course, profile }: CourseCertificateProps) =
                     <span className="text-[7px] font-black uppercase tracking-[0.3em]">Official Certification</span>
                  </div>
               </div>
-            </div>
-        </div>
+            </div>  {/* close: Internal Border div */}
+            </div>  {/* close: White paper inner layer */}
+          </div>  {/* close: Gradient border wrapper (certificateRef) */}
 
-        {/* Floating Actions Dock - NOW BELOW CERTIFICATE FOR CLARITY */}
-        <div className="mt-12 flex justify-center w-full print:hidden">
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center p-3 bg-white/80 backdrop-blur-3xl border border-white/50 rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] ring-1 ring-black/5"
+        </motion.div>
+      </div>
+
+      {/* Floating Actions Dock - MINIMALIST */}
+      <div className="mt-4 sm:mt-4 flex justify-center w-full px-4 mb-2 print:hidden">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            whileHover={{ scale: 1.05 }}
+            className="flex items-center p-2 sm:p-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border border-zinc-200 dark:border-zinc-800 rounded-3xl sm:rounded-full shadow-[0_30px_70px_-20px_rgba(0,0,0,0.2)] ring-1 ring-black/5"
+          >
+            <Button 
+              onClick={handleDownloadPDF}
+              disabled={isDownloading}
+              className="rounded-2xl sm:rounded-full h-12 sm:h-16 px-8 sm:px-14 flex items-center justify-center gap-2 sm:gap-4 bg-primary text-primary-foreground hover:brightness-110 transition-all duration-300 font-montserrat font-black text-[10px] sm:text-sm uppercase tracking-[0.15em] shadow-xl shadow-primary/20 border-none group disabled:opacity-70"
             >
-              <Button 
-                onClick={handlePrint}
-                className="rounded-full h-14 px-12 flex items-center gap-4 bg-primary text-primary-foreground hover:opacity-90 transition-all duration-300 font-montserrat font-bold text-xs uppercase tracking-[0.15em] shadow-xl border-none"
-              >
-                <Download className="w-5 h-5" />
-                <span>Tải Chứng Chỉ Bảo Mật (PDF)</span>
-              </Button>
-            </motion.div>
-        </div>
-      </motion.div>
+              {isDownloading ? (
+                <>
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                  <span>Đang xuất PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 sm:w-6 sm:h-6 group-hover:translate-y-0.5 transition-transform" />
+                  <span>Tải Xuất Chứng Chỉ (PDF)</span>
+                </>
+              )}
+            </Button>
+          </motion.div>
+      </div>
     </div>
   );
 };

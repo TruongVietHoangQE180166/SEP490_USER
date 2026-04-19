@@ -241,12 +241,15 @@ body {
   }
 
   .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
+    display: none;
+    /* Chrome, Safari and Opera */
   }
 }
 
@@ -289,7 +292,8 @@ body {
   white-space: nowrap !important;
   color: var(--color-muted-foreground) !important;
   font-size: 0.85rem !important;
-  margin-right: auto !important; /* Forces it to the left while keeping others right */
+  margin-right: auto !important;
+  /* Forces it to the left while keeping others right */
 }
 
 .driverjs-theme .driver-popover-footer button {
@@ -331,9 +335,32 @@ body {
 .driverjs-theme .driver-popover-arrow {
   border-color: var(--color-card) !important;
 }
-.custom-scrollbar::-webkit-scrollbar { width: 5px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: oklch(0.9222 0.0013 286.3737); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: oklch(0.6723 0.1606 244.9955); }
 
-.custom-scrollbar::-webkit-scrollbar-thumb { background: oklch(0.6723 0.1606 244.9955) !important; }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(0.9222 0.0013 286.3737);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.6723 0.1606 244.9955);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(0.6723 0.1606 244.9955) !important;
+}
+
+/* Remove browser default print headers (date, title, URL) */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0 !important;
+  }
+}

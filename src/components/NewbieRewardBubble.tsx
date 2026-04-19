@@ -42,14 +42,14 @@ export const NewbieRewardBubble = () => {
   // Check role
   const userRoleRaw = user?.role || (user?.roles && user?.roles[0]);
   const userRole = getNormalizedRole(userRoleRaw);
-  const isUserRole = userRole === 'USER';
+  const isEligibleRole = userRole === 'USER' || userRole === 'TEACHER';
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!isMounted || !isAuthenticated || !user?.userId || !isUserRole) {
+    if (!isMounted || !isAuthenticated || !user?.userId || !isEligibleRole) {
       setShowBubble(false);
       return;
     }
@@ -70,7 +70,7 @@ export const NewbieRewardBubble = () => {
     };
 
     checkRewardStatus();
-  }, [isMounted, isAuthenticated, user?.userId, isUserRole]);
+  }, [isMounted, isAuthenticated, user?.userId, isEligibleRole]);
 
   // Handle claim reward
   const handleClaim = async () => {
@@ -96,6 +96,7 @@ export const NewbieRewardBubble = () => {
     }
   };
 
+  // Chỉ hiển thị hộp quà khi ở chế độ xem Public (trang chủ) không ở trong Admin / Teacher Workspace
   if (!isMounted || isAuthPage || isLearnPage || isAdminPage || isTeacherPage || isTradingPage) return null;
 
   return (

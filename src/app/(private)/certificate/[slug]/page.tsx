@@ -141,8 +141,8 @@ const CertificatePage = observer(() => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-4 sm:p-10 certificate-page">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-0 bg-zinc-50 dark:bg-zinc-950 p-2 sm:p-10 certificate-page flex flex-col items-center justify-start sm:justify-center pt-6 sm:pt-10">
+      <div className="w-full max-w-7xl mx-auto flex flex-col items-center">
         <CourseCertificate course={course} profile={profile} />
       </div>
     </div>
