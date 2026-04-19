@@ -1,6 +1,7 @@
 'use client';
 
 import { FooterBlock } from '@/components/sections/footer-block';
+import { GlobalUIWrapper } from '@/components/GlobalUIWrapper';
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,7 +9,9 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
       <main>
         {children}
       </main>
-      <FooterBlock />
+      <GlobalUIWrapper>
+        <FooterBlock />
+      </GlobalUIWrapper>
     </div>
   );
 }

@@ -10,6 +10,8 @@ import { AttendanceBubble } from '@/components/AttendanceBubble';
 import { HeroHeader } from '@/components/header1';
 import { MainWrapper } from '@/components/MainWrapper';
 import { ToastContainer } from '@/components/ui/toast';
+import { GlobalUIWrapper } from '@/components/GlobalUIWrapper';
+import { NewbieRewardBubble } from '@/components/NewbieRewardBubble';
 import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -120,12 +122,17 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <HeroHeader />
+        <GlobalUIWrapper>
+          <HeroHeader />
+        </GlobalUIWrapper>
         <MainWrapper>
           <RouteGuard>{children}</RouteGuard>
-          <SearchDock />
-          <ChatBubble />
-          <AttendanceBubble />
+          <GlobalUIWrapper>
+            <SearchDock />
+            <ChatBubble />
+            <NewbieRewardBubble />
+            <AttendanceBubble />
+          </GlobalUIWrapper>
         </MainWrapper>
         <PageLoadingIndicator />
         <LoadingOverlay />

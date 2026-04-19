@@ -11,8 +11,9 @@ export function MainWrapper({ children }: { children: React.ReactNode }) {
   const isLearnPage = pathname && pathname.startsWith('/learn');
   const isAdminPage = pathname && pathname.startsWith('/admin');
   const isTeacherPage = pathname && pathname.startsWith('/teacher');
+  const isOnboardingPage = pathname === '/onboarding';
   
-  const noHeader = isAuthPage || isLearnPage || isAdminPage || isTeacherPage;
+  const noHeader = isAuthPage || isLearnPage || isAdminPage || isTeacherPage || isOnboardingPage;
   
   return (
     <div className={noHeader ? 'relative min-h-screen' : 'relative min-h-screen pt-28'}>

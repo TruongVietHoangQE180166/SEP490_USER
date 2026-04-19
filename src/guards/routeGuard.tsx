@@ -102,12 +102,22 @@ export const RouteGuard = observer(({ children }: RouteGuardProps) => {
 
       // Role-based access control
       if (isAuthenticated && user) {
+        // First, check if onboarding is pending for any user
+        if (typeof window !== 'undefined') {
+          const pendingOnboarding = localStorage.getItem('pending_onboarding');
+          if (pendingOnboarding === 'true') {
+            console.log('[RouteGuard] Onboarding is pending - redirecting to onboarding page');
+            localStorage.removeItem('pending_onboarding');
+            router.replace('/onboarding');
+            return;
+          }
+        }
+
         const userRoleRaw = user.role || (user.roles && user.roles[0]);
         const userRole = getNormalizedRole(userRoleRaw);
         
         console.log('[RouteGuard] Checking Role:', userRole, 'Original:', userRoleRaw, 'at Path:', pathname);
 
-        
         // Admin route check
         if (pathname.startsWith('/admin') && userRole !== 'ADMIN') {
           console.log('[RouteGuard] Non-admin accessing admin route - redirecting to home');
@@ -130,6 +140,16 @@ export const RouteGuard = observer(({ children }: RouteGuardProps) => {
         
         console.log('[RouteGuard] Authenticated user at auth route, Role:', userRole, 'Original:', userRoleRaw);
 
+        // Check for onboarding before any role-based redirect
+        if (typeof window !== 'undefined') {
+          const pendingOnboarding = localStorage.getItem('pending_onboarding');
+          if (pendingOnboarding === 'true') {
+            console.log('[RouteGuard] Redirecting to Onboarding from Auth Route');
+            localStorage.removeItem('pending_onboarding');
+            router.replace('/onboarding');
+            return;
+          }
+        }
         
         if (userRole === 'ADMIN') {
           console.log('[RouteGuard] Redirecting to Admin Dashboard');

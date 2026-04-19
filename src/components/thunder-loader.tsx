@@ -46,12 +46,11 @@ interface ThunderLoaderProps
   customPath?: string;
 }
 
-// Use theme primary color for default, keep original colors for other variants
 const variantColors = {
   default: {
-    shimmer: "oklch(0.6723 0.1606 244.9955)",  // Theme primary (blue)
-    glow: "oklch(0.6692 0.1607 245.0110)",     // Theme primary darker
-    base: "oklch(0.5800 0.1550 244.0000)",     // Theme primary darkest
+    shimmer: "oklch(0.6723 0.1606 244.9955)",
+    glow: "oklch(0.6692 0.1607 245.0110)",
+    base: "oklch(0.5800 0.1550 244.0000)",
   },
   fire: {
     shimmer: "#fbbf24",
@@ -80,8 +79,15 @@ const variantColors = {
   },
 };
 
+// Coin SVG (viewBox 0 0 24 24) — all 5 paths combined into one d string.
+// The tiny sub-paths (dollar bar ends) are still present but the static base
+// layer (opacity=1) ensures the full icon is always clearly visible.
 const defaultThunderPath =
-  "M50 10 L 35 45 L 55 45 L 40 70 L 70 35 L 50 35 L 65 10 Z";
+  "M8 11.4C8 12.17 8.6 12.8 9.33 12.8H10.83C11.47 12.8 11.99 12.25 11.99 11.58C11.99 10.85 11.67 10.59 11.2 10.42L8.8 9.57995C8.32 9.40995 8 9.14995 8 8.41995C8 7.74995 8.52 7.19995 9.16 7.19995H10.66C11.4 7.20995 12 7.82995 12 8.59995 " +
+  "M10 12.8501V13.5901 " +
+  "M10 6.40991V7.18991 " +
+  "M9.99 17.98C14.4028 17.98 17.98 14.4028 17.98 9.99C17.98 5.57724 14.4028 2 9.99 2C5.57724 2 2 5.57724 2 9.99C2 14.4028 5.57724 17.98 9.99 17.98Z " +
+  "M12.98 19.88C13.88 21.15 15.35 21.98 17.03 21.98C19.76 21.98 21.98 19.76 21.98 17.03C21.98 15.37 21.16 13.9 19.91 13";
 
 const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
   (
@@ -95,11 +101,11 @@ const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
       fillColor,
       glowColor,
       baseColor,
-      strokeWidth = 2,
+      strokeWidth = 1.5,
       showGlow = false,
       showFill = false,
       animate = false,
-      viewBox = "0 0 100 80",
+      viewBox = "0 0 24 24",
       customPath,
       ...props
     },
@@ -108,7 +114,6 @@ const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
     const colors = variantColors[variant!] || variantColors.default;
     const finalFillColor = fillColor || colors.shimmer;
     const finalGlowColor = glowColor || colors.glow;
-    const finalBaseColor = baseColor || colors.base;
     const thunderPath = customPath || defaultThunderPath;
     const isThunderAnimation = animate === "thunder";
 
@@ -155,6 +160,9 @@ const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
       return () => cancelAnimationFrame(frame);
     }, [fillDuration, showFill]);
 
+    const vbW = Number(viewBox.split(" ")[2]) || 24;
+    const vbH = Number(viewBox.split(" ")[3]) || 24;
+
     return (
       <div
         ref={ref}
@@ -172,27 +180,13 @@ const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
           <defs>
             {showFill && (
               <linearGradient id={gradientId} x1="0%" y1="100%" x2="0%" y2="0%">
-                <stop
-                  offset="0%"
-                  stopColor={finalFillColor}
-                  stopOpacity="0.7"
-                />
-                <stop
-                  offset="100%"
-                  stopColor={finalFillColor}
-                  stopOpacity="0.1"
-                />
+                <stop offset="0%" stopColor={finalFillColor} stopOpacity="0.7" />
+                <stop offset="100%" stopColor={finalFillColor} stopOpacity="0.1" />
               </linearGradient>
             )}
             {showGlow && (
-              <filter
-                id={filterId}
-                x="-100%"
-                y="-100%"
-                width="300%"
-                height="300%"
-              >
-                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <filter id={filterId} x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="1" result="coloredBlur" />
                 <feMerge>
                   <feMergeNode in="coloredBlur" />
                   <feMergeNode in="SourceGraphic" />
@@ -200,30 +194,45 @@ const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
               </filter>
             )}
           </defs>
+
+          {/* ── Glow layer ── */}
           {showGlow && (
             <motion.path
               d={thunderPath}
               stroke={finalGlowColor}
-              strokeWidth={strokeWidth + 1}
+              strokeWidth={strokeWidth + 0.5}
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
               filter={`url(#${filterId})`}
-              initial={{ opacity: 0.6 }}
-              animate={{ opacity: 0.6 }}
+              initial={{ opacity: 0.5 }}
+              animate={{ opacity: 0.5 }}
             >
               <animate
                 attributeName="opacity"
-                values="0.3;0.8;0.3"
+                values="0.2;0.7;0.2"
                 dur={`${glowDuration}s`}
                 repeatCount="indefinite"
               />
             </motion.path>
           )}
+
+          {/* ── Static base layer — always fully visible at 100% opacity ── */}
+          <path
+            d={thunderPath}
+            stroke={finalFillColor}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity={1}
+          />
+
+          {/* ── Animated shimmer layer on top ── */}
           <motion.path
             ref={pathRef}
             d={thunderPath}
-            stroke={finalBaseColor}
+            stroke={finalFillColor}
             strokeWidth={strokeWidth}
             fill="none"
             strokeLinecap="round"
@@ -238,7 +247,7 @@ const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
             animate={
               isThunderAnimation
                 ? {
-                    strokeDasharray: pathLength,
+                    strokeDasharray: pathLength * 0.35,
                     strokeDashoffset: [pathLength, -pathLength],
                   }
                 : animate
@@ -247,23 +256,21 @@ const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
             }
             transition={
               isThunderAnimation
-                ? {
-                    repeat: Infinity,
-                    duration: animateDuration,
-                    ease: "linear",
-                  }
+                ? { repeat: Infinity, duration: animateDuration, ease: "linear" }
                 : animate
                 ? { duration: animateDuration, delay: 0.5, ease: "easeInOut" }
                 : undefined
             }
           />
+
+          {/* ── Fill effect (liquid fill from bottom) ── */}
           {showFill && (
             <mask id={`fill-mask-${gradientId}`}>
               <rect
                 x="0"
-                y={80 - fillProgress * 80}
-                width="100"
-                height={fillProgress * 80}
+                y={vbH - fillProgress * vbH}
+                width={vbW}
+                height={fillProgress * vbH}
                 fill="white"
               />
             </mask>
@@ -276,23 +283,17 @@ const ThunderLoader = React.forwardRef<HTMLDivElement, ThunderLoaderProps>(
               mask={`url(#fill-mask-${gradientId})`}
             />
           )}
+
+          {/* ── Rainbow sparkle ── */}
           {variant === "rainbow" && (
             <motion.circle
-              cx="50"
-              cy="40"
-              r="1"
+              cx={vbW / 2}
+              cy={vbH / 2}
+              r="0.5"
               fill={finalFillColor}
               initial={{ opacity: 0, scale: 0 }}
-              animate={{
-                opacity: [0, 1, 0],
-                scale: [0, 1.5, 0],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                repeatDelay: 1,
-                delay: 1,
-              }}
+              animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, delay: 1 }}
             />
           )}
         </motion.svg>
