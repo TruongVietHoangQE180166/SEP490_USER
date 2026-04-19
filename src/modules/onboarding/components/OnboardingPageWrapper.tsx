@@ -97,7 +97,7 @@ export function OnboardingPageWrapper() {
     
     // Điều hướng về trang phù hợp sau khi hoàn thành
     if (isTeacher) {
-      router.replace('/teacher/dashboard');
+      router.replace('/teacher');
     } else {
       router.replace('/');
     }

@@ -21,11 +21,35 @@ import { UserProgress, UserLevel } from '../types';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { profileState$, profileActions } from '../store';
+import { authState$ } from '@/modules/auth/store';
+import { useEffect, useState } from 'react';
+import { toast } from '@/components/ui/toast';
+import { Loader2, Gift } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface UserLevelCardProps {
   progress: UserProgress;
   className?: string;
 }
+
+export const LEVEL_REWARDS: Record<UserLevel, number> = {
+  NHAP_MON: 1000,
+  NEN_TANG: 10000,   // Quà lên Nền Tảng
+  TRUNG_CAP: 20000,  // Quà lên Trung Cấp
+  THUC_HANH: 50000,  // Quà lên Thực Hành
+  NANG_CAO: 100000,  // Quà lên Nâng Cao
+};
 
 const LEVEL_CONFIG: Record<UserLevel, { 
   label: string, 
@@ -74,6 +98,39 @@ const LEVEL_CONFIG: Record<UserLevel, {
 export const UserLevelCard = observer(({ progress, className }: UserLevelCardProps) => {
   const currentLevelConfig = LEVEL_CONFIG[progress.currentLevel];
   const nextLevelConfig = progress.nextLevel ? LEVEL_CONFIG[progress.nextLevel] : null;
+
+  const user = authState$.user.get();
+  const claimedLevels = profileState$.claimedLevels.get() || [];
+  const isClaiming = profileState$.isClaiming.get();
+  const [claimingLevel, setClaimingLevel] = useState<string | null>(null);
+  
+  // Dialog states
+  const [confirmClaim, setConfirmClaim] = useState<{levelId: string, amount: number} | null>(null);
+  const [successClaim, setSuccessClaim] = useState<{levelId: string, amount: number} | null>(null);
+
+  useEffect(() => {
+    if (user?.userId) {
+      profileActions.fetchClaimedLevels(user.userId);
+    }
+  }, [user?.userId]);
+
+  const executeClaim = async () => {
+    if (!user?.userId || !confirmClaim) return;
+    const { levelId, amount } = confirmClaim;
+    
+    setClaimingLevel(levelId);
+    try {
+      const success = await profileActions.claimLevel(user.userId, levelId, amount);
+      if (success) {
+        setConfirmClaim(null);
+        setSuccessClaim({ levelId, amount });
+      } else {
+        toast.error('Nhận thưởng thất bại. Vui lòng thử lại sau.');
+      }
+    } finally {
+      setClaimingLevel(null);
+    }
+  };
 
   const MetricItem = ({ 
     label, 
@@ -407,9 +464,9 @@ export const UserLevelCard = observer(({ progress, className }: UserLevelCardPro
               const isPast = (Object.keys(LEVEL_CONFIG) as UserLevel[]).indexOf(progress.currentLevel) > index;
               
               return (
-                <div key={levelKey} className="flex flex-col items-center text-center space-y-4 relative z-10 group">
+                <div key={levelKey} className="flex flex-col items-center text-center space-y-3 relative z-10 group">
                   <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 border-2",
+                    "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 border-2 relative",
                     isCurrent 
                       ? cn("bg-background shadow-[0_0_20px_rgba(var(--primary),0.3)] scale-110 z-20", level.color.replace('text', 'border'))
                       : isPast
@@ -420,19 +477,53 @@ export const UserLevelCard = observer(({ progress, className }: UserLevelCardPro
                       "w-6 h-6 transition-colors",
                       isCurrent || isPast ? level.color : "text-muted-foreground/40"
                     )} />
+                    
+                    {/* Checkmark for claimed rewards */}
+                    {(isCurrent || isPast) && LEVEL_REWARDS[levelKey] > 0 && claimedLevels.includes(levelKey) && (
+                      <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5 shadow-md">
+                        <CheckCircle2 className="w-3 h-3" />
+                      </div>
+                    )}
+                    
+                    {/* Nút Nhận Thưởng Dạng Overlay Hộp Quà */}
+                    {(isCurrent || isPast) && LEVEL_REWARDS[levelKey] > 0 && !claimedLevels.includes(levelKey) && (
+                      <div 
+                        className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-[2px] rounded-full cursor-pointer hover:bg-black/60 transition-colors pointer-events-auto"
+                        onClick={() => setConfirmClaim({ levelId: levelKey, amount: LEVEL_REWARDS[levelKey] })}
+                        title={`Nhận phần thưởng thăng cấp ${LEVEL_REWARDS[levelKey].toLocaleString()} USDT`}
+                      >
+                        <motion.div
+                          animate={{ rotate: [0, -15, 15, -15, 15, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.5 }}
+                          className="drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]"
+                        >
+                          <Gift className="w-7 h-7 text-amber-400 fill-amber-500/20" />
+                        </motion.div>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="space-y-1">
+                  <div className="space-y-1.5 flex flex-col items-center">
                     <p className={cn(
                       "text-[11px] font-black uppercase tracking-tighter transition-colors",
                       isCurrent ? level.color : isPast ? "text-foreground/80" : "text-muted-foreground/40"
                     )}>
                       {level.label}
                     </p>
+                    
                     {isCurrent && (
                       <Badge className="bg-primary/20 text-primary border-primary/20 text-[8px] font-black uppercase px-2 py-0">
                         Bạn đang ở đây
                       </Badge>
+                    )}
+                    
+                    {/* Trạng thái đã nhận thưởng */}
+                    {(isCurrent || isPast) && LEVEL_REWARDS[levelKey] > 0 && claimedLevels.includes(levelKey) && (
+                      <div className="mt-1">
+                        <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest flex items-center gap-1">
+                          Đã nhận thưởng
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -441,6 +532,68 @@ export const UserLevelCard = observer(({ progress, className }: UserLevelCardPro
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <AlertDialog open={!!confirmClaim} onOpenChange={(open) => !open && setConfirmClaim(null)}>
+        <AlertDialogContent className="w-[90vw] max-w-[400px]">
+          <AlertDialogHeader className="flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-4 text-amber-500">
+              <Gift size={32} />
+            </div>
+            <AlertDialogTitle className="text-2xl text-amber-500 font-bold">Quà Thăng Hạng</AlertDialogTitle>
+            <AlertDialogDescription className="text-base mt-2">
+              Chúc mừng bạn đã vượt qua mốc cấp độ này! Nhận ngay phần thưởng <strong className="text-foreground font-bold">{confirmClaim?.amount.toLocaleString()} USDT</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-6">
+            <AlertDialogCancel className="w-full sm:w-auto" disabled={isClaiming || !!claimingLevel}>
+              Để sau
+            </AlertDialogCancel>
+            <Button 
+              className="w-full sm:w-auto bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white" 
+              onClick={executeClaim}
+              disabled={isClaiming || !!claimingLevel}
+            >
+              {isClaiming ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Đang nhận...</>
+              ) : (
+                "Nhận Thưởng Ngay"
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Success Modal */}
+      <AlertDialog open={!!successClaim} onOpenChange={(open) => !open && setSuccessClaim(null)}>
+        <AlertDialogContent className="w-[90vw] max-w-[400px]">
+          <AlertDialogHeader className="flex flex-col items-center text-center">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1, rotate: [0, 15, -15, 15, 0] }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center mb-4 text-green-500 relative"
+            >
+              <Gift size={40} className="drop-shadow-md" />
+              <span className="absolute w-2 h-2 rounded-full bg-amber-400 top-2 -right-2 animate-ping" style={{ animationDelay: '0.2s' }}></span>
+              <span className="absolute w-2 h-2 rounded-full bg-blue-400 bottom-0 -left-2 animate-ping" style={{ animationDelay: '0.4s' }}></span>
+            </motion.div>
+            <AlertDialogTitle className="text-3xl text-green-500 font-extrabold pb-2">Tuyệt Vời!</AlertDialogTitle>
+            <AlertDialogDescription className="text-base mt-2">
+              Bạn đã nhận thành công <strong className="text-foreground text-amber-500 font-bold">{successClaim?.amount.toLocaleString()} USDT</strong>. Tiếp tục hoàn thành các nhiệm vụ để tiến tới cấp độ tiếp theo nhé!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center mt-6">
+            <Button 
+              className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white rounded-xl px-8" 
+              onClick={() => setSuccessClaim(null)}
+            >
+              Trở lại Lộ trình
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </motion.div>
   );
 });
