@@ -6,12 +6,12 @@ import { GridBackground } from '@/components/ui/grid-background';
 
 export default function WalletPage() {
   return (
-    <div className="relative min-h-screen bg-background pt-24 pb-20">
-      <div className="container relative z-10 mx-auto px-6 max-w-7xl">
-        <header className="mb-16 relative">
+    <div className="relative min-h-screen bg-background pt-16 md:pt-24 pb-12 md:pb-20">
+      <div className="container relative z-10 mx-auto px-4 md:px-6 max-w-7xl">
+        <header className="mb-10 md:mb-16 relative">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center text-center"
           >
@@ -23,11 +23,11 @@ export default function WalletPage() {
                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Tài chính an toàn</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-4 uppercase italic">
+            <h1 className="text-4xl md:text-7xl font-black tracking-tight mb-4 uppercase italic">
               Quản lý <span className="text-primary drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]">Ví Tiền</span>
             </h1>
             
-            <p className="text-muted-foreground font-medium text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground font-medium text-base md:text-lg max-w-2xl mx-auto px-4">
               Trung tâm quản lý tài sản số của bạn. Theo dõi số dư, nạp tiền và quản lý mọi giao dịch với độ bảo mật tối đa.
             </p>
           </motion.div>

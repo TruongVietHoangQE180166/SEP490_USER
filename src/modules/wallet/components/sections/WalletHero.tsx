@@ -43,9 +43,9 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
       {/* ambient glow */}
       <div className="absolute -inset-px rounded-3xl bg-gradient-to-br from-primary/30 via-indigo-500/10 to-violet-500/20 blur-2xl opacity-40 group-hover:opacity-60 transition duration-700" />
 
-      <div className="relative h-full rounded-3xl bg-card/80 backdrop-blur-xl border border-white/10 overflow-hidden shadow-2xl p-10 flex flex-col gap-8">
+      <div className="relative h-full rounded-[2rem] md:rounded-3xl bg-card/80 backdrop-blur-xl border border-white/10 overflow-hidden shadow-2xl p-6 md:p-10 flex flex-col gap-6 md:gap-8">
         {/* top row */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col md:flex-row items-start justify-between gap-6 md:gap-0">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(var(--primary-rgb),0.8)]" />
@@ -59,9 +59,9 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
           </div>
 
           {/* actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <DepositModal>
-              <Button size="sm" className="h-9 rounded-2xl bg-primary shadow-lg shadow-primary/20 gap-2 font-black uppercase text-[10px] tracking-wider px-5">
+              <Button size="sm" className="h-9 flex-1 md:flex-none rounded-2xl bg-primary shadow-lg shadow-primary/20 gap-2 font-black uppercase text-[10px] tracking-wider px-5">
                 <Plus size={14} className="stroke-[3]" />
                 Nạp tiền
               </Button>
@@ -71,7 +71,7 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
             <motion.span
               animate={{ opacity: isPnlConnected ? 1 : 0.5 }}
               className={cn(
-                'inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-500',
+                'inline-flex flex-1 md:flex-none items-center justify-center md:justify-start gap-2 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-500',
                 isPnlConnected
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
                   : 'bg-muted/50 text-muted-foreground border-border/40'
@@ -80,7 +80,6 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
               {isPnlConnected ? (
                 <>
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Live
-                  Market
                 </>
               ) : (
                 <>
@@ -93,32 +92,32 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
 
         {/* big number */}
         <div className="space-y-1">
-          <div className="flex items-baseline gap-3">
-            <span className="text-5xl font-bold bg-gradient-to-b from-foreground/40 to-foreground/20 bg-clip-text text-transparent italic">
+          <div className="flex items-baseline gap-2 md:gap-3 overflow-hidden">
+            <span className="text-3xl md:text-5xl font-bold bg-gradient-to-b from-foreground/40 to-foreground/20 bg-clip-text text-transparent italic">
               $
             </span>
             <motion.span
               key={totalDisplayBalance}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-8xl font-black tracking-tighter text-foreground tabular-nums drop-shadow-sm"
+              className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-foreground tabular-nums drop-shadow-sm truncate"
             >
               {fmt(totalDisplayBalance)}
             </motion.span>
           </div>
-          <p className="text-xs text-muted-foreground/50 ml-1 font-bold uppercase tracking-widest italic opacity-60">
+          <p className="text-[10px] md:text-xs text-muted-foreground/50 ml-1 font-bold uppercase tracking-widest italic opacity-60">
             Thanh khoản USDT
           </p>
         </div>
 
         {/* PnL badge */}
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-4 md:gap-6">
           <motion.div
             key={dailyPnl}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className={cn(
-              'inline-flex items-center gap-2.5 px-5 py-3 rounded-2xl border text-sm font-black transition-colors duration-500',
+              'inline-flex items-center gap-2.5 px-4 md:px-5 py-2.5 md:py-3 rounded-2xl border text-xs md:text-sm font-black transition-colors duration-500',
               positive
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                 : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
@@ -127,7 +126,7 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
             <div className={cn('p-1 rounded-lg', positive ? 'bg-emerald-400/20' : 'bg-rose-400/20')}>
               {positive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
             </div>
-            <span>
+            <span className="whitespace-nowrap">
               {positive ? '+' : ''}
               {fmt(dailyPnl)} USDT
             </span>
@@ -138,17 +137,17 @@ export const WalletHero: React.FC<WalletHeroProps> = ({
             </span>
           </motion.div>
 
-          <div className="hidden sm:flex flex-col">
+          <div className="flex flex-col">
             <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">
               Biến động (24h)
             </span>
             <span
               className={cn(
-                'text-xs font-black italic',
+                'text-[10px] md:text-xs font-black italic',
                 positive ? 'text-emerald-500/60' : 'text-rose-500/60'
               )}
             >
-              Real-time PnL
+              Real-time Profit
             </span>
           </div>
         </div>
