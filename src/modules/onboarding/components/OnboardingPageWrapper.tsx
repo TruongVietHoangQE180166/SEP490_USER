@@ -129,18 +129,25 @@ export function OnboardingPageWrapper() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden px-4 py-12">
       
+      {/* Premium Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[1px] bg-gradient-to-r from-transparent via-border/60 to-transparent" />
+      </div>
+
       {/* Cảnh báo khi bỏ qua */}
       <AlertDialog open={showSkipAlert} onOpenChange={setShowSkipAlert}>
-        <AlertDialogContent className="w-[90vw] max-w-[400px]">
+        <AlertDialogContent className="w-[90vw] max-w-[420px] rounded-3xl border-border/50 backdrop-blur-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Bạn chắc chắn muốn bỏ qua?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Hệ thống có rất nhiều tính năng thú vị và phần thưởng hấp dẫn đang chờ bạn khám phá. Bạn có thể xem lại sau nhưng sẽ tốt hơn nếu bạn dành 1 phút để tìm hiểu ngay bây giờ!
+            <AlertDialogTitle className="text-2xl font-black tracking-tight">Vội vã thế sao? ✨</AlertDialogTitle>
+            <AlertDialogDescription className="text-base font-medium text-muted-foreground leading-relaxed">
+              Hệ thống có rất nhiều tính năng thú vị và phần thưởng hấp dẫn đang chờ bạn khám phá. Bạn có muốn dành 1 phút để trở thành chuyên gia không?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel className="w-full sm:w-auto">Xem tiếp</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmSkip} className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white border-transparent">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-3 mt-4">
+            <AlertDialogCancel className="w-full sm:flex-1 h-12 rounded-xl font-bold border-border/60">Quay lại xem</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSkip} className="w-full sm:flex-1 h-12 rounded-xl bg-destructive hover:bg-destructive/90 text-white font-black uppercase tracking-widest text-xs border-none">
               Vẫn bỏ qua
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -150,37 +157,37 @@ export function OnboardingPageWrapper() {
       {/* Nút bỏ qua - Positioned better for mobile */}
       <button
         onClick={skipOnboarding}
-        className="absolute top-4 right-4 sm:top-8 sm:right-8 px-3 py-1.5 sm:px-4 sm:py-2 flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground font-medium transition-colors z-10"
+        className="absolute top-6 right-6 sm:top-10 sm:right-10 px-5 py-2.5 flex items-center gap-2.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground font-black uppercase tracking-widest transition-all z-20 hover:bg-muted/30 rounded-full backdrop-blur-sm"
       >
-        <Home className="w-3 h-3 sm:w-4 sm:h-4" /> Bỏ qua
+        <Home className="w-4 h-4 text-primary" /> Bỏ qua
       </button>
 
       {/* Thanh tiến trình - Adjust for mobile notch/status bar */}
-      <div className="absolute top-12 sm:top-16 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-10">
+      <div className="absolute top-8 sm:top-12 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-10 p-2 bg-background/40 backdrop-blur-md rounded-full border border-border/50">
         {STEPS_COMPONENTS.map((_, idx) => (
           <div
             key={idx}
             className={cn(
-              "h-1 sm:h-2 rounded-full transition-all duration-300",
-              idx === currentStep ? "w-6 sm:w-10 bg-primary" : "w-1.5 sm:w-3 bg-border"
+              "h-1.5 sm:h-2 rounded-full transition-all duration-500",
+              idx === currentStep ? "w-8 sm:w-16 bg-primary shadow-lg shadow-primary/20" : "w-1.5 sm:w-2 bg-border/60"
             )}
           />
         ))}
       </div>
 
-      <div className="w-full max-w-2xl flex flex-col items-center justify-center pt-8 sm:pt-0">
-        <div className="min-h-[300px] sm:min-h-[400px] w-full flex items-center justify-center">
+      <div className="w-full max-w-6xl flex flex-col items-center justify-center pt-16 sm:pt-20 pb-8 relative z-10 mx-auto px-4 sm:px-8">
+        <div className="w-full flex items-center justify-center">
           <AnimatePresence mode="wait">
             <CurrentComponent key={currentStep} />
           </AnimatePresence>
         </div>
 
         {/* Hành động - Stacks on mobile */}
-        <div className="w-full max-w-sm mt-8 sm:mt-12 flex flex-col sm:flex-row gap-3 sm:gap-4 px-4 sm:px-0">
+        <div className="w-full max-w-xl mx-auto mt-6 sm:mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6 px-4 sm:px-0">
           <Button
             size="lg"
-            variant="outline"
-            className="w-full sm:flex-1 rounded-xl h-11 sm:h-12"
+            variant="ghost"
+            className="w-full sm:flex-1 rounded-2xl h-12 sm:h-14 font-black text-xs uppercase tracking-widest hover:bg-muted/50 transition-all"
             onClick={currentStep === 0 ? skipOnboarding : () => setCurrentStep(prev => prev - 1)}
           >
             {currentStep === 0 ? "Bỏ qua" : "Trở lại"}
@@ -189,20 +196,20 @@ export function OnboardingPageWrapper() {
           {currentStep < STEPS_COMPONENTS.length - 1 ? (
             <Button
               size="lg"
-              className="w-full sm:flex-1 group rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground h-11 sm:h-12"
+              className="w-full sm:flex-1 group rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground h-12 sm:h-14 font-black uppercase tracking-tighter text-base shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 active:scale-95"
               onClick={nextStep}
             >
               Tiếp tục
-              <ChevronRight className="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           ) : (
             <Button
               size="lg"
-              className="w-full sm:flex-1 group rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 sm:h-12"
+              className="w-full sm:flex-1 group rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-tighter text-base h-12 sm:h-14 shadow-2xl shadow-primary/30 animate-in zoom-in-95 duration-500 transition-all hover:-translate-y-1 active:scale-95"
               onClick={handleComplete}
             >
               Bắt đầu ngay
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-2 transition-transform" />
             </Button>
           )}
         </div>

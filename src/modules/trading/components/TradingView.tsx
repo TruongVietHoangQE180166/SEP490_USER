@@ -79,7 +79,8 @@ export const TradingView = observer(function TradingView() {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
       mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const mimeType = mediaRecorderRef.current?.mimeType || 'audio/wav';
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
         audioBlobRef.current = blob;
         setAudioUrl(URL.createObjectURL(blob));
         stream.getTracks().forEach(t => t.stop());
@@ -116,6 +117,18 @@ export const TradingView = observer(function TradingView() {
 
     setIsTranscribing(true);
     try {
+      // --- FIX LỖI 503 / GIỚI HẠN DOMAIN KHI DEPLOY ---
+      // Ép referrer về no-referrer để Hugging Face không chặn yêu cầu từ domain lạ
+      const metaReferrer = document.querySelector('meta[name="referrer"]') as HTMLMetaElement;
+      if (metaReferrer) {
+        metaReferrer.content = "no-referrer";
+      } else {
+        const meta = document.createElement('meta');
+        meta.name = "referrer";
+        meta.content = "no-referrer";
+        document.head.appendChild(meta);
+      }
+
       const endpoint = process.env.NEXT_PUBLIC_HF_ZIPFORMER_URL || 'k2-fsa/automatic-speech-recognition';
       const client = await Client.connect(endpoint);
       // Cập nhật session dropdown → Vietnamese
