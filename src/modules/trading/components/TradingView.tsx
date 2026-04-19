@@ -129,8 +129,26 @@ export const TradingView = observer(function TradingView() {
         document.head.appendChild(meta);
       }
 
-      const endpoint = process.env.NEXT_PUBLIC_HF_ZIPFORMER_URL || 'k2-fsa/automatic-speech-recognition';
-      const client = await Client.connect(endpoint);
+      let endpoint = process.env.NEXT_PUBLIC_HF_ZIPFORMER_URL || 'k2-fsa/automatic-speech-recognition';
+      
+      // FIX LỖI 503: Nếu đang dùng Space "hynt-..." vốn là Space miễn phí tự động ngủ (Sleeping)
+      // thì ép buộc dùng luôn Space chính thức trọn đời của k2-fsa.
+      if (endpoint.includes('hynt-k2-automatic-speech-recognition-demo')) {
+        endpoint = 'k2-fsa/automatic-speech-recognition';
+      }
+
+      let client;
+      try {
+        client = await Client.connect(endpoint);
+      } catch (e: any) {
+        if (e.message?.includes('503') || e.message?.includes('app config')) {
+          console.warn("Endpoint chính bị lỗi 503, tự động chuyển về endpoint dự phòng...");
+          endpoint = 'k2-fsa/automatic-speech-recognition';
+          client = await Client.connect(endpoint);
+        } else {
+          throw e;
+        }
+      }
       // Cập nhật session dropdown → Vietnamese
       await client.predict('/update_model_dropdown', ['Vietnamese']);
       // Gọi transcription
