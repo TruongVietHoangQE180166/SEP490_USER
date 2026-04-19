@@ -267,14 +267,16 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
                                         </div>
                                         <h3 className="text-xl font-black tracking-tight uppercase">Mục tiêu bài học</h3>
                                     </div>
-                                    <div className="space-y-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 md:gap-y-6">
                                         {(!course.whatYouWillLearn || course.whatYouWillLearn.length === 0) ? (
-                                            <p className="text-sm text-foreground/40 italic">Chưa có thông tin mục tiêu bài học.</p>
+                                            <p className="text-sm text-foreground/40 italic col-span-2">Chưa có thông tin mục tiêu bài học.</p>
                                         ) : (
                                             course.whatYouWillLearn.map((item, i) => (
-                                                <div key={i} className="flex items-start gap-3">
-                                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-500 mt-1" />
-                                                    <span className="text-sm font-medium text-foreground/80 leading-relaxed">{item}</span>
+                                                <div key={i} className="flex items-start gap-4 p-2 rounded-xl transition-all hover:bg-muted/30">
+                                                    <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-600">
+                                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                                    </div>
+                                                    <span className="flex-1 min-w-0 break-words text-sm font-bold text-foreground/80 leading-snug">{item}</span>
                                                 </div>
                                             ))
                                         )}
@@ -288,14 +290,16 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
                                         </div>
                                         <h3 className="text-xl font-black tracking-tight uppercase">Kỹ năng đạt được</h3>
                                     </div>
-                                    <div className="space-y-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 md:gap-y-6">
                                         {(!course.targetAudiences || course.targetAudiences.length === 0) ? (
-                                            <p className="text-sm text-foreground/40 italic">Chưa có thông tin kỹ năng.</p>
+                                            <p className="text-sm text-foreground/40 italic col-span-2">Chưa có thông tin kỹ năng.</p>
                                         ) : (
                                             course.targetAudiences.map((item, i) => (
-                                                <div key={i} className="flex items-start gap-3">
-                                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 mt-1" />
-                                                    <span className="text-sm font-medium text-foreground/80 leading-relaxed">{item}</span>
+                                                <div key={i} className="flex items-start gap-4 p-2 rounded-xl transition-all hover:bg-muted/30">
+                                                    <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+                                                        <CheckCircle2 className="h-3.5 w-3.5" />
+                                                    </div>
+                                                    <span className="flex-1 min-w-0 break-words text-sm font-bold text-foreground/80 leading-snug">{item}</span>
                                                 </div>
                                             ))
                                         )}
@@ -316,14 +320,16 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
                                     </div>
                                     <h3 className="text-xl font-black tracking-tight uppercase">Tham chiếu & Uy tín</h3>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 md:gap-y-6">
                                     {(!course.benefits || course.benefits.length === 0) ? (
-                                        <p className="text-sm text-foreground/40 italic">Chưa có thông tin tham chiếu.</p>
+                                        <p className="text-sm text-foreground/40 italic col-span-2">Chưa có thông tin tham chiếu.</p>
                                     ) : (
                                         course.benefits.map((item, i) => (
-                                            <div key={i} className="flex items-start gap-3">
-                                                <div className="h-1.5 w-1.5 rounded-full bg-blue-500 mt-2 shrink-0" />
-                                                <span className="text-sm font-medium text-foreground/80 leading-relaxed">{item}</span>
+                                            <div key={i} className="flex items-start gap-4 p-2 rounded-xl transition-all hover:bg-muted/30">
+                                                <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500/15 text-blue-600">
+                                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                                </div>
+                                                <span className="flex-1 min-w-0 break-words text-sm font-bold text-foreground/80 leading-snug">{item}</span>
                                             </div>
                                         ))
                                     )}
