@@ -81,6 +81,9 @@ export function FAQAccordionBlock() {
                   <motion.button
                     onClick={() => setOpenIndex(isOpen ? null : index)}
                     className="flex w-full items-center justify-between p-4 text-left md:p-6 transition-colors hover:bg-primary/5"
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-answer-${index}`}
+                    id={`faq-question-${index}`}
                   >
                     <span className="pr-4 text-base font-semibold md:text-lg">
                       {faq.question}
@@ -97,6 +100,9 @@ export function FAQAccordionBlock() {
                   <AnimatePresence>
                     {isOpen && (
                       <motion.div
+                        id={`faq-answer-${index}`}
+                        role="region"
+                        aria-labelledby={`faq-question-${index}`}
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}

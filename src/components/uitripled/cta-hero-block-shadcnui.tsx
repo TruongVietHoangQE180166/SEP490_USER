@@ -30,6 +30,7 @@ export function CTAHeroBlock() {
             opacity: [0.3, 0.5, 0.3],
           }}
           transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          style={{ willChange: "transform, opacity" }}
           className="absolute -right-1/4 -top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl md:h-[600px] md:w-[600px]"
         />
         <motion.div
@@ -39,6 +40,7 @@ export function CTAHeroBlock() {
             opacity: [0.3, 0.5, 0.3],
           }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          style={{ willChange: "transform, opacity" }}
           className="absolute -bottom-1/4 -left-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl md:h-[600px] md:w-[600px]"
         />
       </div>
@@ -63,7 +65,7 @@ export function CTAHeroBlock() {
               </Badge>
             </motion.div>
 
-            <motion.h1
+            <motion.h2
               className="mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-4xl font-black tracking-tight text-transparent md:mb-6 md:text-5xl lg:text-6xl uppercase leading-tight py-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -73,7 +75,7 @@ export function CTAHeroBlock() {
               <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent italic">
                 Của Bạn
               </span>
-            </motion.h1>
+            </motion.h2>
 
             <motion.p
               className="mb-6 text-base font-medium text-muted-foreground md:mb-8 md:text-lg lg:text-xl leading-relaxed"
@@ -142,7 +144,7 @@ export function CTAHeroBlock() {
               transition={{ delay: 0.9 }}
               className="mt-8 flex flex-wrap items-center gap-4 md:mt-12"
             >
-              <div className="flex -space-x-2">
+              <div className="flex -space-x-2" aria-hidden="true">
                 {[1, 2, 3, 4].map((i) => (
                   <motion.div
                     key={i}
@@ -153,7 +155,8 @@ export function CTAHeroBlock() {
                   >
                     <img
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=user${i}`}
-                      alt={`User ${i}`}
+                      alt=""
+                      aria-hidden="true"
                       className="h-full w-full object-cover"
                     />
                   </motion.div>
@@ -204,15 +207,10 @@ export function CTAHeroBlock() {
                       </div>
 
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <motion.div
+                        <button
                           onClick={() => setIsPlaying(true)}
-                          className="cursor-pointer"
-                          animate={
-                            isVideoHovered
-                              ? { scale: 1.1 }
-                              : { scale: 1 }
-                          }
-                          transition={{ duration: 0.3 }}
+                          aria-label="Xem video giới thiệu khóa học"
+                          className="cursor-pointer relative"
                         >
                           <motion.div
                             className="absolute inset-0 rounded-full bg-primary/20 blur-xl"
@@ -222,7 +220,7 @@ export function CTAHeroBlock() {
                           <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-lg md:h-20 md:w-20 ring-4 ring-white/20 transition-all hover:ring-white/40">
                             <Play className="ml-1 h-8 w-8 text-primary-foreground md:h-10 md:w-10 fill-current" />
                           </div>
-                        </motion.div>
+                        </button>
                       </div>
 
                       {/* Floating elements */}

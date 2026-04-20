@@ -3,6 +3,7 @@
 import { observer } from '@legendapp/state/react';
 import { FooterBlock } from '@/components/sections/footer-block';
 import HeroSection from '@/components/hero-section';
+import Image from 'next/image';
 import { OurServicesSection } from '@/components/uitripled/our-services-section-shadcnui';
 import { CTAHeroBlock } from '@/components/uitripled/cta-hero-block-shadcnui';
 import { CardsSlider } from '@/components/uitripled/card-slider-new';
@@ -148,10 +149,14 @@ const HomePageContent = observer(() => {
                                 <div className={`relative ${isLast ? "h-1/2 md:h-full md:w-1/2 p-4" : "h-[180px] p-4"}`}>
                                     <div className="relative h-full w-full rounded-xl overflow-hidden shadow-lg border border-white/5">
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent z-10 opacity-60" />
-                                        <img 
+                                        <Image
                                             src={step.image} 
                                             alt={step.title}
+                                            width={700}
+                                            height={440}
                                             className="w-full h-full object-cover"
+                                            loading="lazy"
+                                            sizes="(max-width: 640px) 100vw, 350px"
                                         />
                                         {/* Step Badge - Enhanced Glassmorphism */}
                                         <div className={`absolute top-3 left-3 z-20 overflow-hidden rounded-full p-[1px] bg-gradient-to-br from-white/20 to-transparent shadow-xl`}>
@@ -180,12 +185,12 @@ const HomePageContent = observer(() => {
                                             {step.description}
                                         </p>
                                         
-                                        <div className="flex items-center gap-2 cursor-pointer">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-primary hover:underline transition-all">
+                                        <Link href="/course" className="flex items-center gap-2 group/link">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-primary group-hover/link:underline transition-all">
                                                 Khám phá chi tiết
                                             </span>
-                                            <div className="w-4 h-[1px] bg-primary" />
-                                        </div>
+                                            <div className="w-4 h-[1px] bg-primary" aria-hidden="true" />
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

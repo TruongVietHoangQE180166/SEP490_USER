@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   // hoặc cấu hình trực tiếp trong CI/CD.
   reactCompiler: true,
   images: {
+    formats: ['image/avif', 'image/webp'],
     // Cho phép load ảnh từ TẤT CẢ các nguồn
     remotePatterns: [
       {
@@ -27,15 +28,32 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           {
-            key: "Content-Security-Policy",
-            // Cấu hình mở hoàn toàn
-            value: "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-                   "script-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-                   "connect-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-                   "img-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-                   "style-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-                   "frame-src * 'unsafe-inline' 'unsafe-eval' data: blob:; " +
-                   "media-src * 'unsafe-inline' 'unsafe-eval' data: blob:;",
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(self), geolocation=()",
           },
           {
             key: "Access-Control-Allow-Origin",
