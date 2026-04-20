@@ -206,7 +206,7 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
-          <div className="max-w-5xl mx-auto p-4 md:p-8 lg:p-12 mb-8">
+          <div className="max-w-[1400px] mx-auto p-4 md:p-8 lg:p-12 mb-8">
             {validLesson ? (
               <LessonContent lesson={validLesson} onRefresh={refresh} />
             ) : (

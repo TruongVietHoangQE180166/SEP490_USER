@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { driver, Driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { observer } from '@legendapp/state/react';
-import * as googleTTS from 'google-tts-api';
+import * as googleTTS from '@/lib/google-tts';
 
 // ─── Lucide SVG helper ─────────────────────────────────────────────────────────
 // driver.js renders plain HTML strings — React components cannot be used directly.

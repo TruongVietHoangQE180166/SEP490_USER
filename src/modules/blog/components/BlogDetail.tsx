@@ -53,12 +53,12 @@ export const BlogDetail = observer(({ slug }: BlogDetailProps) => {
   const relatedPosts = posts.filter(p => p.slugName !== slug).slice(0, 3);
 
   return (
-    <div className="max-w-8xl mx-auto px-4 py-8">
+    <div className="max-w-[1850px] mx-auto px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-        className="mx-auto max-w-8xl overflow-hidden rounded-xl border border-border/40 bg-card shadow-xl shadow-black/5"
+        className="mx-auto max-w-[1850px] overflow-hidden rounded-xl border border-border/40 bg-card shadow-xl shadow-black/5"
       >
         {/* Cover Image Section */}
         <div className="relative h-64 w-full md:h-[400px]">

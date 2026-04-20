@@ -118,7 +118,7 @@ export function GalleryGridBlock() {
       className="w-full bg-transparent py-20 md:py-32"
       aria-labelledby="gallery-heading"
     >
-      <div className="mx-auto max-w-8xl px-6">
+      <div className="mx-auto max-w-[1850px] px-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}

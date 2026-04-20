@@ -33,6 +33,7 @@ export const CourseListing = observer(() => {
     setSearchQuery, 
     sortBy, 
     setSortBy,
+    isLoading,
     isSearching,
     currentPage,
     setCurrentPage,
@@ -92,7 +93,7 @@ export const CourseListing = observer(() => {
   );
 
   return (
-    <div className="max-w-8xl mx-auto px-6 space-y-8">
+    <div className="max-w-[1850px] mx-auto px-6 space-y-8">
       {/* Bento Grid Hero Carousel & Ads */}
       <CourseHero featuredCourses={featuredCourses} />
 
@@ -111,22 +112,10 @@ export const CourseListing = observer(() => {
            {/* Mobile Toolbar (Hidden on Desktop) */}
            {renderToolbar("flex lg:hidden")}
            <div className="relative min-h-[400px]">
-             {isSearching ? (
-               <div className="absolute inset-0 flex flex-col items-center justify-center py-20 z-10 bg-background/50 backdrop-blur-[2px]">
-                  <div className="relative">
-                    <div className="h-20 w-20 border-4 border-primary/20 rounded-full" />
-                    <div className="absolute top-0 h-20 w-20 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                  </div>
-                  <div className="mt-8 space-y-2 text-center">
-                    <h3 className="text-xl font-black tracking-tight">Đang lọc khóa học...</h3>
-                    <p className="text-muted-foreground font-medium">Hệ thống đang tìm những lựa chọn tốt nhất cho bạn</p>
-                  </div>
-               </div>
-             ) : (
-               <div className="space-y-4">
-                 <CourseList courses={courses} />
+              <div className="space-y-4">
+                <CourseList courses={courses} isLoading={isLoading || isSearching} />
 
-                  {allFilteredCount > 0 && (
+                 {allFilteredCount > 0 && !(isLoading || isSearching) && (
                    <Pagination>
                      <PaginationContent>
                        <PaginationItem>
@@ -158,7 +147,6 @@ export const CourseListing = observer(() => {
                    </Pagination>
                  )}
                </div>
-             )}
            </div>
         </main>
       </div>
