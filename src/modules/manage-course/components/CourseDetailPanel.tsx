@@ -175,7 +175,7 @@ export const AdminCourseDetailPage = ({ courseId, onBack }: AdminCourseDetailPag
       </div>
 
       <div className="relative px-6">
-        <div className="mx-auto max-w-7xl">
+        <div className="w-full">
 
           {/* ── Top bar ── */}
           <div className="mb-8 flex items-center justify-between gap-4 flex-wrap">

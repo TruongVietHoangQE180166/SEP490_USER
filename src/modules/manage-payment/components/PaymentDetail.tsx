@@ -87,8 +87,8 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({
       className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30"
     >
       {/* Sticky Header */}
-      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
+        <div className="w-full mx-auto px-6 py-4 flex items-center justify-between">
           <Button
             variant="ghost"
             onClick={onBack}
@@ -107,7 +107,7 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-6 py-8 pb-20">
+      <div className="w-full mx-auto px-6 py-8 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Left Column: Transaction Main Info */}
