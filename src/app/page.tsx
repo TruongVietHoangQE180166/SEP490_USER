@@ -121,7 +121,7 @@ const HomePageContent = observer(() => {
       <HeroSection />
       
       <div className="bg-muted/5 border-b border-border/50">
-        <div className="max-w-8xl mx-auto px-6">
+        <div className="max-w-[1850px] mx-auto px-6">
           <LogoStepper logos={homeLogos} visibleCount={5} />
         </div>
       </div>
@@ -129,7 +129,7 @@ const HomePageContent = observer(() => {
       <OurServicesSection />
 
       <div className="py-20 bg-muted/5">
-        <div className="max-w-8xl mx-auto px-6">
+        <div className="max-w-[1850px] mx-auto px-6">
             <div className="text-center mb-16">
                 <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase italic mb-4">
                     Lộ trình <span className="text-primary">Chinh phục Crypto</span>

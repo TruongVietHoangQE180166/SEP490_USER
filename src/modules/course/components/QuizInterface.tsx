@@ -174,7 +174,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
   if (isSubmitted && currentQuestionIdx === -1) {
     const isPassed = score >= (lesson?.passingScore || 80);
     return (
-      <div className="max-w-2xl mx-auto py-6 md:py-12 px-4 text-center animate-in zoom-in-95 duration-500">
+      <div className="max-w-4xl mx-auto py-6 md:py-12 px-4 text-center animate-in zoom-in-95 duration-500">
         <div className={`inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 rounded-full mb-6 md:mb-8 shadow-2xl ${isPassed ? 'bg-green-500/10 text-green-500 shadow-green-500/20' : 'bg-red-500/10 text-red-500 shadow-red-500/20'}`}>
           {isPassed ? <CheckCircle2 className="w-10 h-10 md:w-12 md:h-12" /> : <AlertCircle className="w-10 h-10 md:w-12 md:h-12" />}
         </div>
@@ -239,7 +239,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
 
   return (
     <>
-    <div className="max-w-7xl mx-auto py-4 md:py-8 px-4 lg:px-8 h-full">
+    <div className="max-w-[1850px] mx-auto py-4 md:py-8 px-4 lg:px-8 h-full">
       <div className="flex flex-col lg:flex-row gap-4 md:gap-8 items-start relative h-full">
         
         {/* Left Sidebar: Question Navigator */}

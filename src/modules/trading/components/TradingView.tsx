@@ -16,7 +16,7 @@ import { MessageFormatter } from './MessageFormatter';
 import { WalletService } from '../../wallet/services';
 import { CandleType, Timeframe } from '../types';
 import { Bot, Send, Sparkles, Mic, Square, Loader2, Trash2, Volume2, VolumeX, RefreshCw } from 'lucide-react';
-import * as googleTTS from 'google-tts-api';
+import * as googleTTS from '@/lib/google-tts';
 import { Client } from '@gradio/client';
 import {
   BottomSheet,

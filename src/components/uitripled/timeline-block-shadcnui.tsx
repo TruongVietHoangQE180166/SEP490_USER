@@ -46,7 +46,7 @@ export function TimelineBlock() {
       {/* Background Decor */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] -z-10" />
       
-      <div className="mx-auto max-w-8xl px-6">
+      <div className="mx-auto max-w-[1850px] px-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

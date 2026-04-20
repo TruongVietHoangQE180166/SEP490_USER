@@ -84,7 +84,7 @@ export const BlogList = observer(() => {
   const { categories, isLoading: isCategoriesLoading } = useBlogCategories();
 
   return (
-    <div className="max-w-8xl mx-auto px-4 py-8">
+    <div className="max-w-[1850px] mx-auto px-4 py-8">
       {/* Featured Carousel */}
       {featuredPosts.length > 0 && (
         <motion.div

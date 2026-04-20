@@ -200,7 +200,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
     return (
       <main className="relative min-h-screen overflow-hidden bg-background pt-8 pb-8">
         <div className="relative px-6 py-0">
-          <div className="mx-auto max-w-8xl">
+          <div className="mx-auto max-w-[1850px]">
             {/* Back Button Skeleton */}
             <Skeleton className="mb-8 h-10 w-64 rounded-full" />
 

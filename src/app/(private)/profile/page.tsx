@@ -81,7 +81,7 @@ const ProfilePageContent = observer(() => {
   }
 
   return (
-    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-[1850px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {progress && (
         <UserLevelCard progress={progress} />
       )}

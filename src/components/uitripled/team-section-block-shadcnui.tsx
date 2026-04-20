@@ -334,7 +334,7 @@ export function TeamSectionBlock() {
         />
       </div>
 
-      <div className="mx-auto max-w-8xl px-6">
+      <div className="mx-auto max-w-[1850px] px-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -30 }}
