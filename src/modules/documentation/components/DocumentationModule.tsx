@@ -22,30 +22,32 @@ import {
   PanelLeftOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { DocumentationTopic } from '../types';
 
-// Dynamic imports for doc components
-const DocumentationContents: Record<string, React.ComponentType> = {
-  'introduction': dynamic(() => import('../contents/Introduction'), { loading: () => <LoadingPlaceholder /> }),
-  'trading-basics': dynamic(() => import('../contents/TradingBasics'), { loading: () => <LoadingPlaceholder /> }),
-  'doc-3': dynamic(() => import('../contents/Doc3'), { loading: () => <LoadingPlaceholder /> }),
-  'doc-4': dynamic(() => import('../contents/Doc4'), { loading: () => <LoadingPlaceholder /> }),
-  'doc-5': dynamic(() => import('../contents/Doc5'), { loading: () => <LoadingPlaceholder /> }),
-  'doc-6': dynamic(() => import('../contents/Doc6'), { loading: () => <LoadingPlaceholder /> }),
-  'doc-7': dynamic(() => import('../contents/Doc7'), { loading: () => <LoadingPlaceholder /> }),
-  'doc-8': dynamic(() => import('../contents/Doc8'), { loading: () => <LoadingPlaceholder /> }),
-  'doc-9': dynamic(() => import('../contents/Doc9'), { loading: () => <LoadingPlaceholder /> }),
-  'doc-10': dynamic(() => import('../contents/Doc10'), { loading: () => <LoadingPlaceholder /> }),
-};
+import Introduction from '../contents/Introduction';
+import TradingBasics from '../contents/TradingBasics';
+import Doc3 from '../contents/Doc3';
+import Doc4 from '../contents/Doc4';
+import Doc5 from '../contents/Doc5';
+import Doc6 from '../contents/Doc6';
+import Doc7 from '../contents/Doc7';
+import Doc8 from '../contents/Doc8';
+import Doc9 from '../contents/Doc9';
+import Doc10 from '../contents/Doc10';
 
-const LoadingPlaceholder = () => (
-  <div className="w-full h-96 flex flex-col items-center justify-center gap-4 animate-pulse">
-    <div className="w-16 h-16 bg-muted rounded-2xl" />
-    <div className="h-4 w-48 bg-muted rounded-full" />
-  </div>
-);
+const DocumentationContents: Record<string, React.ComponentType> = {
+  'introduction': Introduction,
+  'trading-basics': TradingBasics,
+  'doc-3': Doc3,
+  'doc-4': Doc4,
+  'doc-5': Doc5,
+  'doc-6': Doc6,
+  'doc-7': Doc7,
+  'doc-8': Doc8,
+  'doc-9': Doc9,
+  'doc-10': Doc10,
+};
 
 const topics: DocumentationTopic[] = [
   { 
@@ -72,14 +74,68 @@ const topics: DocumentationTopic[] = [
       { id: 'safety', title: 'An toàn & Rủi ro' }
     ]
   },
-  { id: 'doc-3', title: 'Quản lý tài khoản', icon: 'Shield', sections: [] },
-  { id: 'doc-4', title: 'Công nghệ hệ thống', icon: 'Cpu', sections: [] },
-  { id: 'doc-5', title: 'Cộng đồng VIC', icon: 'Users', sections: [] },
+  { 
+    id: 'doc-3', 
+    title: 'Quản lý tài khoản', 
+    icon: 'Shield', 
+    sections: [
+      { id: 'security', title: 'Bảo mật đa lớp (2FA)' },
+      { id: 'profile', title: 'Cập nhật định danh (KYC)' },
+      { id: 'wallet', title: 'Hệ thống ví điện tử' },
+      { id: 'deposit-withdraw', title: 'Nạp & Rút tiền' }
+    ] 
+  },
+  { 
+    id: 'doc-4', 
+    title: 'Công nghệ hệ thống', 
+    icon: 'Cpu', 
+    sections: [
+        { id: 'infrastructure', title: 'Hạ tầng công nghệ' },
+        { id: 'security-tech', title: 'Bảo mật & Mã hóa' }
+    ] 
+  },
+  { 
+    id: 'doc-5', 
+    title: 'Cộng đồng VIC', 
+    icon: 'Users', 
+    sections: [
+        { id: 'network', title: 'Mạng lưới kết nối' },
+        { id: 'spirit', title: 'Tinh thần VIC' }
+    ] 
+  },
   { id: 'doc-6', title: 'Công cụ phái sinh', icon: 'Settings', sections: [] },
   { id: 'doc-7', title: 'Hỗ trợ trực tuyến', icon: 'MessageCircle', sections: [] },
-  { id: 'doc-8', title: 'Câu hỏi thường gặp', icon: 'HelpCircle', sections: [] },
-  { id: 'doc-9', title: 'Quy chuẩn nội dung', icon: 'FileText', sections: [] },
-  { id: 'doc-10', title: 'Lộ trình phát triển', icon: 'Book', sections: [] },
+  { 
+    id: 'doc-8', 
+    title: 'Câu hỏi thường gặp', 
+    icon: 'HelpCircle', 
+    sections: [
+        { id: 'faq-account', title: 'Vấn đề tài khoản' },
+        { id: 'faq-payment', title: 'Thanh toán & Hoàn tiền' },
+        { id: 'faq-course', title: 'Truy cập khóa học' },
+        { id: 'faq-tech', title: 'Lỗi kỹ thuật thường gặp' }
+    ] 
+  },
+  { 
+    id: 'doc-9', 
+    title: 'Quy chuẩn nội dung', 
+    icon: 'FileText', 
+    sections: [
+        { id: 'copyright', title: 'Bản quyền & Sở hữu' },
+        { id: 'quality', title: 'Tiêu chuẩn chất lượng' },
+        { id: 'community', title: 'Văn hóa cộng đồng' }
+    ] 
+  },
+  { 
+    id: 'doc-10', 
+    title: 'Lộ trình phát triển', 
+    icon: 'Book', 
+    sections: [
+        { id: 'phase-1', title: 'Giai đoạn 1: Khởi tạo (2024)' },
+        { id: 'phase-2', title: 'Giai đoạn 2: Tăng trưởng (2025)' },
+        { id: 'phase-3', title: 'Giai đoạn 3: Hệ sinh thái (2026+)' }
+    ] 
+  },
 ];
 
 export const DocumentationModule = () => {
