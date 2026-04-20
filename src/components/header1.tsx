@@ -87,15 +87,12 @@ export const HeroHeader = observer(() => {
                 <CryptoTicker />
                 <div className="mx-auto max-w-8xl px-6 transition-all duration-300">
                     <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
-                        <div className="flex w-full items-center justify-between gap-12 lg:w-auto">
+                        <div className="flex w-full items-center justify-between gap-8 lg:w-auto">
                             <Link
                                 href="/"
                                 aria-label="home"
-                                className="flex items-center gap-0">
-                                <LogoIcon className="h-14 w-14" />
-                                <span className="text-[26px] font-black tracking-[-0.05em] text-primary">
-                                    VICTEACH
-                                </span>
+                                className="flex items-center">
+                                <LogoIcon className="h-10 w-auto min-w-[100px]" />
                             </Link>
 
                             <div className="flex items-center gap-2 lg:hidden">
@@ -110,7 +107,7 @@ export const HeroHeader = observer(() => {
                             </div>
 
                             <div className="hidden lg:block">
-                                <ul className="flex gap-8 text-sm">
+                                <ul className="flex gap-6 text-sm">
                                     {menuItems.map((item, index) => (
                                         <li key={index}>
                                             <Link
@@ -331,11 +328,8 @@ export const HeroHeader = observer(() => {
                             <Link
                                 href="/"
                                 onClick={() => setMenuState(false)}
-                                className="flex items-center gap-0">
-                                <LogoIcon className="h-14 w-14" />
-                                <span className="text-[26px] font-black tracking-[-0.05em] text-primary">
-                                    VICTEACH
-                                </span>
+                                className="flex items-center">
+                                <LogoIcon className="h-10 w-auto min-w-[100px]" />
                             </Link>
 
                             <button
