@@ -4,7 +4,8 @@ import { tradingState$, tradingActions } from '../store';
 import { Timeframe } from '../types';
 import { cn } from '@/lib/utils';
 import { observer } from '@legendapp/state/react';
-import { BookOpen } from 'lucide-react';
+import { FileText } from 'lucide-react';
+import Image from 'next/image';
 
 // Chỉ dùng XAUT
 const SYMBOL = 'XAU-USDT-SWAP';
@@ -28,10 +29,14 @@ export const MarketHeader = observer(function MarketHeader() {
         <div className="flex items-center">
           {/* Symbol Area */}
           <div className="flex items-center gap-2 md:gap-3 pr-3 md:pr-6 border-r border-border/40 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0">
-               <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-12h4v8h-4z"/>
-               </svg>
+            <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center p-1 shadow-inner shrink-0 overflow-hidden">
+               <Image 
+                 src="/tether-gold-xaut-seeklogo.png" 
+                 alt="Tether Gold" 
+                 width={24} 
+                 height={24} 
+                 className="object-contain"
+               />
             </div>
             <div className="flex flex-col">
               <span className="font-black text-foreground text-sm tracking-tighter uppercase">{SYMBOL}</span>
@@ -61,7 +66,7 @@ export const MarketHeader = observer(function MarketHeader() {
             className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors border border-primary/20"
             title="Xem lại hướng dẫn giao dịch"
           >
-            <BookOpen className="w-4 h-4" />
+            <FileText className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -84,7 +89,7 @@ export const MarketHeader = observer(function MarketHeader() {
           className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors border border-primary/20"
           title="Xem lại hướng dẫn giao dịch"
         >
-          <BookOpen className="w-5 h-5" />
+          <FileText className="w-5 h-5" />
         </button>
       </div>
     </div>
