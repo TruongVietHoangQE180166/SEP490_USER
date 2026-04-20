@@ -9,6 +9,8 @@ import { SupportChatService } from '@/modules/support-chat/services';
 import { chatState$ } from '@/modules/support-chat/store';
 import { observer } from '@legendapp/state/react';
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 const AdminLayoutClient = observer(({ children }: { children: React.ReactNode }) => {
   const unreadCount = chatState$.unreadCount.get();
@@ -33,6 +35,9 @@ const AdminLayoutClient = observer(({ children }: { children: React.ReactNode })
     };
   }, []);
 
+  const pathname = usePathname();
+  const isAdminSupportChat = pathname === '/admin/support-chat';
+  
   const adminMenuItems = [
     { icon: LayoutDashboard, label: 'Bảng điều khiển', href: '/admin' },
     { icon: Users, label: 'Quản lý người dùng', href: '/admin/users' },
@@ -54,10 +59,16 @@ const AdminLayoutClient = observer(({ children }: { children: React.ReactNode })
         title="Admin Portal" 
         role="ADMIN" 
       />
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <DashboardHeader />
-        <main className="flex-1 overflow-y-auto p-8 bg-muted/10">
-          <div className="max-w-[1850px] mx-auto h-full">
+        <main className={cn(
+          "flex-1 overflow-y-auto",
+          isAdminSupportChat ? "bg-background" : "p-8 pb-8 bg-muted/10"
+        )}>
+          <div className={cn(
+            "mx-auto min-h-full",
+            !isAdminSupportChat && "max-w-[1850px]"
+          )}>
               {children}
           </div>
         </main>
