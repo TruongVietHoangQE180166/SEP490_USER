@@ -7,7 +7,7 @@ import { GridBackground } from '@/components/ui/grid-background';
 export default function WalletPage() {
   return (
     <div className="relative min-h-screen bg-background pt-16 md:pt-24 pb-12 md:pb-20">
-      <div className="container relative z-10 mx-auto px-4 md:px-6 max-w-7xl">
+      <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-[1850px]">
         <header className="mb-10 md:mb-16 relative">
           <motion.div
             initial={{ opacity: 0, y: -20 }}

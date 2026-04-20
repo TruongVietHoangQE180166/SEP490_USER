@@ -394,7 +394,7 @@ export const TradingView = observer(function TradingView() {
 
       {user && <TradingTutorial />}
       {/* ── Khoảng cách trên ──────────────────────────────────────── */}
-      <div className={cn("max-w-[1600px] mx-auto px-4 pt-6 flex flex-col gap-4", !user && "pointer-events-none")}>
+      <div className={cn("max-w-[1850px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-col gap-4", !user && "pointer-events-none")}>
 
         {/* ── MarketHeader ──────────────────────────────────────────── */}
         <div id="tut-market-header" className="rounded-md border border-border bg-card overflow-hidden">
