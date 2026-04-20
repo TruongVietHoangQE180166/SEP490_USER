@@ -128,8 +128,8 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
   return (
     <main className="relative min-h-screen bg-background/50 pb-20">
       {/* ── Dashboard Top Bar ── */}
-      <div className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-6 h-20 flex items-center justify-between">
+      <div className="w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto w-full px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-5">
             <Button
               variant="ghost"
@@ -174,7 +174,7 @@ export const TeacherCourseDetailPanel = ({ courseId, onBack }: TeacherCourseDeta
       </div>
 
       <div className="relative px-6 pt-10">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto w-full">
           {/* ── Page Header / Course Summary ── */}
           <div className="mb-10 flex flex-col gap-6 relative">
             <div className="flex items-start gap-6 relative flex-1 min-w-0">

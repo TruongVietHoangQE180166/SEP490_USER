@@ -51,8 +51,8 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({
       className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30"
     >
       {/* Back Navigation */}
-      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
-        <div className="max-w-5xl mx-auto px-6 py-3">
+      <div className="z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
+        <div className="w-full mx-auto px-6 py-3">
           <Button
             variant="ghost"
             onClick={onBack}
@@ -64,7 +64,7 @@ export const BlogDetail: React.FC<BlogDetailProps> = ({
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-6 pb-16">
+      <div className="w-full mx-auto px-6 py-6 pb-16">
         {/* Hero Section with Cover Image */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
