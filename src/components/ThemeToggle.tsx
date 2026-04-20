@@ -54,6 +54,8 @@ export const ThemeToggle = observer(() => {
           "border border-transparent hover:border-border"
         )}
         title={`Theme: ${currentOption.label}`}
+        aria-label={`Giao diện: ${currentOption.label}`}
+        aria-expanded={isOpen}
       >
         <CurrentIcon className="h-4 w-4" />
       </button>

@@ -130,7 +130,9 @@ export const HeroHeader = observer(() => {
                             <div className="relative group hidden xl:block min-w-[240px]">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                 <input 
-                                    type="text" 
+                                    type="search"
+                                    id="header-search-desktop"
+                                    aria-label="Tìm kiếm khóa học"
                                     placeholder="Tìm kiếm khóa học..." 
                                     className="h-10 w-full pl-10 pr-4 rounded-full bg-muted/50 border border-transparent focus:bg-background focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all text-sm outline-none"
                                 />
@@ -351,7 +353,9 @@ export const HeroHeader = observer(() => {
                             <div className="relative group mb-8">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                                 <input 
-                                    type="text" 
+                                    type="search"
+                                    id="header-search-mobile"
+                                    aria-label="Tìm kiếm khóa học"
                                     placeholder="Tìm kiếm khóa học..." 
                                     className="h-14 w-full pl-12 pr-4 rounded-2xl bg-muted/50 border border-transparent focus:bg-background focus:border-primary/20 transition-all text-lg outline-none font-medium"
                                 />

@@ -7,6 +7,7 @@ import { Course } from '../types';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { authState$ } from '@/modules/auth/store';
 import { observer } from '@legendapp/state/react';
@@ -51,11 +52,13 @@ export const CourseCard = observer(({ course }: CourseCardProps) => {
     <Link href={`/course/${course.slug}`} className="group">
       <Card className="overflow-hidden h-full border-border/50 bg-card transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/50 flex flex-col py-0 gap-0">
         {/* Thumbnail */}
-        <div className="relative aspect-video overflow-hidden">
-          <motion.img
-            src={course.thumbnailUrl || course.thumbnail}
+        <div className="relative aspect-video overflow-hidden group">
+          <Image
+            src={course.thumbnailUrl || course.thumbnail || '/og-image.png'}
             alt={course.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 300px, 320px"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
           
           {/* Hover Overlay */}

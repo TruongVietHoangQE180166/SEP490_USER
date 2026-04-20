@@ -38,6 +38,7 @@ export const CryptoTicker = () => {
             repeat: Infinity,
             ease: "linear",
           }}
+          style={{ willChange: "transform" }}
           className="flex whitespace-nowrap gap-12"
         >
           {/* Repeat messages to create seamless loop */}

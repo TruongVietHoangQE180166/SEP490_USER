@@ -14,18 +14,25 @@ import { GlobalUIWrapper } from '@/components/GlobalUIWrapper';
 import { NewbieRewardBubble } from '@/components/NewbieRewardBubble';
 import Script from 'next/script';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], display: 'swap', preload: true });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://victeach.io.vn'),
   title: {
     default: 'VICTEACH - Nền tảng học hỏi và đầu tư tài chính số 1',
     template: '%s | VICTEACH'
   },
   description: 'VICTEACH cung cấp các khóa học chuyên sâu về Blockchain, Crypto, Phân tích kỹ thuật và Tài chính phi tập trung (DeFi). Bắt đầu hành trình đầu tư thông minh của bạn ngay hôm nay.',
-  keywords: ['VICTEACH', 'học crypto', 'đầu tư tài chính', 'blockchain', 'phân tích kỹ thuật', 'defi', 'tài chính phi tập trung', 'khóa học online'],
+  keywords: ['VICTEACH', 'học crypto', 'đầu tư tài chính', 'blockchain', 'phân tích kỹ thuật', 'defi', 'tài chính phi tập trung', 'khóa học online', 'học crypto việt nam', 'khóa học blockchain', 'giao dịch tiền ảo', 'học đầu tư'],
   authors: [{ name: 'VICTEACH Team' }],
   creator: 'VICTEACH',
   publisher: 'VICTEACH',
+  alternates: {
+    canonical: 'https://victeach.io.vn',
+    languages: {
+      'vi-VN': 'https://victeach.io.vn',
+    },
+  },
   formatDetection: {
     email: false,
     address: false,
@@ -40,7 +47,7 @@ export const metadata: Metadata = {
     description: 'Nâng tầm kiến thức về thị trường Crypto và Blockchain cùng các chuyên gia hàng đầu.',
     images: [
       {
-        url: 'https://victeach.io.vn/og-image.png',
+        url: '/og-image.png',
         width: 1200,
         height: 630,
         alt: 'VICTEACH - Financial Education Platform',
@@ -49,9 +56,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    site: '@victeach',
+    creator: '@victeach',
     title: 'VICTEACH - Học và Đầu tư Tài chính Thông minh',
     description: 'Nền tảng giáo dục tài chính số hàng đầu Việt Nam.',
-    images: ['https://victeach.io.vn/og-image.png'],
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
@@ -79,6 +88,7 @@ export const metadata: Metadata = {
     ],
   },
   manifest: '/favicon_io/site.webmanifest',
+  category: 'education',
 };
 
 export default function RootLayout({

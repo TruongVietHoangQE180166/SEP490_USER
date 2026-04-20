@@ -55,39 +55,42 @@ export default function HeroSection() {
                 </div>
                 <section>
                     <div className="relative pt-12 md:pt-16">
-                        <AnimatedGroup
-                            variants={{
-                                container: {
-                                    visible: {
-                                        transition: {
-                                            delayChildren: 1,
+                            <AnimatedGroup
+                                variants={{
+                                    container: {
+                                        visible: {
+                                            transition: {
+                                                delayChildren: 1,
+                                            },
                                         },
                                     },
-                                },
-                                item: {
-                                    hidden: {
-                                        opacity: 0,
-                                        y: 20,
-                                    },
-                                    visible: {
-                                        opacity: 1,
-                                        y: 0,
-                                        transition: {
-                                            type: 'spring' as const,
-                                            bounce: 0.3,
-                                            duration: 2,
+                                    item: {
+                                        hidden: {
+                                            opacity: 0,
+                                            y: 20,
+                                        },
+                                        visible: {
+                                            opacity: 1,
+                                            y: 0,
+                                            transition: {
+                                                type: 'spring' as const,
+                                                bounce: 0.3,
+                                                duration: 2,
+                                            },
                                         },
                                     },
-                                },
-                            }}
-                            className="mask-b-from-35% mask-b-to-90% absolute inset-0 top-56 -z-20 lg:top-32">
-                            <Image
-                                src="https://ik.imagekit.io/lrigu76hy/tailark/night-background.jpg?updatedAt=1745733451120"
-                                alt="background"
-                                className="hidden size-full dark:block"
-                                width="3276"
-                                height="4095"
-                            />
+                                }}
+                                className="mask-b-from-35% mask-b-to-90% absolute inset-0 top-56 -z-20 lg:top-32">
+                                <Image
+                                    src="https://ik.imagekit.io/lrigu76hy/tailark/night-background.jpg?updatedAt=1745733451120"
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="hidden size-full dark:block"
+                                    width={3276}
+                                    height={4095}
+                                    priority
+                                    unoptimized
+                                />
                         </AnimatedGroup>
 
                         <div
@@ -195,10 +198,12 @@ export default function HeroSection() {
                                             >
                                                 <Image
                                                     src={DASHBOARD_IMAGES[currentImageIndex]}
-                                                    alt={`VIC Teach Dashboard ${currentImageIndex + 1}`}
+                                                    alt={`VICTEACH - Nền tảng học Crypto chuyên nghiệp ${currentImageIndex + 1}`}
                                                     className="size-full object-cover"
                                                     width={2700}
                                                     height={1440}
+                                                    priority={currentImageIndex === 0}
+                                                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 90vw, 1280px"
                                                 />
                                             </motion.div>
                                         </AnimatePresence>
