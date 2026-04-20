@@ -37,9 +37,9 @@ export const Logo = ({ className, uniColor }: { className?: string; uniColor?: b
 export const LogoIcon = ({ className }: { className?: string; uniColor?: boolean }) => {
     return (
         <img 
-            src="/favicon_io/android-chrome-192x192.png" 
+            src="/favicon_io/logo-header.png" 
             alt="VICTEACH Logo Icon"
-            className={cn('size-5 object-contain', className)}
+            className={cn('object-contain', className)}
         />
     )
 }
