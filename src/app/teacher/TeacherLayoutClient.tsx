@@ -23,7 +23,7 @@ export default function TeacherLayoutClient({ children }: { children: React.Reac
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <DashboardHeader />
         <main className="flex-1 overflow-y-auto p-8 pb-8 bg-muted/10">
-          <div className="max-w-[1850px] mx-auto min-h-full">
+          <div className="w-full min-h-full">
               {children}
           </div>
         </main>

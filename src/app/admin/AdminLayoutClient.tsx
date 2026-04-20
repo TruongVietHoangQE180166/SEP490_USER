@@ -62,12 +62,13 @@ const AdminLayoutClient = observer(({ children }: { children: React.ReactNode })
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <DashboardHeader />
         <main className={cn(
-          "flex-1 overflow-y-auto",
-          isAdminSupportChat ? "bg-background" : "p-8 pb-8 bg-muted/10"
+          "flex-1 min-h-0",
+          isAdminSupportChat ? "bg-background overflow-hidden" : "p-8 pb-8 bg-muted/10 overflow-y-auto"
         )}>
           <div className={cn(
-            "mx-auto min-h-full",
-            !isAdminSupportChat && "max-w-[1850px]"
+            "mx-auto",
+            isAdminSupportChat ? "h-full" : "min-h-full",
+            !isAdminSupportChat && "w-full"
           )}>
               {children}
           </div>
