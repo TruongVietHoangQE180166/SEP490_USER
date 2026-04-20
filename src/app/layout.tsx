@@ -89,6 +89,9 @@ export const metadata: Metadata = {
   },
   manifest: '/favicon_io/site.webmanifest',
   category: 'education',
+  verification: {
+    google: 'DcAIEDxaH4gscdeBti25Dr0VrIS3hWvWHKMrrbflduU',
+  },
 };
 
 export default function RootLayout({
