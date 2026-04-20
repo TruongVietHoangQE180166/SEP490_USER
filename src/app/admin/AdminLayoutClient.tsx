@@ -57,7 +57,7 @@ const AdminLayoutClient = observer(({ children }: { children: React.ReactNode })
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <DashboardHeader />
         <main className="flex-1 overflow-y-auto p-8 bg-muted/10">
-          <div className="max-w-7xl mx-auto h-full">
+          <div className="max-w-[1850px] mx-auto h-full">
               {children}
           </div>
         </main>

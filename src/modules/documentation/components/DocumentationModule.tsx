@@ -215,7 +215,7 @@ export const DocumentationModule = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 min-w-0 bg-background pt-6 px-4 md:px-10 pb-10 lg:pt-10 lg:px-8 lg:pl-12 transition-all duration-300">
-        <div className="max-w-4xl">
+        <div className="max-w-[1850px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTopicId}
