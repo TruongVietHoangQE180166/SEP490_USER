@@ -17,7 +17,7 @@ export const config = {
   matcher: ['/admin/:path*', '/teacher/:path*'],
 };
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || '';
 
   if (isMobileOrTablet(userAgent)) {
