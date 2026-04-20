@@ -34,10 +34,10 @@ export const Logo = ({ className, uniColor }: { className?: string; uniColor?: b
     )
 }
 
-export const LogoIcon = ({ className }: { className?: string; uniColor?: boolean }) => {
+export const LogoIcon = ({ className, variant = 'header' }: { className?: string; variant?: 'header' | 'auth' }) => {
     return (
         <img 
-            src="/favicon_io/logo-header.png" 
+            src={variant === 'auth' ? "/favicon_io/logo-auth.png" : "/favicon_io/logo-header.png"} 
             alt="VICTEACH Logo Icon"
             className={cn('object-contain', className)}
         />

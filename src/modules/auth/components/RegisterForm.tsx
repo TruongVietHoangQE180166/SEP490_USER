@@ -34,7 +34,7 @@ export const RegisterForm = () => {
       <div className="bg-card -m-px rounded-[calc(var(--radius)+.125rem)] border p-8 pb-6">
         <div>
           <Link href="/" aria-label="go home">
-            <LogoIcon className="h-16 w-16" />
+            <LogoIcon className="h-16 w-16" variant="auth" />
           </Link>
           <h1 className="mb-1 mt-4 text-xl font-semibold">Đăng ký tài khoản</h1>
           <p className="text-sm text-muted-foreground">Tạo tài khoản mới để bắt đầu</p>
