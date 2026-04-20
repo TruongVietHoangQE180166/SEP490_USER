@@ -7,6 +7,7 @@ export interface TeacherStudent {
   deleted: boolean;
   password?: string;
   level?: string;
+  avatar?: string;
 }
 
 export interface TeacherStudentApiResponse {

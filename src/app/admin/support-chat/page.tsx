@@ -218,7 +218,7 @@ const AdminChatPage = observer(() => {
   };
 
   return (
-    <div className="flex bg-background h-[calc(100vh-140px)] rounded-2xl border border-border overflow-hidden shadow-sm">
+    <div className="flex bg-background h-full overflow-hidden">
       {/* Sidebar - Room List */}
       <div className={cn(
         "w-full md:w-80 border-r border-border flex flex-col bg-muted/5",
@@ -350,12 +350,12 @@ const AdminChatPage = observer(() => {
                   <User size={20} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm leading-tight">{selectedRoom.sender_name || 'Khách'}</h3>
+                  <h3 className="font-bold text-sm leading-tight">{selectedRoom?.sender_name || 'Khách'}</h3>
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                     Đang trực tuyến
                     <span className="mx-1">•</span>
-                    ID: {selectedRoom.user_id.slice(0, 8)}...
+                    ID: {selectedRoom?.user_id.slice(0, 8)}...
                   </div>
                 </div>
               </div>
