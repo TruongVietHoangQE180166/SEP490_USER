@@ -169,7 +169,7 @@ export const LessonNotes = ({ lessonId, hideHeader = false }: { lessonId: string
                       </p>
                       <div className="flex items-center gap-2 mt-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                         <Calendar className="w-3 h-3" />
-                        {formatDate(note.createdDate)}
+                        {formatDate(note.created_date)}
                       </div>
                     </>
                   )}
