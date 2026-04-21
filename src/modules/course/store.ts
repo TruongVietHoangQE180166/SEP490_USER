@@ -90,7 +90,13 @@ export const courseActions = {
     // Only add if not already exists (avoid duplicates from realtime)
     const current = courseState$.discussionMessages.peek();
     if (!current.find(m => m.id === message.id)) {
-      courseState$.discussionMessages.push(message);
+      const newList = [...current, message];
+      // Keep only the latest 100
+      if (newList.length > 100) {
+        courseState$.discussionMessages.set(newList.slice(-100));
+      } else {
+        courseState$.discussionMessages.push(message);
+      }
     }
   },
 
