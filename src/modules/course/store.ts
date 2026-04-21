@@ -1,5 +1,5 @@
 import { observable } from '@legendapp/state';
-import { CourseState, UserLevel, LessonNote } from './types';
+import { CourseState, UserLevel, LessonNote, CourseDiscussionMessage, Question } from './types';
 
 const initialCourseState: CourseState = {
   courses: [],
@@ -13,6 +13,7 @@ const initialCourseState: CourseState = {
   completedLessons: [],
   userLevel: null,
   notes: [],
+  discussionMessages: [],
 };
 
 export const courseState$ = observable<CourseState>(initialCourseState);
@@ -21,7 +22,7 @@ export const courseActions = {
   setCourses: (courses: CourseState['courses']) => {
     courseState$.courses.set(courses);
   },
-  
+
   setCurrentCourse: (course: CourseState['currentCourse']) => {
     courseState$.currentCourse.set(course);
   },
@@ -30,12 +31,12 @@ export const courseActions = {
     courseState$.currentLesson.set(lesson);
   },
 
-  setQuizQuestions: (questions: CourseState['quizQuestions']) => {
+  setQuizQuestions: (questions: Question[]) => {
     courseState$.quizQuestions.set(questions);
   },
 
-  setQuizMode: (isQuizMode: boolean, quizId: string | null = null) => {
-    courseState$.isQuizMode.set(isQuizMode);
+  setQuizMode: (isQuiz: boolean, quizId: string | null = null) => {
+    courseState$.isQuizMode.set(isQuiz);
     courseState$.currentQuizId.set(quizId);
   },
 
@@ -47,15 +48,15 @@ export const courseActions = {
     courseState$.error.set(error);
   },
 
-  markLessonCompleted: (lessonId: string) => {
+  setCompletedLessons: (lessonIds: string[]) => {
+    courseState$.completedLessons.set(lessonIds);
+  },
+
+  addCompletedLesson: (lessonId: string) => {
     const current = courseState$.completedLessons.get();
     if (!current.includes(lessonId)) {
       courseState$.completedLessons.set([...current, lessonId]);
     }
-  },
-
-  setCompletedLessons: (lessonIds: string[]) => {
-    courseState$.completedLessons.set(lessonIds);
   },
 
   setUserLevel: (level: UserLevel | null) => {
@@ -81,7 +82,29 @@ export const courseActions = {
     courseState$.notes.set(current.filter(n => n.id !== noteId));
   },
 
+  setDiscussionMessages: (messages: CourseDiscussionMessage[]) => {
+    courseState$.discussionMessages.set(messages);
+  },
+
+  addDiscussionMessage: (message: CourseDiscussionMessage) => {
+    // Only add if not already exists (avoid duplicates from realtime)
+    const current = courseState$.discussionMessages.peek();
+    if (!current.find(m => m.id === message.id)) {
+      courseState$.discussionMessages.push(message);
+    }
+  },
+
+  updateDiscussionMessage: (message: CourseDiscussionMessage) => {
+    const current = courseState$.discussionMessages.peek();
+    courseState$.discussionMessages.set(current.map(m => m.id === message.id ? message : m));
+  },
+
+  removeDiscussionMessage: (messageId: string) => {
+    const current = courseState$.discussionMessages.peek();
+    courseState$.discussionMessages.set(current.filter(m => m.id !== messageId));
+  },
+
   reset: () => {
     courseState$.set(initialCourseState);
-  }
+  },
 };

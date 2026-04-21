@@ -54,6 +54,7 @@ import { useState, useMemo, useCallback, useRef } from 'react';
 import { authState$ } from '@/modules/auth/store';
 import { SupportChatService } from '@/modules/support-chat/services';
 import { chatState$ } from '@/modules/support-chat/store';
+import { CourseDiscussion } from './CourseDiscussion';
 
 // ============================================================================
 // ANIMATION VARIANTS
@@ -517,7 +518,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                     <div className="space-y-1">
                       <h3 className="text-lg sm:text-xl font-bold text-foreground">Ưu đãi kết thúc sau:</h3>
                       <p className="text-sm text-foreground/70">
-                        Đừng bỏ lỡ cơ hội tiết kiệm {formatPrice(currentCourse.price - currentCourse.salePrice)}!
+                        Đừng bỏ lỡ cơ hội tiết kiệm {formatPrice((currentCourse.price || 0) - (currentCourse.salePrice || 0))}!
                       </p>
                     </div>
                     <CountdownTimer deadline={deadline} />
@@ -531,7 +532,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                     <div className="space-y-1">
                       <p className="text-sm text-foreground/60">Giá ưu đãi</p>
                       <p className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                        {formatPrice(currentCourse.salePrice)}
+                        {formatPrice(currentCourse.salePrice || 0)}
                       </p>
                     </div>
                     <div className="ml-auto">
@@ -740,6 +741,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
               ))}
             </motion.div>
 
+
             {/* Learning Progress (Only for enrolled users) */}
             {(isAuthenticated && currentCourse.isEnrolled) && (
               <motion.div 
@@ -791,14 +793,17 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
 
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-6">
+                {/* Discussion Section - Placed ABOVE Information Section */}
+                <CourseDiscussion courseId={currentCourse.id} isEnrolled={isAuthenticated ? !!currentCourse.isEnrolled : false} />
+
                 {/* Course Additional Info Section - Integrated gracefully */}
                 <div className="space-y-4 md:space-y-6">
                   {/* Tab Switcher */}
                   <div className="flex flex-wrap items-center gap-2 bg-background/40 p-2 rounded-[2rem] border border-white/10 backdrop-blur-2xl shadow-xl">
                     {[
-                      { id: 'learn', label: 'Bài học', fullLabel: 'Những gì bạn sẽ học', icon: <FileText className="w-5 h-5" />, color: 'primary' },
-                      { id: 'skills', label: 'Kỹ năng', fullLabel: 'Kỹ năng nhận được', icon: <GraduationCap className="w-5 h-5" />, color: 'emerald-500' },
-                      { id: 'trust', label: 'Uy tín', fullLabel: 'Uy tín & Tham khảo', icon: <Award className="w-5 h-5" />, color: 'amber-500' }
+                      { id: 'learn', label: 'Bài học', fullLabel: 'Kiến thức trọng tâm', icon: <FileText className="w-5 h-5" />, color: 'primary' },
+                      { id: 'skills', label: 'Kỹ năng', fullLabel: 'Kỹ năng đạt được', icon: <GraduationCap className="w-5 h-5" />, color: 'emerald-500' },
+                      { id: 'trust', label: 'Uy tín', fullLabel: 'Uy tín tham khảo', icon: <Award className="w-5 h-5" />, color: 'amber-500' }
                     ].map((tab) => (
                       <button
                         key={tab.id}
@@ -985,9 +990,9 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           const isExpanded = expandedSections[sectionKey];
                           
                           const lessons = [
-                              ...(mooc.videos || []).map(v => ({ ...v, type: 'video' })),
-                              ...(mooc.quizzes || []).map(q => ({ ...q, type: 'quiz' as const })),
-                              ...(mooc.documents || []).map(d => ({ ...d, type: 'document' }))
+                              ...(mooc.videos || []).map((v: any) => ({ ...v, type: 'video' })),
+                              ...(mooc.quizzes || []).map((q: any) => ({ ...q, type: 'quiz' as const })),
+                              ...(mooc.documents || []).map((d: any) => ({ ...d, type: 'document' }))
                           ].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
 
                         const isEnrolled = isAuthenticated && currentCourse.isEnrolled;
@@ -1414,6 +1419,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                   </div>
                 )}
             </motion.div>
+
 
              {/* Related Courses Slider */}
              {relatedCourses.length > 0 ? (

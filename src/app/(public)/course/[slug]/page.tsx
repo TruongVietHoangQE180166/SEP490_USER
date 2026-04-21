@@ -85,11 +85,12 @@ export default async function CourseDetailPage({ params }: Props) {
     <>
       {courseSchema && (
         <script
+          key="ld-json"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
         />
       )}
-      <CourseDetailWrapper slug={slug} />
+      <CourseDetailWrapper key={slug} slug={slug} />
     </>
   );
 }
