@@ -188,6 +188,15 @@ export interface CourseState {
   error: string | null;
   completedLessons: string[];
   userLevel: UserLevel | null;
+  notes: LessonNote[];
+}
+
+export interface LessonNote {
+  id: string;
+  lessonId: string;
+  userId: string;
+  content: string;
+  createdDate: string;
 }
 
 export type TrackingType = 'DOCUMENT' | 'VIDEO' | 'QUIZ';

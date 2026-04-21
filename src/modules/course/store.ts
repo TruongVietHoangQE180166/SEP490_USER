@@ -1,5 +1,5 @@
 import { observable } from '@legendapp/state';
-import { CourseState, UserLevel } from './types';
+import { CourseState, UserLevel, LessonNote } from './types';
 
 const initialCourseState: CourseState = {
   courses: [],
@@ -12,6 +12,7 @@ const initialCourseState: CourseState = {
   error: null,
   completedLessons: [],
   userLevel: null,
+  notes: [],
 };
 
 export const courseState$ = observable<CourseState>(initialCourseState);
@@ -59,6 +60,25 @@ export const courseActions = {
 
   setUserLevel: (level: UserLevel | null) => {
     courseState$.userLevel.set(level);
+  },
+
+  setNotes: (notes: CourseState['notes']) => {
+    courseState$.notes.set(notes);
+  },
+
+  addNote: (note: LessonNote) => {
+    const current = courseState$.notes.get();
+    courseState$.notes.set([note, ...current]);
+  },
+
+  updateNote: (note: LessonNote) => {
+    const current = courseState$.notes.get();
+    courseState$.notes.set(current.map(n => n.id === note.id ? note : n));
+  },
+
+  removeNote: (noteId: string) => {
+    const current = courseState$.notes.get();
+    courseState$.notes.set(current.filter(n => n.id !== noteId));
   },
 
   reset: () => {
