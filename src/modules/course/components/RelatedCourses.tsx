@@ -6,14 +6,20 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Course } from "@/modules/course/types";
 import { CourseCard } from "@/modules/course/components/CourseCard";
 import { cn } from "@/lib/utils";
+import { useCourses } from "../hooks/useCourse";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface RelatedCoursesProps {
-  courses: Course[];
+  currentCourseId: string;
   title?: string;
   className?: string;
 }
 
-export function RelatedCourses({ courses, title = "Khóa học liên quan", className }: RelatedCoursesProps) {
+export function RelatedCourses({ currentCourseId, title = "Khóa học liên quan", className }: RelatedCoursesProps) {
+  const { courses: allCourses, isLoading } = useCourses();
+  
+  const courses = allCourses.filter(c => c.id !== currentCourseId);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const x = useMotionValue(0);
@@ -55,6 +61,19 @@ export function RelatedCourses({ courses, title = "Khóa học liên quan", clas
       mass: 1,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className={cn("w-full py-10", className)}>
+        <Skeleton className="h-8 w-48 mb-8 rounded-full" />
+        <div className="flex gap-6 overflow-hidden">
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} className="min-w-[300px] h-[380px] rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!courses || courses.length === 0) return null;
 

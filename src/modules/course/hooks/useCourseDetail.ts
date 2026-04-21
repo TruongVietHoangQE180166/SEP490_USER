@@ -3,7 +3,6 @@ import { courseService } from '../services';
 import { courseState$, courseActions } from '../store';
 import { USER_LEVEL_ORDER, USER_LEVEL_LABEL, UserLevel } from '../types';
 import { toast } from '@/components/ui/toast';
-import { useCourses } from './useCourse';
 import { authState$ } from '@/modules/auth/store';
 
 /**
@@ -14,6 +13,8 @@ import { authState$ } from '@/modules/auth/store';
 const inflight = new Map<string, Promise<void>>();
 let getMeInflight: Promise<void> | null = null;
 
+import { Course } from '../types';
+
 /**
  * Hook to fetch course details by slug name.
  * - Reads from global store (reactive, shared between all components).
@@ -21,7 +22,7 @@ let getMeInflight: Promise<void> | null = null;
  * - Fetches user level once and caches it in the store.
  * - Computes a levelWarning when the user's level differs from the course level.
  */
-export const useCourseDetail = (slugName: string) => {
+export const useCourseDetail = (slugName: string, initialData?: Course | null) => {
   const course = courseState$.currentCourse.get();
   const isFetching = courseState$.isLoading.get();
   const userLevel = courseState$.userLevel.get();
@@ -43,16 +44,22 @@ export const useCourseDetail = (slugName: string) => {
   });
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Global course list for "Related Courses" (already cached by useCourses)
-  const { courses: allCourses, isLoading: isRelatedCoursesLoading } = useCourses();
+  // Global course list for "Related Courses" is now handled inside the RelatedCourses component to prevent blocking the main detail page load.
 
   useEffect(() => {
     if (!slugName) return;
+
+    // Use server-provided initial data if available and store is empty/mismatched
+    if (initialData && (!course || (course.slug !== slugName && course.id !== slugName))) {
+        courseActions.setCurrentCourse(initialData);
+        setIsInitializing(false);
+    }
+
     // Run both fetches concurrently on first mount
     loadCourseDetail();
     if (isAuthenticated) loadUserLevel();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slugName, isAuthenticated]);
+  }, [slugName, isAuthenticated, initialData]);
 
   /** Fetch current user level once and cache in store */
   const loadUserLevel = async () => {
@@ -175,16 +182,15 @@ export const useCourseDetail = (slugName: string) => {
   }, [course?.moocs]);
 
   const discountPercent = useMemo(() => {
-    if (!course) return 0;
-    return course.discountPercent || (course.price > course.salePrice
-      ? Math.round(((course.price - course.salePrice) / course.price) * 100)
+    if (!course || !course.price) return 0;
+    const sPrice = course.salePrice ?? course.price;
+    return course.discountPercent || (course.price > sPrice
+      ? Math.round(((course.price - sPrice) / course.price) * 100)
       : 0);
   }, [course]);
 
-  const relatedCourses = useMemo(() => {
-    if (!course) return [];
-    return allCourses.filter(c => c.id !== course.id);
-  }, [allCourses, course]);
+  const relatedCourses: any[] = [];
+  const isRelatedCoursesLoading = false;
 
   /**
    * Map the backend courseLevel string to a UserLevel key.

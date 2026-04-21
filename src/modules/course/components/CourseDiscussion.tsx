@@ -28,7 +28,8 @@ import {
   Clock,
   Plus,
   Minus,
-  RefreshCw
+  RefreshCw,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,8 @@ import { toast } from '@/components/ui/toast';
 export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { courseId: string, isEnrolled?: boolean }) => {
   const { messages, isLoading, sendMessage, user, course, fetchHistory } = useCourseChat(courseId);
   const isAuthorGlobal = course?.authorId === user?.userId || course?.createdBy === user?.userId || course?.createdBy === (user as void | any)?.username;
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN' || user?.roles?.some(r => r.toUpperCase() === 'ADMIN');
+  const isModerator = isAuthorGlobal || isAdmin;
   
   const [banStatus, setBanStatus] = useState<{isBanned: boolean, bannedUntil: string | null} | null>(null);
   const [newContent, setNewContent] = useState('');
@@ -300,7 +303,11 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
     }
   };
 
-  const getLevelBadge = (level: string) => {
+  const getLevelBadge = (level: string, role?: string) => {
+    // Admins and Teachers don't need levels
+    const r = role?.toUpperCase() || '';
+    if (r === 'ADMIN' || r === 'TEACHER' || r === 'INSTRUCTOR') return null;
+
     const l = level?.toLowerCase() || '';
     if (l.includes('1') || l.includes('nhập') || l.includes('nhap')) {
       return { label: 'Nhập môn', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20', icon: <Medal className="w-3 h-3" /> };
@@ -322,6 +329,16 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
 
   const getRoleInfo = (role: string) => {
     const r = role?.toUpperCase() || 'STUDENT';
+    if (r === 'ADMIN') {
+      return { 
+        label: 'Quản trị viên', 
+        color: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
+        bubble: 'bg-rose-500/5 border-rose-500/20 ring-1 ring-rose-500/10',
+        icon: <ShieldCheck className="w-3 h-3" />,
+        isTeacher: true,
+        isAdmin: true
+      };
+    }
     if (r === 'TEACHER' || r === 'INSTRUCTOR') {
       return { 
         label: 'Giảng viên', 
@@ -361,7 +378,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
           </div>
         </div>
         
-        {isAuthorGlobal && (
+        {(isAuthorGlobal || isAdmin) && (
            <Button variant="outline" className="rounded-xl border-rose-500/20 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 hover:text-rose-500 font-bold" onClick={handleShowBannedUsers}>
               <Ban className="h-4 w-4 mr-2" />
               Danh sách cấm
@@ -400,8 +417,16 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
               messages.map((msg) => {
                 const isAuthor = msg.is_author;
                 const isMe = msg.user_id === user?.userId;
-                const levelBadge = getLevelBadge(msg.user_level);
+                const msgAuthorIsAdmin = msg.user_role === 'ADMIN';
                 const roleInfo = getRoleInfo(msg.user_role);
+                const levelBadge = getLevelBadge(msg.user_level, msg.user_role);
+
+                // Moderation logic: Admin vs Author protection
+                let canModerateMsg = false;
+                if (!isMe) {
+                    if (isAdmin && !isAuthor) canModerateMsg = true;
+                    if (isAuthorGlobal && !msgAuthorIsAdmin) canModerateMsg = true;
+                }
 
                 return (
                   <motion.div
@@ -416,7 +441,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
                     <div className="flex flex-col items-center gap-2">
                        <Avatar className={cn(
                          "h-12 w-12 border-2 shadow-sm transition-transform hover:scale-105",
-                         isAuthor ? "border-amber-500 ring-4 ring-amber-500/10" : roleInfo.isTeacher ? "border-primary ring-4 ring-primary/10" : "border-border/60"
+                         isAuthor ? "border-amber-500 ring-4 ring-amber-500/10" : roleInfo.isAdmin ? "border-rose-500 ring-4 ring-rose-500/10" : roleInfo.isTeacher ? "border-primary ring-4 ring-primary/10" : "border-border/60"
                        )}>
                          <AvatarImage src={msg.user_avatar} />
                          <AvatarFallback className="font-bold">{msg.user_name[0]}</AvatarFallback>
@@ -434,7 +459,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
                       )}>
                         <span className={cn(
                           "text-[13px] font-black tracking-tight",
-                          isAuthor ? "text-amber-600" : roleInfo.isTeacher ? "text-primary" : "text-foreground/80"
+                          isAuthor ? "text-amber-600" : roleInfo.isAdmin ? "text-rose-600" : roleInfo.isTeacher ? "text-primary" : "text-foreground/80"
                         )}>
                           {msg.user_name}
                         </span>
@@ -450,7 +475,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
                           {roleInfo.label}
                         </Badge>
 
-                        {!roleInfo.isTeacher && msg.user_level !== 'N/A' && (
+                        {!roleInfo.isTeacher && levelBadge && msg.user_level !== 'N/A' && (
                           <Badge variant="outline" className={cn("h-5 border text-[9px] font-black px-1.5", levelBadge.color)}>
                             {levelBadge.label}
                           </Badge>
@@ -494,12 +519,12 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
                               <Edit2 className="h-4 w-4" />
                             </Button>
                           )}
-                          {(isMe || isAuthorGlobal) && (
+                          {(isMe || canModerateMsg) && (
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-foreground/40 hover:bg-rose-500/10 hover:text-rose-500 transition-all" title="Xóa tin nhắn" onClick={() => setDeleteConfirmMsgId(msg.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
-                          {!isMe && isAuthorGlobal && (
+                          {canModerateMsg && (
                             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-foreground/40 hover:bg-rose-500/10 hover:text-rose-500 transition-all" title="Cấm chat người này" onClick={() => setBanModState({ userId: msg.user_id, userName: msg.user_name })}>
                               <Ban className="h-4 w-4" />
                             </Button>

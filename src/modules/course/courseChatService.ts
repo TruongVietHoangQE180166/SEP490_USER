@@ -5,18 +5,21 @@ export const courseChatService = {
   async getMessages(courseId: string) {
     if (!supabase) return [];
     
+    // Fetch the LATEST 100 messages (most recent first)
     const { data, error } = await supabase
       .from('course_discussions')
       .select('*')
       .eq('course_id', courseId)
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(100);
 
     if (error) {
       console.error('[courseChatService] Error fetching messages:', error);
       return [];
     }
-    return data as CourseDiscussionMessage[];
+    
+    // Reverse to display chronologically (oldest to newest)
+    return (data as CourseDiscussionMessage[]).reverse();
   },
 
   async sendMessage(message: Omit<CourseDiscussionMessage, 'id' | 'created_at'>) {

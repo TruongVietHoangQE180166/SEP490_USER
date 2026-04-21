@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { observer } from '@legendapp/state/react';
 import { useCourseDetail } from '../hooks/useCourseDetail';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,14 +48,24 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cn, getEmbedUrl } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
-import { RelatedCourses } from "./RelatedCourses";
+// Dynamically import heavy components to improve page transition speed
+const RelatedCourses = dynamic(() => import('./RelatedCourses').then(mod => mod.RelatedCourses), {
+  loading: () => <div className="h-64 animate-pulse bg-muted/20 rounded-2xl" />,
+  ssr: false
+});
+const CourseDiscussion = dynamic(() => import('./CourseDiscussion').then(mod => mod.CourseDiscussion), {
+  loading: () => <div className="h-48 animate-pulse bg-muted/20 rounded-2xl" />,
+  ssr: false
+});
 import { paymentActions } from '@/modules/payment/store';
 import { useCourseRatings } from '../hooks/useCourseRatings';
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { authState$ } from '@/modules/auth/store';
 import { SupportChatService } from '@/modules/support-chat/services';
 import { chatState$ } from '@/modules/support-chat/store';
-import { CourseDiscussion } from './CourseDiscussion';
+import { Course } from '../types';
+
+// Removed static import: import { CourseDiscussion } from './CourseDiscussion';
 
 // ============================================================================
 // ANIMATION VARIANTS
@@ -107,7 +118,7 @@ import { CountdownTimer } from './CountdownTimer';
 // MAIN COMPONENT
 // ============================================================================
 
-export const CourseDetail = observer(({ slug }: { slug: string }) => {
+export const CourseDetail = observer(({ slug, initialData }: { slug: string, initialData?: Course | null }) => {
   const router = useRouter();
   const isAuthenticated = authState$.isAuthenticated.get();
   const { 
@@ -127,7 +138,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
     formatPrice,
     levelWarning,
     userLevelLabel,
-  } = useCourseDetail(slug);
+  } = useCourseDetail(slug, initialData);
 
   const { ratings, isLoading: isRatingsLoading, averageRating, ratingDistribution, totalRatings } = useCourseRatings(currentCourse?.id);
 
@@ -1430,7 +1441,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                   variants={itemVariants}
                   className="mt-16 border-t border-border/40 pt-10"
                 >
-                  <RelatedCourses courses={relatedCourses} title="Khóa học liên quan" />
+                  <RelatedCourses currentCourseId={currentCourse.id} title="Khóa học liên quan" />
                 </motion.div>
              ) : isRelatedCoursesLoading ? (
                  <div className="mt-16 border-t border-border/40 pt-10">
