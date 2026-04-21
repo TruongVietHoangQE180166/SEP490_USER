@@ -7,6 +7,7 @@ import { LayoutDashboard, Users, FileText, CreditCard, GraduationCap, MessageCir
 import { DashboardHeader } from '@/components/DashboardHeader';
 import { SupportChatService } from '@/modules/support-chat/services';
 import { chatState$ } from '@/modules/support-chat/store';
+import { adminDiscussionActions, adminTotalUnreadCount$ } from '@/modules/admin-discussion/store';
 import { observer } from '@legendapp/state/react';
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -14,9 +15,10 @@ import { cn } from '@/lib/utils';
 
 const AdminLayoutClient = observer(({ children }: { children: React.ReactNode }) => {
   const unreadCount = chatState$.unreadCount.get();
+  const discussionUnreadCount = adminTotalUnreadCount$.get();
 
   useEffect(() => {
-    // Initial fetch of unread count
+    // 1. Support Chat Logic
     const fetchUnreadCount = async () => {
       const rooms = await SupportChatService.getAllConversations();
       const total = rooms.reduce((sum, room) => sum + (room.unread_count || 0), 0);
@@ -24,24 +26,34 @@ const AdminLayoutClient = observer(({ children }: { children: React.ReactNode })
     };
     fetchUnreadCount();
 
-    // Subscribe to updates
     const channel = SupportChatService.subscribeToAllMessages(() => {
-      // Refresh count on any change (insert/update)
       fetchUnreadCount();
     });
 
+    // 2. Course Discussion Logic for Admin
+    adminDiscussionActions.loadCourses();
+
     return () => {
       channel.unsubscribe();
+      adminDiscussionActions.reset();
     };
   }, []);
 
   const pathname = usePathname();
   const isAdminSupportChat = pathname === '/admin/support-chat';
+  const isAdminDiscussions = pathname === '/admin/discussions';
+  const isFullScreenMode = isAdminSupportChat || isAdminDiscussions;
   
   const adminMenuItems = [
     { icon: LayoutDashboard, label: 'Bảng điều khiển', href: '/admin' },
     { icon: Users, label: 'Quản lý người dùng', href: '/admin/users' },
     { icon: GraduationCap, label: 'Quản lý khoá học', href: '/admin/courses' },
+    { 
+      icon: MessageCircle, 
+      label: 'Thảo luận', 
+      href: '/admin/discussions',
+      badge: discussionUnreadCount
+    },
     { 
       icon: MessageCircle, 
       label: 'Hỗ trợ trực tuyến', 
@@ -63,12 +75,12 @@ const AdminLayoutClient = observer(({ children }: { children: React.ReactNode })
         <DashboardHeader />
         <main className={cn(
           "flex-1 min-h-0",
-          isAdminSupportChat ? "bg-background overflow-hidden" : "p-8 pb-8 bg-muted/10 overflow-y-auto"
+          isFullScreenMode ? "bg-background overflow-hidden" : "p-8 pb-8 bg-muted/10 overflow-y-auto"
         )}>
           <div className={cn(
             "mx-auto",
-            isAdminSupportChat ? "h-full" : "min-h-full",
-            !isAdminSupportChat && "w-full"
+            isFullScreenMode ? "h-full" : "min-h-full",
+            !isFullScreenMode && "w-full"
           )}>
               {children}
           </div>

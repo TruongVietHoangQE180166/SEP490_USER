@@ -117,6 +117,40 @@ export const courseChatService = {
     return !error;
   },
 
+  async getUnreadCounts(courseIds: string[]) {
+    if (!supabase || courseIds.length === 0) return {};
+    
+    const { data, error } = await supabase
+      .from('course_discussions')
+      .select('course_id')
+      .in('course_id', courseIds)
+      .eq('is_read', false);
+
+    if (error) {
+      console.error('[courseChatService] Error fetching unread counts:', error);
+      return {};
+    }
+
+    // Aggregate counts by courseId
+    const counts: Record<string, number> = {};
+    data.forEach((item: any) => {
+      counts[item.course_id] = (counts[item.course_id] || 0) + 1;
+    });
+    return counts;
+  },
+
+  async markAsRead(courseId: string) {
+    if (!supabase) return false;
+    const { error } = await supabase
+      .from('course_discussions')
+      .update({ is_read: true })
+      .eq('course_id', courseId)
+      .eq('is_read', false);
+    
+    if (error) console.error('[courseChatService] Error marking as read:', error);
+    return !error;
+  },
+
   subscribeToMessages(
     courseId: string, 
     onMessage: (message: CourseDiscussionMessage) => void,
