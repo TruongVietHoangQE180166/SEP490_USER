@@ -226,6 +226,8 @@ export const LessonContent = observer(({ lesson, onRefresh }: { lesson: any, onR
                   )}
               </Button>
           </div>
+          
+          {/* Document specific section could have notes too */}
         </div>
       </div>
     );

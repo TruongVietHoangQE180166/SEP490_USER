@@ -4,7 +4,7 @@ import { observer } from '@legendapp/state/react';
 import { useCourseDetail } from '../hooks/useCourseDetail';
 import { courseState$, courseActions } from '../store';
 import { LessonContent } from './LessonContent';
-import { PlayCircle, FileText, HelpCircle, ChevronLeft, Menu, CheckCircle2, Lock } from 'lucide-react';
+import { PlayCircle, FileText, HelpCircle, ChevronLeft, Menu, CheckCircle2, Lock, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState, useEffect, useMemo } from 'react';
@@ -12,6 +12,9 @@ import Link from 'next/link';
 import { ThunderLoader } from '@/components/thunder-loader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { SideSheet, SideSheetContent, SideSheetHeader, SideSheetTitle, SideSheetTrigger, SideSheetClose } from '@/components/ui/side-sheet';
+import { X as CloseIcon } from 'lucide-react';
+import { LessonNotes } from './LessonNotes';
 
 export const LearningView = observer(({ slug }: { slug: string }) => {
   const { course, refresh } = useCourseDetail(slug);
@@ -195,6 +198,42 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
           </div>
           
           <div className="flex items-center gap-3 md:gap-6 shrink-0">
+             <SideSheet width="450px" side="right">
+                <SideSheetTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-2 font-black text-primary bg-primary/5 hover:bg-primary hover:text-white rounded-xl transition-all duration-300 border-primary/20 hover:border-primary px-4 h-9 shadow-sm hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 group"
+                  >
+                    <StickyNote className="h-4 w-4 transition-transform group-hover:rotate-12" />
+                    <span className="hidden sm:inline tracking-tight">Ghi chú</span>
+                  </Button>
+                </SideSheetTrigger>
+                <SideSheetContent className="border-l border-border/50">
+                  <div className="flex flex-col h-full bg-card">
+                    <SideSheetHeader className="p-6 border-b border-border/50 bg-muted/20 relative">
+                      <div className="flex items-center justify-between">
+                        <SideSheetTitle className="text-xl font-black flex items-center gap-2">
+                          <StickyNote className="h-5 w-5 text-primary" />
+                          Ghi chú bài học
+                        </SideSheetTitle>
+                        <SideSheetClose asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/20">
+                            <CloseIcon className="h-4 w-4" />
+                          </Button>
+                        </SideSheetClose>
+                      </div>
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{validLesson?.title || 'Đang tải...'}</p>
+                    </SideSheetHeader>
+                    <ScrollArea className="flex-1">
+                      <div className="px-6 pb-10">
+                        {validLesson && <LessonNotes lessonId={validLesson.id} hideHeader />}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                </SideSheetContent>
+             </SideSheet>
+
              <div className="flex flex-col items-end">
                 <span className="text-[9px] md:text-xs font-black text-muted-foreground uppercase tracking-tight">Tiến trình {Math.round(currentCourse?.progress || 0)}%</span>
                 <div className="w-16 md:w-32 h-1.5 md:h-2 bg-muted rounded-full mt-0.5 md:mt-1 overflow-hidden">

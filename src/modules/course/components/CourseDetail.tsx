@@ -792,7 +792,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-6">
                 {/* Course Additional Info Section - Integrated gracefully */}
-                <div className="space-y-8">
+                <div className="space-y-4 md:space-y-6">
                   {/* Tab Switcher */}
                   <div className="flex flex-wrap items-center gap-2 bg-background/40 p-2 rounded-[2rem] border border-white/10 backdrop-blur-2xl shadow-xl">
                     {[
@@ -835,7 +835,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                   </div>
 
                   {/* Tab Content */}
-                  <div className="relative min-h-[400px]">
+                  <div className="relative min-h-[150px] md:min-h-[220px]">
                     <AnimatePresence mode="wait">
                       {activeInfoTab === 'learn' && (
                         <motion.div
@@ -844,7 +844,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -20 }}
                           transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/10 bg-background/20 p-6 md:p-12 backdrop-blur-3xl transition-all duration-700 hover:shadow-[0_0_80px_-15px_rgba(var(--primary-rgb),0.2)] hover:border-primary/40"
+                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/10 bg-background/20 p-5 md:p-10 backdrop-blur-3xl transition-all duration-700 hover:shadow-[0_0_80px_-15px_rgba(var(--primary-rgb),0.2)] hover:border-primary/40"
                         >
                           <div className="absolute -top-24 -left-24 h-80 w-80 bg-primary/15 blur-[120px] rounded-full animate-pulse pointer-events-none" />
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
@@ -887,7 +887,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -20 }}
                           transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-gradient-to-br from-emerald-500/[0.03] via-background/40 to-teal-500/[0.03] p-6 md:p-12 backdrop-blur-2xl transition-all duration-700 hover:border-emerald-500/30 hover:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)]"
+                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-gradient-to-br from-emerald-500/[0.03] via-background/40 to-teal-500/[0.03] p-5 md:p-10 backdrop-blur-2xl transition-all duration-700 hover:border-emerald-500/30 hover:shadow-[0_0_60px_-15px_rgba(16,185,129,0.15)]"
                         >
                           <div className="absolute -right-16 -top-16 h-64 w-64 bg-emerald-500/10 blur-[100px] rounded-full transition-all group-hover:bg-emerald-500/20 pointer-events-none" />
                           
@@ -929,7 +929,7 @@ export const CourseDetail = observer(({ slug }: { slug: string }) => {
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -20 }}
                           transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-gradient-to-br from-amber-500/[0.03] via-background/40 to-orange-500/[0.03] p-6 md:p-12 backdrop-blur-2xl transition-all duration-700 hover:border-amber-500/30 hover:shadow-[0_0_60px_-15px_rgba(245,158,11,0.15)]"
+                          className="group relative overflow-hidden rounded-[2rem] md:rounded-[3rem] border border-white/5 bg-gradient-to-br from-amber-500/[0.03] via-background/40 to-orange-500/[0.03] p-5 md:p-10 backdrop-blur-2xl transition-all duration-700 hover:border-amber-500/30 hover:shadow-[0_0_60px_-15px_rgba(245,158,11,0.15)]"
                         >
                           <div className="absolute -right-16 -top-16 h-64 w-64 bg-amber-500/10 blur-[100px] rounded-full transition-all group-hover:bg-amber-500/20 pointer-events-none" />
                           
