@@ -74,6 +74,7 @@ export interface CourseDiscussionMessage {
   user_role: string;
   user_level: string;
   is_author: boolean;
+  is_read: boolean;
   created_at: string;
 }
 

@@ -35,7 +35,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from '@/components/ui/toast';
 
-export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { courseId: string, isEnrolled?: boolean }) => {
+export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHeight = false }: { courseId: string, isEnrolled?: boolean, fullHeight?: boolean }) => {
   const { messages, isLoading, sendMessage, user, course, fetchHistory } = useCourseChat(courseId);
   const isAuthorGlobal = course?.authorId === user?.userId || course?.createdBy === user?.userId || course?.createdBy === (user as void | any)?.username;
   const isAdmin = user?.role?.toUpperCase() === 'ADMIN' || user?.roles?.some(r => r.toUpperCase() === 'ADMIN');
@@ -110,7 +110,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
     }
   }, [banStatus]);
 
-  const handleShowBannedUsers = async () => {
+  const handleShowBannedUsers = useCallback(async () => {
     try {
       setShowBannedUsersModal(true);
       const users = await courseChatService.getBannedUsers(courseId);
@@ -118,7 +118,16 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
     } catch (error) {
       toast.error("Không thể tải danh sách người dùng bị cấm");
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    if (!courseId) return;
+    const eventName = `open-banned-list-${courseId}`;
+    const handleEvent = () => handleShowBannedUsers();
+    
+    window.addEventListener(eventName, handleEvent);
+    return () => window.removeEventListener(eventName, handleEvent);
+  }, [courseId, handleShowBannedUsers]);
 
   const handleUnban = (banId: string, userName: string) => {
     setUnbanConfirmState({ id: banId, name: userName });
@@ -358,35 +367,45 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true }: { cou
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-             <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent text-primary border border-primary/20 shadow-xl shadow-primary/5">
-               <MessageSquare className="h-7 w-7" />
-               <div className="absolute inset-0 bg-primary/5 blur-xl animate-pulse" />
-             </div>
-             <div className="absolute -top-1 -right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-background border border-border/50">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-             </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-black tracking-tight text-foreground">Thảo luận khóa học</h2>
+    <div className={cn(
+      "animate-in fade-in duration-700 h-full",
+      fullHeight ? "flex flex-col space-y-0" : "space-y-6 slide-in-from-bottom-4"
+    )}>
+      {!fullHeight ? (
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+               <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent text-primary border border-primary/20 shadow-xl shadow-primary/5">
+                 <MessageSquare className="h-7 w-7" />
+                 <div className="absolute inset-0 bg-primary/5 blur-xl animate-pulse" />
+               </div>
+               <div className="absolute -top-1 -right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-background border border-border/50">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+               </div>
             </div>
-            <p className="text-sm font-medium text-muted-foreground/80">Kênh trao đổi trực tiếp cùng Giảng viên và cộng đồng học viên.</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-black tracking-tight text-foreground">Thảo luận khóa học</h2>
+              </div>
+              <p className="text-sm font-medium text-muted-foreground/80">Kênh trao đổi trực tiếp cùng Giảng viên và cộng đồng học viên.</p>
+            </div>
           </div>
+          
+          {(isAuthorGlobal || isAdmin) && (
+             <Button variant="outline" className="rounded-xl border-rose-500/20 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 hover:text-rose-500 font-bold" onClick={handleShowBannedUsers}>
+                <Ban className="h-4 w-4 mr-2" />
+                Danh sách cấm
+             </Button>
+          )}
         </div>
-        
-        {(isAuthorGlobal || isAdmin) && (
-           <Button variant="outline" className="rounded-xl border-rose-500/20 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 hover:text-rose-500 font-bold" onClick={handleShowBannedUsers}>
-              <Ban className="h-4 w-4 mr-2" />
-              Danh sách cấm
-           </Button>
-        )}
-      </div>
+      ) : null}
 
-      <Card className="flex h-[600px] flex-col overflow-hidden rounded-3xl border border-border/40 bg-background/60 shadow-2xl backdrop-blur transition-all hover:border-border/60 relative">
+      <Card className={cn(
+        "flex flex-col overflow-hidden relative transition-all",
+        fullHeight 
+          ? "h-full border-none shadow-none rounded-none bg-transparent" 
+          : "h-[600px] rounded-3xl border border-border/40 bg-background/60 shadow-2xl backdrop-blur hover:border-border/60"
+      )}>
         {isEnrolled ? (
           <>
             {/* Scrollable message area — plain div for reliable ref access */}
