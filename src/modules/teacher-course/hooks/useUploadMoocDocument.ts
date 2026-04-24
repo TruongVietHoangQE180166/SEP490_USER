@@ -107,17 +107,23 @@ export const useUploadMoocDocument = () => {
         }
     }, []);
 
-    const updateDocument = useCallback((documentId: string, file: File, title: string): Promise<DocumentLesson> => {
+    const updateDocument = useCallback((documentId: string, file: File | null, title: string, oldFileType?: string): Promise<DocumentLesson> => {
         return new Promise((resolve, reject) => {
             setIsUploading(true);
-            setProgress({ percent: 0, speedMBps: 0, loaded: 0, total: file.size });
+            if (file) {
+                setProgress({ percent: 0, speedMBps: 0, loaded: 0, total: file.size });
+            } else {
+                setProgress({ percent: 100, speedMBps: 0, loaded: 0, total: 0 });
+            }
 
             const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-            const fileType = getFileType(file);
+            const fileType = file ? getFileType(file) : (oldFileType || 'DOCUMENT');
             const url = `${API_BASE_URL}/api/documents/${documentId}?title=${encodeURIComponent(title)}&fileType=${fileType}`;
 
             const formData = new FormData();
-            formData.append('file', file);
+            if (file) {
+                formData.append('file', file);
+            }
 
             const xhr = new XMLHttpRequest();
             xhrRef.current = xhr;

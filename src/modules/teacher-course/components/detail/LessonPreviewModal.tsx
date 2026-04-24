@@ -193,17 +193,17 @@ export const LessonPreviewModal = ({
             async () => {
                 if (isDocument) {
                     const isExistingDoc = selectedLesson.id && !selectedLesson.id.startsWith('temp-');
-                    if (selectedDocFile) {
-                        if (isExistingDoc) {
-                            // UPDATE existing document
-                            try {
-                                const data = await updateDocument(selectedLesson.id, selectedDocFile, selectedLesson.title || 'Tài liệu');
-                                setSelectedLesson({ ...selectedLesson, viewUrl: data.viewUrl, downloadUrl: data.downloadUrl, fileType: data.fileType });
-                                setFakeDocUploaded(false);
-                                setSelectedDocFile(null);
-                                if (onSuccess) onSuccess();
-                            } catch (err) { return Promise.reject(err); }
-                        } else if (selectedLesson.targetMoocId) {
+                    if (isExistingDoc) {
+                        // UPDATE existing document
+                        try {
+                            const data = await updateDocument(selectedLesson.id, selectedDocFile || null, selectedLesson.title || 'Tài liệu', selectedLesson.fileType);
+                            setSelectedLesson({ ...selectedLesson, viewUrl: data.viewUrl, downloadUrl: data.downloadUrl, fileType: data.fileType });
+                            setFakeDocUploaded(false);
+                            setSelectedDocFile(null);
+                            if (onSuccess) onSuccess();
+                        } catch (err) { return Promise.reject(err); }
+                    } else if (selectedDocFile) {
+                        if (selectedLesson.targetMoocId) {
                             // CREATE new document
                             try {
                                 const data = await uploadDocument(selectedLesson.targetMoocId, selectedDocFile, selectedLesson.title || 'Tài liệu');
@@ -260,7 +260,7 @@ export const LessonPreviewModal = ({
                             }
                             await teacherCourseService.createQuiz(selectedLesson.targetMoocId, {
                                 title: selectedLesson.title,
-                                timeLimit: selectedLesson.timeLimit || 15,
+                                timeLimit: (selectedLesson.timeLimit || 15) * 60,
                                 passingScore: selectedLesson.passingScore || 80
                             });
                             if (onSuccess) onSuccess();
@@ -300,7 +300,7 @@ export const LessonPreviewModal = ({
                             
                             await teacherCourseService.updateQuiz(selectedLesson.id, {
                                 title: selectedLesson.title,
-                                timeLimit: selectedLesson.timeLimit || 15,
+                                timeLimit: (selectedLesson.timeLimit || 15) * 60,
                                 passingScore: selectedLesson.passingScore || 80
                             });
                             

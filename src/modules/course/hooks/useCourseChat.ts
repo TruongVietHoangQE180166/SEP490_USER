@@ -65,6 +65,7 @@ export const useCourseChat = (courseId: string) => {
       user_role: currentRole,
       user_level: currentLevel,
       is_author: isAuthor,
+      is_read: false,
     };
 
     const result = await courseChatService.sendMessage(messageData);

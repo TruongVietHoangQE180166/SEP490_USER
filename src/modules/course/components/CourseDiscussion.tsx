@@ -368,8 +368,8 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
 
   return (
     <div className={cn(
-      "animate-in fade-in duration-700 h-full",
-      fullHeight ? "flex flex-col space-y-0" : "space-y-6 slide-in-from-bottom-4"
+      "animate-in fade-in duration-700",
+      fullHeight ? "flex flex-col h-full space-y-0" : "space-y-6 slide-in-from-bottom-4"
     )}>
       {!fullHeight ? (
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

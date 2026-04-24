@@ -202,9 +202,11 @@ export const teacherCourseService = {
    * PUT /api/documents/{documentId}?title=...&fileType=...
    * Body: multipart/form-data { file?: File }
    */
-  async updateDocument(documentId: string, file: File, title: string, fileType: string): Promise<DocumentUploadResponse['data']> {
+  async updateDocument(documentId: string, file: File | null, title: string, fileType: string): Promise<DocumentUploadResponse['data']> {
     const formData = new FormData();
-    formData.append('file', file);
+    if (file) {
+      formData.append('file', file);
+    }
     const url = `/api/documents/${documentId}?title=${encodeURIComponent(title)}&fileType=${fileType}`;
     const response = await ApiConfigService.put<DocumentUploadResponse>(url, formData);
     if (!response || !response.success || !response.data) {

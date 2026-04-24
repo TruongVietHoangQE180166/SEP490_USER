@@ -210,7 +210,7 @@ export const CourseDetail = observer(({ slug, initialData }: { slug: string, ini
 
   if (isLoading || !currentCourse) {
     return (
-      <main className="relative min-h-screen overflow-hidden bg-background pt-8 pb-8">
+      <main className="relative min-h-screen overflow-x-hidden bg-background pt-8 pb-8">
         <div className="relative px-6 py-0">
           <div className="mx-auto max-w-[1850px]">
             {/* Back Button Skeleton */}
@@ -302,7 +302,7 @@ export const CourseDetail = observer(({ slug, initialData }: { slug: string, ini
           }),
         }}
       />
-      <main className="relative min-h-screen overflow-hidden bg-background pt-8 pb-8">
+      <main className="relative min-h-screen overflow-x-hidden bg-background pt-8 pb-8">
       <CustomScrollbarStyle />
       {/* Glassmorphism background blobs */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
@@ -804,9 +804,6 @@ export const CourseDetail = observer(({ slug, initialData }: { slug: string, ini
 
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-6">
-                {/* Discussion Section - Placed ABOVE Information Section */}
-                <CourseDiscussion courseId={currentCourse.id} isEnrolled={isAuthenticated ? !!currentCourse.isEnrolled : false} />
-
                 {/* Course Additional Info Section - Integrated gracefully */}
                 <div className="space-y-4 md:space-y-6">
                   {/* Tab Switcher */}
@@ -1082,6 +1079,9 @@ export const CourseDetail = observer(({ slug, initialData }: { slug: string, ini
                     </div>
                   </div>
                 </motion.div>
+
+                {/* Discussion Section - Moved to bottom */}
+                <CourseDiscussion courseId={currentCourse.id} isEnrolled={isAuthenticated ? !!currentCourse.isEnrolled : false} />
               </div>
 
               {/* Instructor */}
@@ -1278,10 +1278,9 @@ export const CourseDetail = observer(({ slug, initialData }: { slug: string, ini
             
             {/* Ratings Section */}
             <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={itemVariants}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
               className="mt-10 border-t border-border/40 pt-10"
             >
               <div className="flex items-center gap-3 mb-8">
@@ -1433,26 +1432,14 @@ export const CourseDetail = observer(({ slug, initialData }: { slug: string, ini
 
 
              {/* Related Courses Slider */}
-             {relatedCourses.length > 0 ? (
-                <motion.div 
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  variants={itemVariants}
-                  className="mt-16 border-t border-border/40 pt-10"
-                >
-                  <RelatedCourses currentCourseId={currentCourse.id} title="Khóa học liên quan" />
-                </motion.div>
-             ) : isRelatedCoursesLoading ? (
-                 <div className="mt-16 border-t border-border/40 pt-10">
-                    <Skeleton className="h-8 w-48 mb-8 rounded-full" />
-                    <div className="flex gap-6 overflow-hidden">
-                        {[1, 2, 3, 4].map(i => (
-                            <Skeleton key={i} className="min-w-[300px] h-[380px] rounded-2xl" />
-                        ))}
-                    </div>
-                </div>
-             ) : null}
+             <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               viewport={{ once: true, margin: "-50px" }}
+               className="mt-16 border-t border-border/40 pt-10"
+             >
+               <RelatedCourses currentCourseId={currentCourse.id} title="Khóa học liên quan" />
+             </motion.div>
           </motion.div>
         </div>
       </div>

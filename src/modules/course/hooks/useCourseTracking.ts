@@ -13,7 +13,7 @@ export const useCourseTracking = () => {
       await courseService.trackProgress(id, type, true);
       
       // Update local store
-      courseActions.markLessonCompleted(id);
+      courseActions.addCompletedLesson(id);
       
       // toast.success('Đã hoàn thành bài học!');
       return true;
