@@ -80,6 +80,8 @@ export interface CourseDiscussionMessage {
 
 export type UserLevel = 'NHAP_MON' | 'NEN_TANG' | 'TRUNG_CAP' | 'THUC_HANH' | 'NANG_CAO';
 
+export type TrackingType = 'DOCUMENT' | 'VIDEO' | 'QUIZ';
+
 export const USER_LEVEL_ORDER: Record<UserLevel, number> = {
   NHAP_MON: 1,
   NEN_TANG: 2,
