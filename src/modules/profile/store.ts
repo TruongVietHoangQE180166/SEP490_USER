@@ -87,5 +87,21 @@ export const profileActions = {
     } finally {
       profileState$.isClaiming.set(false);
     }
+  },
+
+  checkUpgrade: async () => {
+    try {
+      profileState$.isProgressLoading.set(true);
+      const result = await profileService.checkUpgrade();
+      // Fetch new progress after successful upgrade
+      const progress = await profileService.getUserProgress();
+      profileState$.progress.set(progress);
+      return { success: true, message: result };
+    } catch (e: any) {
+      console.error(e);
+      return { success: false, message: e.message };
+    } finally {
+      profileState$.isProgressLoading.set(false);
+    }
   }
 };

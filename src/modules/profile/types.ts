@@ -77,6 +77,13 @@ export interface ImageUploadResponse {
   success: boolean;
 }
 
+export interface CheckUpgradeResponse {
+  message: ApiMessage;
+  errors: any;
+  data: string;
+  success: boolean;
+}
+
 // ... ImageUploadResponse
 
 export interface ChangePasswordRequest {
