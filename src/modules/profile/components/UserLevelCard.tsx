@@ -25,8 +25,9 @@ import { profileState$, profileActions } from '../store';
 import { authState$ } from '@/modules/auth/store';
 import { useEffect, useState } from 'react';
 import { toast } from '@/components/ui/toast';
-import { Loader2, Gift } from 'lucide-react';
+import { Loader2, Gift, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import confetti from 'canvas-confetti';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -107,12 +108,65 @@ export const UserLevelCard = observer(({ progress, className }: UserLevelCardPro
   // Dialog states
   const [confirmClaim, setConfirmClaim] = useState<{levelId: string, amount: number} | null>(null);
   const [successClaim, setSuccessClaim] = useState<{levelId: string, amount: number} | null>(null);
+  
+  // Upgrade states
+  const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
+  const isUpgrading = profileState$.isProgressLoading.get();
 
   useEffect(() => {
     if (user?.userId) {
       profileActions.fetchClaimedLevels(user.userId);
     }
   }, [user?.userId]);
+
+  const isAllCriteriaMet = progress.nextLevel &&
+    progress.currentAttendance >= progress.targetAttendance &&
+    progress.currentMooc >= progress.targetMooc &&
+    progress.currentSpotOrders >= progress.targetSpotOrders &&
+    progress.currentFutureOrders >= progress.targetFutureOrders &&
+    progress.currentFuturePnl >= progress.targetFuturePnl &&
+    progress.currentWinRate >= progress.targetWinRate &&
+    progress.currentTpSlRate >= progress.targetTpSlRate &&
+    progress.currentHighLevTrades <= progress.limitHighLevTrades &&
+    progress.currentLiqRate <= progress.limitLiqRate &&
+    progress.educatedQualified;
+
+  const handleUpgrade = async () => {
+    const res = await profileActions.checkUpgrade();
+    if (res.success) {
+      setShowUpgradeSuccess(true);
+      triggerConfetti();
+    } else {
+      toast.error(res.message || 'Có lỗi xảy ra khi thăng cấp');
+    }
+  };
+
+  const triggerConfetti = () => {
+    const duration = 3 * 1000;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+    frame();
+  };
 
   const executeClaim = async () => {
     if (!user?.userId || !confirmClaim) return;
@@ -295,10 +349,21 @@ export const UserLevelCard = observer(({ progress, className }: UserLevelCardPro
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-xs text-primary font-bold bg-white/5 p-2 rounded-xl">
-                       <Zap className="w-3.5 h-3.5 fill-primary" />
-                       <span>Ưu tiên thăng hạng ngay!</span>
-                    </div>
+                    {isAllCriteriaMet ? (
+                      <Button 
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all h-10 mt-2"
+                        onClick={handleUpgrade}
+                        disabled={isUpgrading}
+                      >
+                        {isUpgrading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 w-4 h-4 fill-white" />}
+                        THĂNG CẤP NGAY!
+                      </Button>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs text-primary font-bold bg-white/5 p-2 rounded-xl">
+                         <Zap className="w-3.5 h-3.5 fill-primary" />
+                         <span>Ưu tiên thăng hạng ngay!</span>
+                      </div>
+                    )}
                   </div>
                </div>
              ) : (
@@ -323,128 +388,155 @@ export const UserLevelCard = observer(({ progress, className }: UserLevelCardPro
             </div>
           </div>
 
+          {isAllCriteriaMet && (
+            <div className="flex flex-col items-center justify-center p-10 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 rounded-[2rem] border border-emerald-500/20 text-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-emerald-500/20 blur-xl rounded-full" />
+                <div className="w-24 h-24 bg-emerald-500/20 rounded-full flex items-center justify-center border-2 border-emerald-500/40 relative z-10">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-400" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black uppercase text-emerald-500">Đủ điều kiện thăng cấp!</h3>
+                <p className="text-muted-foreground max-w-md mx-auto text-sm">
+                  Tuyệt vời! Bạn đã hoàn thành tất cả các mục tiêu và tiêu chí để bước sang cấp bậc 
+                  <strong className="text-emerald-400 ml-1">{nextLevelConfig?.label}</strong>. Hãy nhấn nút thăng cấp để mở khóa những đặc quyền mới.
+                </p>
+              </div>
+              <Button 
+                onClick={handleUpgrade}
+                disabled={isUpgrading}
+                size="lg"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] animate-bounce h-12 px-10 font-bold"
+              >
+                {isUpgrading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 w-5 h-5 fill-white" />}
+                XÁC NHẬN THĂNG CẤP NGAY
+              </Button>
+            </div>
+          )}
+
           <div className="space-y-8">
             {/* Category: General Activity */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 px-1 text-muted-foreground/60 uppercase text-[10px] font-black tracking-[0.2em]">
-                <BookOpen className="w-3 h-3" />
-                <span>Hoạt động & Đào tạo</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <MetricItem 
-                  label="Điểm danh" 
-                  current={progress.currentAttendance} 
-                  target={progress.targetAttendance} 
-                  icon={Calendar} 
-                />
-                <MetricItem 
-                  label="Khóa học MOOC" 
-                  current={progress.currentMooc} 
-                  target={progress.targetMooc} 
-                  icon={BookOpen} 
-                />
-              </div>
+            <div className="flex items-center gap-2 px-1 text-muted-foreground/60 uppercase text-[10px] font-black tracking-[0.2em]">
+              <BookOpen className="w-3 h-3" />
+              <span>Hoạt động & Đào tạo</span>
             </div>
-
-            {/* Category: Trading volume */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 px-1 text-muted-foreground/60 uppercase text-[10px] font-black tracking-[0.2em]">
-                <Layers className="w-3 h-3" />
-                <span>Hoạt động Giao dịch</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <MetricItem 
-                  label="Giao dịch Spot" 
-                  current={progress.currentSpotOrders} 
-                  target={progress.targetSpotOrders} 
-                  icon={Layers} 
-                />
-                <MetricItem 
-                  label="Giao dịch Futures" 
-                  current={progress.currentFutureOrders} 
-                  target={progress.targetFutureOrders} 
-                  icon={Zap} 
-                />
-                <MetricItem 
-                  label="Số lệnh có đòn bẩy cao" 
-                  current={progress.currentHighLevTrades} 
-                  target={progress.limitHighLevTrades} 
-                  icon={Info} 
-                />
-              </div>
-            </div>
-
-            {/* Category: Performance metrics */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 px-1 text-muted-foreground/60 uppercase text-[10px] font-black tracking-[0.2em]">
-                <TrendingUp className="w-3 h-3" />
-                <span>Chỉ số Hiệu suất</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <MetricItem 
-                  label="Lợi nhuận Futures" 
-                  current={progress.currentFuturePnl} 
-                  target={progress.targetFuturePnl} 
-                  unit=" USDT"
-                  icon={TrendingUp} 
-                />
-                <MetricItem 
-                  label="Tỷ lệ thắng (Win Rate)" 
-                  current={progress.currentWinRate} 
-                  target={progress.targetWinRate} 
-                  isPercentage
-                  icon={Trophy} 
-                />
-                <MetricItem 
-                  label="Tỷ lệ TP/SL" 
-                  current={progress.currentTpSlRate} 
-                  target={progress.targetTpSlRate} 
-                  isPercentage
-                  icon={Target} 
-                />
-                <MetricItem 
-                  label="Tỷ lệ thanh lý (Liq)" 
-                  current={progress.currentLiqRate} 
-                  target={progress.limitLiqRate} 
-                  isPercentage
-                  icon={ShieldCheck} 
-                />
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <MetricItem 
+                label="Điểm danh" 
+                current={progress.currentAttendance} 
+                target={progress.targetAttendance} 
+                icon={Calendar} 
+              />
+              <MetricItem 
+                label="Khóa học MOOC" 
+                current={progress.currentMooc} 
+                target={progress.targetMooc} 
+                icon={BookOpen} 
+              />
             </div>
           </div>
 
-          {/* Qualification Status Section */}
-          <div className={cn(
-            "p-5 rounded-2xl border flex items-center justify-between transition-all duration-500",
-            progress.educatedQualified 
-              ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
-              : "bg-red-500/10 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
-          )}>
-            <div className="flex items-center gap-4">
-              <div className={cn(
-                "w-12 h-12 rounded-full flex items-center justify-center",
-                progress.educatedQualified ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"
-              )}>
-                {progress.educatedQualified ? <CheckCircle2 className="w-7 h-7" /> : <XCircle className="w-7 h-7" />}
-              </div>
-              <div className="space-y-0.5">
-                <h4 className="font-black text-lg uppercase tracking-tight">Đủ điều kiện đào tạo</h4>
-                <p className="text-sm text-muted-foreground font-medium">
-                  {progress.educatedQualified 
-                    ? "Bạn đã hoàn thành các khóa đào tạo bắt buộc." 
-                    : "Bạn cần hoàn thành thêm các khóa đào tạo để thăng cấp."}
-                </p>
-              </div>
+          {/* Category: Trading volume */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 px-1 text-muted-foreground/60 uppercase text-[10px] font-black tracking-[0.2em]">
+              <Layers className="w-3 h-3" />
+              <span>Hoạt động Giao dịch</span>
             </div>
-            <Badge className={cn(
-              "px-4 py-1.5 rounded-lg font-black text-xs uppercase",
-              progress.educatedQualified ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
-            )}>
-              {progress.educatedQualified ? "Đạt chuẩn" : "Chưa đạt"}
-            </Badge>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <MetricItem 
+                label="Giao dịch Spot" 
+                current={progress.currentSpotOrders} 
+                target={progress.targetSpotOrders} 
+                icon={Layers} 
+              />
+              <MetricItem 
+                label="Giao dịch Futures" 
+                current={progress.currentFutureOrders} 
+                target={progress.targetFutureOrders} 
+                icon={Zap} 
+              />
+              <MetricItem 
+                label="Số lệnh có đòn bẩy cao" 
+                current={progress.currentHighLevTrades} 
+                target={progress.limitHighLevTrades} 
+                icon={Info} 
+              />
+            </div>
+          </div>
+
+          {/* Category: Performance metrics */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 px-1 text-muted-foreground/60 uppercase text-[10px] font-black tracking-[0.2em]">
+              <TrendingUp className="w-3 h-3" />
+              <span>Chỉ số Hiệu suất</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <MetricItem 
+                label="Lợi nhuận Futures" 
+                current={progress.currentFuturePnl} 
+                target={progress.targetFuturePnl} 
+                unit=" USDT"
+                icon={TrendingUp} 
+              />
+              <MetricItem 
+                label="Tỷ lệ thắng (Win Rate)" 
+                current={progress.currentWinRate} 
+                target={progress.targetWinRate} 
+                isPercentage
+                icon={Trophy} 
+              />
+              <MetricItem 
+                label="Tỷ lệ TP/SL" 
+                current={progress.currentTpSlRate} 
+                target={progress.targetTpSlRate} 
+                isPercentage
+                icon={Target} 
+              />
+              <MetricItem 
+                label="Tỷ lệ thanh lý (Liq)" 
+                current={progress.currentLiqRate} 
+                target={progress.limitLiqRate} 
+                isPercentage
+                icon={ShieldCheck} 
+              />
+            </div>
           </div>
         </div>
+
+        {/* Qualification Status Section */}
+        <div className={cn(
+          "p-5 rounded-2xl border flex items-center justify-between transition-all duration-500",
+          progress.educatedQualified 
+            ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+            : "bg-red-500/10 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
+        )}>
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              "w-12 h-12 rounded-full flex items-center justify-center",
+              progress.educatedQualified ? "bg-emerald-500/20 text-emerald-400" : "bg-red-500/20 text-red-400"
+            )}>
+              {progress.educatedQualified ? <CheckCircle2 className="w-7 h-7" /> : <XCircle className="w-7 h-7" />}
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="font-black text-lg uppercase tracking-tight">Đủ điều kiện đào tạo</h4>
+              <p className="text-sm text-muted-foreground font-medium">
+                {progress.educatedQualified 
+                  ? "Bạn đã hoàn thành các khóa đào tạo bắt buộc." 
+                  : "Bạn cần hoàn thành thêm các khóa đào tạo để thăng cấp."}
+              </p>
+            </div>
+          </div>
+          <Badge className={cn(
+            "px-4 py-1.5 rounded-lg font-black text-xs uppercase",
+            progress.educatedQualified ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+          )}>
+            {progress.educatedQualified ? "Đạt chuẩn" : "Chưa đạt"}
+          </Badge>
+        </div>
       </div>
+    </div>
 
       {/* Level Roadmap / Progress Path */}
       <div className="mt-12 pt-8 border-t border-border/40">
@@ -591,6 +683,54 @@ export const UserLevelCard = observer(({ progress, className }: UserLevelCardPro
               Trở lại Lộ trình
             </Button>
           </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Upgrade Success Modal */}
+      <AlertDialog open={showUpgradeSuccess} onOpenChange={setShowUpgradeSuccess}>
+        <AlertDialogContent className="w-[95vw] max-w-[480px] bg-gradient-to-br from-background via-background to-emerald-500/5 border-emerald-500/20 overflow-hidden p-0 rounded-[2.5rem] shadow-2xl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-teal-500/10 via-transparent to-transparent" />
+          
+          <div className="relative z-10 px-6 py-12 sm:px-12 flex flex-col items-center text-center">
+            <motion.div 
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", duration: 1.5, bounce: 0.5 }}
+              className="w-28 h-28 rounded-full bg-emerald-500/10 flex items-center justify-center mb-8 text-emerald-500 relative border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.2)]"
+            >
+              <Sparkles size={56} className="drop-shadow-[0_0_15px_rgba(16,185,129,0.5)] fill-emerald-500/30" />
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.6, 0.3]
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -inset-4 border border-emerald-500/20 rounded-full"
+              />
+            </motion.div>
+
+            <div className="space-y-4">
+              <AlertDialogTitle className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-emerald-400 to-teal-600 uppercase tracking-tighter leading-none">
+                Thăng Cấp<br/>Thành Công!
+              </AlertDialogTitle>
+              
+              <div className="h-1 w-20 bg-gradient-to-r from-transparent via-emerald-500 to-transparent mx-auto rounded-full opacity-50" />
+              
+              <AlertDialogDescription className="text-base sm:text-lg text-muted-foreground/80 font-medium leading-relaxed max-w-[320px] mx-auto">
+                Chúc mừng bạn đã xuất sắc đạt được cấp độ mới. Lộ trình mới đã được mở khóa với nhiều đặc quyền hấp dẫn đang chờ đón bạn!
+              </AlertDialogDescription>
+            </div>
+
+            <div className="w-full mt-12 flex justify-center">
+              <Button 
+                className="w-full max-w-[280px] bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-2xl h-14 text-lg font-black shadow-[0_15px_30px_-5px_rgba(16,185,129,0.4)] transition-all hover:scale-[1.02] active:scale-[0.98]" 
+                onClick={() => setShowUpgradeSuccess(false)}
+              >
+                Tiếp tục Hành trình
+              </Button>
+            </div>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
 

@@ -1,6 +1,6 @@
 import { ApiConfigService } from '@/services/apiConfig';
 
-import { UserProfile, ProfileApiResponse, UpdateProfileRequest, ImageUploadResponse, ChangePasswordResponse, ProgressApiResponse, UserProgress } from './types';
+import { UserProfile, ProfileApiResponse, UpdateProfileRequest, ImageUploadResponse, ChangePasswordResponse, ProgressApiResponse, UserProgress, CheckUpgradeResponse } from './types';
 
 export const profileService = {
   async getProfile(userId: string): Promise<UserProfile> {
@@ -72,6 +72,14 @@ export const profileService = {
     const response = await ApiConfigService.get<ProgressApiResponse>(`/api/user/progress`);
     if (!response || !response.success || !response.data) {
       throw new Error(response?.message?.messageDetail || 'Failed to fetch user progress');
+    }
+    return response.data;
+  },
+
+  async checkUpgrade(): Promise<string> {
+    const response = await ApiConfigService.post<CheckUpgradeResponse>(`/api/user/check-upgrade`);
+    if (!response || !response.success || !response.data) {
+      throw new Error(response?.message?.messageDetail || 'Failed to upgrade level');
     }
     return response.data;
   },

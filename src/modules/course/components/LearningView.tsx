@@ -76,6 +76,13 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
 
   const isLoading = !currentCourse || !allLessons || allLessons.length === 0;
 
+  const localProgress = useMemo(() => {
+    if (!allLessons || allLessons.length === 0) return 0;
+    const completedList = courseState$.completedLessons.get();
+    const completedCount = allLessons.filter(l => completedList.includes(l.id)).length;
+    return (completedCount / allLessons.length) * 100;
+  }, [allLessons, courseState$.completedLessons.get()]);
+
   return (
     <>
     <div className={`flex fixed inset-0 z-50 bg-background overflow-hidden transition-all duration-500 ${isLoading ? 'pointer-events-none blur-sm opacity-50' : ''}`}>
@@ -107,15 +114,32 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
         
         <ScrollArea className="flex-1">
           <div className="flex flex-col">
-            {(currentCourse?.moocs ?? []).length > 0 ? (
-              [...(currentCourse?.moocs ?? [])]
-                .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
-                .map((mooc, mIndex) => {
+            {(currentCourse?.moocs ?? []).length > 0 ? (() => {
+              const sortedMoocs = [...(currentCourse?.moocs ?? [])].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+              
+              return sortedMoocs.map((mooc, mIndex) => {
                   const lessons = [
                       ...(mooc.videos || []).map(v => ({ ...v, type: 'video' })),
                       ...(mooc.quizzes || []).map(q => ({ ...q, type: 'quiz' })),
                       ...(mooc.documents || []).map(d => ({ ...d, type: 'document' }))
-                  ].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+                  ].sort((a: any, b: any) => (a.orderIndex || 0) - (b.orderIndex || 0));
+
+                  const isMoocCompleted = mooc.isCompleted || (lessons.length > 0 && lessons.every(l => courseState$.completedLessons.get().includes(l.id)));
+                  
+                  // Optimistic Unlock: If previous mooc is completed, this one is unlocked in UI
+                  let isCurrentlyUnlocked = mooc.isUnlocked !== false;
+                  if (mIndex > 0 && !isCurrentlyUnlocked) {
+                      const prevMooc = sortedMoocs[mIndex - 1];
+                      const prevLessons = [
+                          ...(prevMooc.videos || []),
+                          ...(prevMooc.quizzes || []),
+                          ...(prevMooc.documents || [])
+                      ];
+                      const completedInPrev = prevLessons.filter(l => courseState$.completedLessons.get().includes(l.id)).length;
+                      if (prevMooc.isCompleted || (prevLessons.length > 0 && completedInPrev === prevLessons.length)) {
+                          isCurrentlyUnlocked = true;
+                      }
+                  }
 
                 return (
                   <div key={mooc.id} className="border-b border-border/40">
@@ -123,23 +147,23 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
                       onClick={() => toggleMooc(mooc.id)}
                       className={`w-full flex items-center justify-between py-4 px-6 transition-colors group hover:bg-muted/50`}
                     >
-                      <h3 className={`text-sm font-black uppercase tracking-widest transition-colors text-left flex-1 flex items-center gap-2 ${mooc.isUnlocked === false ? 'text-muted-foreground/80' : 'text-muted-foreground group-hover:text-primary'}`}>
+                      <h3 className={`text-sm font-black uppercase tracking-widest transition-colors text-left flex-1 flex items-center gap-2 ${!isCurrentlyUnlocked ? 'text-muted-foreground/80' : 'text-muted-foreground group-hover:text-primary'}`}>
                         {mIndex + 1}. {mooc.title}
                       </h3>
                       <div className="flex items-center gap-2">
-                         {mooc.isCompleted && mooc.isUnlocked !== false && (
+                         {isMoocCompleted && isCurrentlyUnlocked && (
                            <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-green-500 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">
                              <CheckCircle2 className="h-3 w-3" /> Xong
                            </span>
                          )}
-                         {mooc.isUnlocked === false && <Lock className="h-4 w-4 text-muted-foreground/50" />}
+                         {!isCurrentlyUnlocked && <Lock className="h-4 w-4 text-muted-foreground/50" />}
                          <ChevronLeft className={`h-4 w-4 text-muted-foreground transition-transform ${expandedMoocs[mooc.id] ? '-rotate-90' : 'rotate-180'}`} />
                       </div>
                     </button>
                     {expandedMoocs[mooc.id] && (
                       <div className="flex flex-col border-t border-border/20">
                         {lessons.map((lesson: any) => {
-                          const isLocked = mooc.isUnlocked === false || lesson.isUnlocked === false;
+                          const isLocked = !isCurrentlyUnlocked || lesson.isUnlocked === false;
                           const isActive = validLesson?.id === lesson.id;
                           const isCompleted = courseState$.completedLessons.get().includes(lesson.id);
                           
@@ -176,8 +200,8 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
                     )}
                   </div>
                 );
-              })
-            ) : (
+              });
+            })() : (
               <p className="p-4 text-sm text-muted-foreground text-center">Khóa học hiện chưa có nội dung.</p>
             )}
           </div>
@@ -235,9 +259,9 @@ export const LearningView = observer(({ slug }: { slug: string }) => {
              </SideSheet>
 
              <div className="flex flex-col items-end">
-                <span className="text-[9px] md:text-xs font-black text-muted-foreground uppercase tracking-tight">Tiến trình {Math.round(currentCourse?.progress || 0)}%</span>
+                <span className="text-[9px] md:text-xs font-black text-muted-foreground uppercase tracking-tight">Tiến trình {Math.round(localProgress)}%</span>
                 <div className="w-16 md:w-32 h-1.5 md:h-2 bg-muted rounded-full mt-0.5 md:mt-1 overflow-hidden">
-                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${currentCourse?.progress || 0}%` }} />
+                    <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${localProgress}%` }} />
                 </div>
              </div>
           </div>

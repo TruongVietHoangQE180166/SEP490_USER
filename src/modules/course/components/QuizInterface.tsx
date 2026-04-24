@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { observer } from '@legendapp/state/react';
 import { courseState$, courseActions } from '../store';
+import { Answer, Question } from '../types';
 import { useQuizQuestions } from '../hooks/useQuizQuestions';
 import { useCourseTracking } from '../hooks/useCourseTracking';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
   const storeQuizId = courseState$.currentQuizId.get();
   const quizId = propQuizId || storeQuizId;
   
-  const { course } = useCourseDetail(slug || '');
+  const { course, refresh } = useCourseDetail(slug || '');
   
   const lesson = useMemo(() => {
     if (!course || !quizId) return courseState$.currentLesson.get();
@@ -122,8 +123,8 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
     if (isSubmitted) return;
     
     let correctCount = 0;
-    questions.forEach(q => {
-      const correctAnswer = q.answers.find(a => a.isCorrect);
+    questions.forEach((q: Question) => {
+      const correctAnswer = q.answers.find((a: Answer) => a.isCorrect);
       if (userAnswers[q.id] === correctAnswer?.id) {
         correctCount++;
       }
@@ -141,7 +142,9 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
     if (isPassed) {
         toast.success(`Chúc mừng! Bạn đã vượt qua bài thi với ${calculatedScore}%`);
         if (quizId) {
-            markAsCompleted(quizId, 'QUIZ');
+            markAsCompleted(quizId, 'QUIZ').then(() => {
+                refresh();
+            });
         }
     } else {
         toast.error(`Rất tiếc! Bạn chỉ đạt ${calculatedScore}%. Cần ít nhất ${lesson?.passingScore || 80}% để đạt.`);
@@ -255,11 +258,11 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
             </div>
 
             <div className="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-4 gap-2 md:gap-3">
-              {questions.map((q, idx) => {
+              {questions.map((q: Question, idx: number) => {
                 const isAnswered = !!userAnswers[q.id];
                 const isFlagged = flaggedQuestions[q.id];
                 const isActive = currentQuestionIdx === idx;
-                const isCorrect = isSubmitted && userAnswers[q.id] === q.answers.find(a => a.isCorrect)?.id;
+                const isCorrect = isSubmitted && userAnswers[q.id] === q.answers.find((a: Answer) => a.isCorrect)?.id;
                 
                 return (
                   <button
@@ -404,7 +407,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                   </h3>
 
                   <div className="grid grid-cols-1 gap-4">
-                    {currentQuestion?.answers.map((answer, aIdx) => {
+                    {currentQuestion?.answers.map((answer: Answer, aIdx: number) => {
                       const isSelected = userAnswers[currentQuestion.id] === answer.id;
                       const label = String.fromCharCode(65 + aIdx);
                       return (

@@ -42,6 +42,7 @@ export interface LessonVideo {
   title: string;
   duration?: string;
   isCompleted?: boolean;
+  orderIndex?: number;
 }
 
 export interface LessonQuiz {
@@ -49,19 +50,27 @@ export interface LessonQuiz {
   title: string;
   timeLimit?: number | string;
   isCompleted?: boolean;
+  orderIndex?: number;
 }
 
 export interface LessonDocument {
   id: string;
   title: string;
   isCompleted?: boolean;
+  orderIndex?: number;
+}
+
+export interface Answer {
+  id: string;
+  content: string;
+  isCorrect: boolean;
 }
 
 export interface Question {
   id: string;
   content: string;
-  options: string[];
-  correctAnswer: number;
+  answers: Answer[];
+  orderIndex?: number;
 }
 
 export interface CourseDiscussionMessage {
