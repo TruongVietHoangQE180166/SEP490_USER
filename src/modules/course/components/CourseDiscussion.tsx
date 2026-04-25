@@ -134,9 +134,9 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
   };
 
   const executeUnban = async () => {
-    if (!unbanConfirmState) return;
+    if (!unbanConfirmState || isSubmitting) return;
     const { id: banId, name: userName } = unbanConfirmState;
-    
+    setIsSubmitting(true);
     try {
       const success = await courseChatService.unbanUser(banId);
       
@@ -154,12 +154,14 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
     } catch (error) {
       toast.error("Có lỗi xảy ra khi gỡ cấm người dùng");
     } finally {
+      setIsSubmitting(false);
       setUnbanConfirmState(null);
     }
   };
 
   const executeDelete = async () => {
-    if (!deleteConfirmMsgId) return;
+    if (!deleteConfirmMsgId || isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const success = await courseChatService.deleteMessage(deleteConfirmMsgId);
       if (success) {
@@ -170,13 +172,15 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
     } catch (error) {
       toast.error("Có lỗi xảy ra khi xóa tin nhắn");
     } finally {
+      setIsSubmitting(false);
       setDeleteConfirmMsgId(null);
       if(fetchHistory) fetchHistory();
     }
   };
 
   const executeEdit = async () => {
-    if (!editModState || !editModState.content.trim()) return;
+    if (!editModState || !editModState.content.trim() || isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const success = await courseChatService.editMessage(editModState.id, editModState.content.trim());
       if (success) {
@@ -187,14 +191,16 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
     } catch (error) {
       toast.error("Có lỗi xảy ra khi cập nhật tin nhắn");
     } finally {
+      setIsSubmitting(false);
       setEditModState(null);
       if(fetchHistory) fetchHistory();
     }
   };
 
   const executeBan = async () => {
-    if (!banModState) return;
+    if (!banModState || isSubmitting) return;
     const numHours = banDuration;
+    setIsSubmitting(true);
     
     try {
       // Cập nhật hàm ban có kèm tên người dùng
@@ -218,6 +224,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
     } catch (error) {
       toast.error("Có lỗi xảy ra khi cấm người dùng");
     } finally {
+      setIsSubmitting(false);
       setBanModState(null);
       setBanDuration(null);
       if(fetchHistory) fetchHistory();
@@ -699,7 +706,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
                    </div>
                    <div className="flex gap-3 pt-2">
                       <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setDeleteConfirmMsgId(null)}>Hủy bỏ</Button>
-                      <Button className="flex-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white" onClick={executeDelete}>Xóa ngay</Button>
+                      <Button className="flex-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white" onClick={executeDelete} disabled={isSubmitting}>Xóa ngay</Button>
                    </div>
                 </motion.div>
              </motion.div>
@@ -721,7 +728,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
                    />
                    <div className="flex gap-3 justify-end pt-2">
                       <Button variant="outline" className="rounded-xl px-6" onClick={() => setEditModState(null)}>Hủy</Button>
-                      <Button className="rounded-xl px-6 bg-primary text-primary-foreground font-bold hover:bg-primary/90" onClick={executeEdit} disabled={!editModState.content.trim()}>Lưu thay đổi</Button>
+                      <Button className="rounded-xl px-6 bg-primary text-primary-foreground font-bold hover:bg-primary/90" onClick={executeEdit} disabled={!editModState.content.trim() || isSubmitting}>Lưu thay đổi</Button>
                    </div>
                 </motion.div>
              </motion.div>
@@ -780,7 +787,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
                    </div>
                    <div className="flex gap-3 pt-2">
                       <Button variant="outline" className="flex-1 rounded-xl font-bold" onClick={() => setBanModState(null)}>Hủy</Button>
-                      <Button className="flex-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-black" onClick={executeBan}>Xác nhận</Button>
+                      <Button className="flex-1 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-black" onClick={executeBan} disabled={isSubmitting}>Xác nhận</Button>
                    </div>
                 </motion.div>
              </motion.div>
@@ -818,7 +825,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
                                     Cấm bởi: {b.banned_by}
                                  </div>
                               </div>
-                              <Button variant="outline" size="sm" className="rounded-xl h-9 px-4 text-xs font-black hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all shadow-sm" onClick={() => handleUnban(b.id, b.reason || 'Người dùng')}>
+                              <Button variant="outline" size="sm" className="rounded-xl h-9 px-4 text-xs font-black hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all shadow-sm" onClick={() => handleUnban(b.id, b.reason || 'Người dùng')} disabled={isSubmitting}>
                                  Gỡ cấm
                               </Button>
                            </div>
@@ -865,7 +872,7 @@ export const CourseDiscussion = observer(({ courseId, isEnrolled = true, fullHei
                    </div>
                    <div className="flex gap-3 pt-2">
                       <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setUnbanConfirmState(null)}>Hủy bỏ</Button>
-                      <Button className="flex-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold" onClick={executeUnban}>Gỡ cấm ngay</Button>
+                      <Button className="flex-1 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold" onClick={executeUnban} disabled={isSubmitting}>Gỡ cấm ngay</Button>
                    </div>
                 </motion.div>
              </motion.div>

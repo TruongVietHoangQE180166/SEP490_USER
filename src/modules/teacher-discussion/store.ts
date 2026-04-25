@@ -56,6 +56,13 @@ export const teacherDiscussionActions = {
     // Here we just update selection and clear unread
     teacherDiscussionState$.selectedCourseId.set(courseId);
     
+    // Sync current course to global course store to enable moderation features
+    const courses = teacherDiscussionState$.courses.peek();
+    const selectedCourse = courses.find(c => c.id === courseId);
+    if (selectedCourse) {
+      courseActions.setCurrentCourse(selectedCourse as any);
+    }
+    
     // Optimistic UI clear
     teacherDiscussionActions.clearLocalUnread(courseId);
     
