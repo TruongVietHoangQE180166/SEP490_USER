@@ -35,7 +35,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { TradeOrder } from '../../types';
+import { TradeOrder, PaymentInfo } from '../../types';
 import { fmt } from '../../utils';
 
 import { FutureOrderType } from '@/modules/trading/types';
@@ -43,12 +43,13 @@ import { FutureOrderType } from '@/modules/trading/types';
 interface TradeOrderHistoryProps {
   tradeOrders: TradeOrder[];
   futureOrders?: FutureOrderType[];
+  paymentHistory?: PaymentInfo[];
 }
 
 const PAGE_SIZE = 10;
 
-export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrders = [], futureOrders = [] }) => {
-  const [activeTab, setActiveTab] = React.useState<'SPOT' | 'FUTURE'>('SPOT');
+export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrders = [], futureOrders = [], paymentHistory = [] }) => {
+  const [activeTab, setActiveTab] = React.useState<'SPOT' | 'FUTURE' | 'DEPOSIT' | 'COURSE_PURCHASE'>('SPOT');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filterType, setFilterType] = React.useState<'ALL' | 'BUY' | 'SELL'>('ALL');
   const [filterStatus, setFilterStatus] = React.useState<'ALL' | 'PENDING' | 'COMPLETED' | 'CANCELLED'>('ALL');
@@ -72,7 +73,7 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrder
 
         return matchesSearch && matchesType && matchesStatus;
       });
-    } else {
+    } else if (activeTab === 'FUTURE') {
       return futureOrders.filter((order) => {
         const matchesSearch =
           order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,8 +92,41 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrder
 
         return matchesSearch && matchesType && matchesStatus;
       });
+    } else if (activeTab === 'DEPOSIT') {
+      return paymentHistory.filter((payment) => {
+        if (payment.courseId !== null || payment.qrCode === null) return false;
+        
+        const matchesSearch =
+          payment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          payment.amount.toString().includes(searchQuery.toLowerCase());
+          
+        const matchesStatus =
+          filterStatus === 'ALL' ||
+          (filterStatus === 'COMPLETED' && payment.status === 'COMPLETED') ||
+          (filterStatus === 'PENDING' && payment.status === 'PENDING') ||
+          (filterStatus === 'CANCELLED' && payment.status === 'CANCELLED');
+          
+        return matchesSearch && matchesStatus;
+      });
+    } else {
+      return paymentHistory.filter((payment) => {
+        if (payment.courseId === null) return false;
+        
+        const matchesSearch =
+          payment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          payment.amount.toString().includes(searchQuery.toLowerCase()) ||
+          (payment.courseTitle && payment.courseTitle.toLowerCase().includes(searchQuery.toLowerCase()));
+          
+        const matchesStatus =
+          filterStatus === 'ALL' ||
+          (filterStatus === 'COMPLETED' && payment.status === 'COMPLETED') ||
+          (filterStatus === 'PENDING' && payment.status === 'PENDING') ||
+          (filterStatus === 'CANCELLED' && payment.status === 'CANCELLED');
+          
+        return matchesSearch && matchesStatus;
+      });
     }
-  }, [tradeOrders, futureOrders, activeTab, searchQuery, filterType, filterStatus]);
+  }, [tradeOrders, futureOrders, paymentHistory, activeTab, searchQuery, filterType, filterStatus]);
 
   // Reset to first page when filters change
   React.useEffect(() => {
@@ -112,18 +146,46 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrder
     return val;
   };
 
-  const typeOptions = [
-    { label: 'Tất cả lệnh', value: 'ALL' },
-    { label: activeTab === 'SPOT' ? 'Lệnh MUA' : 'Vị thế LONG', value: 'BUY' },
-    { label: activeTab === 'SPOT' ? 'Lệnh BÁN' : 'Vị thế SHORT', value: 'SELL' },
-  ];
+  const typeOptions = React.useMemo(() => {
+    if (activeTab === 'SPOT') {
+      return [
+        { label: 'Tất cả lệnh', value: 'ALL' },
+        { label: 'Lệnh MUA', value: 'BUY' },
+        { label: 'Lệnh BÁN', value: 'SELL' },
+      ];
+    } else if (activeTab === 'FUTURE') {
+      return [
+        { label: 'Tất cả lệnh', value: 'ALL' },
+        { label: 'Vị thế LONG', value: 'BUY' },
+        { label: 'Vị thế SHORT', value: 'SELL' },
+      ];
+    }
+    return [{ label: 'Tất cả', value: 'ALL' }];
+  }, [activeTab]);
 
-  const statusOptions = [
-    { label: 'Tất cả Trạng thái', value: 'ALL' },
-    { label: activeTab === 'SPOT' ? 'Khớp lệnh' : 'Đã đóng (Closed)', value: 'COMPLETED' },
-    { label: activeTab === 'SPOT' ? 'Đang chờ' : 'Đang mở (Open)', value: 'PENDING' },
-    { label: 'Đã hủy/Lỗi', value: 'CANCELLED' },
-  ];
+  const statusOptions = React.useMemo(() => {
+    if (activeTab === 'SPOT') {
+      return [
+        { label: 'Tất cả Trạng thái', value: 'ALL' },
+        { label: 'Khớp lệnh', value: 'COMPLETED' },
+        { label: 'Đang chờ', value: 'PENDING' },
+        { label: 'Đã hủy/Lỗi', value: 'CANCELLED' },
+      ];
+    } else if (activeTab === 'FUTURE') {
+      return [
+        { label: 'Tất cả Trạng thái', value: 'ALL' },
+        { label: 'Đã đóng (Closed)', value: 'COMPLETED' },
+        { label: 'Đang mở (Open)', value: 'PENDING' },
+        { label: 'Đã hủy/Lỗi', value: 'CANCELLED' },
+      ];
+    }
+    return [
+      { label: 'Tất cả Trạng thái', value: 'ALL' },
+      { label: 'Hoàn thành', value: 'COMPLETED' },
+      { label: 'Đang xử lý', value: 'PENDING' },
+      { label: 'Đã hủy/Lỗi', value: 'CANCELLED' },
+    ];
+  }, [activeTab]);
 
   const currentTypeLabel = typeOptions.find(opt => opt.value === filterType)?.label;
   const currentStatusLabel = statusOptions.find(opt => opt.value === filterStatus)?.label;
@@ -141,10 +203,10 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrder
           <div className="space-y-1">
             <h3 className="text-lg md:text-xl font-black uppercase tracking-tight text-foreground italic flex items-center gap-2 md:gap-3">
               <TrendingUp size={18} className="text-amber-400" />
-              Lịch sử giao dịch Vàng
+              {activeTab === 'DEPOSIT' ? 'Lịch sử nạp tiền' : activeTab === 'COURSE_PURCHASE' ? 'Lịch sử mua khóa học' : 'Lịch sử giao dịch Vàng'}
             </h3>
             <p className="text-[10px] md:text-xs text-muted-foreground font-medium opacity-70">
-              Chi tiết các lệnh Spot XAUT và Vị thế Future
+              {activeTab === 'DEPOSIT' || activeTab === 'COURSE_PURCHASE' ? 'Lịch sử thanh toán và nạp tiền vào ví' : 'Chi tiết các lệnh Spot XAUT và Vị thế Future'}
             </p>
           </div>
           
@@ -153,13 +215,25 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrder
                onClick={() => setActiveTab('SPOT')} 
                className={cn("pb-3 text-xs md:text-sm font-black uppercase tracking-wider transition-all border-b-2", activeTab === 'SPOT' ? "border-amber-400 text-amber-400" : "border-transparent text-muted-foreground hover:text-foreground")}
              >
-               Giao dịch Spot
+               Spot
              </button>
              <button 
                onClick={() => setActiveTab('FUTURE')} 
-               className={cn("pb-3 text-xs md:text-sm font-black uppercase tracking-wider transition-all border-b-2", activeTab === 'FUTURE' ? "border-amber-400 text-amber-400" : "border-transparent text-muted-foreground hover:text-foreground")}
+               className={cn("pb-3 text-xs md:text-sm font-black uppercase tracking-wider transition-all border-b-2 whitespace-nowrap", activeTab === 'FUTURE' ? "border-amber-400 text-amber-400" : "border-transparent text-muted-foreground hover:text-foreground")}
              >
-               Lịch sử Future
+               Future
+             </button>
+             <button 
+               onClick={() => setActiveTab('DEPOSIT')} 
+               className={cn("pb-3 text-xs md:text-sm font-black uppercase tracking-wider transition-all border-b-2 whitespace-nowrap", activeTab === 'DEPOSIT' ? "border-amber-400 text-amber-400" : "border-transparent text-muted-foreground hover:text-foreground")}
+             >
+               Nạp tiền
+             </button>
+             <button 
+               onClick={() => setActiveTab('COURSE_PURCHASE')} 
+               className={cn("pb-3 text-xs md:text-sm font-black uppercase tracking-wider transition-all border-b-2 whitespace-nowrap", activeTab === 'COURSE_PURCHASE' ? "border-amber-400 text-amber-400" : "border-transparent text-muted-foreground hover:text-foreground")}
+             >
+               Mua khóa học
              </button>
           </div>
         </div>
@@ -242,25 +316,94 @@ export const TradeOrderHistory: React.FC<TradeOrderHistoryProps> = ({ tradeOrder
             <table className="w-full text-left border-separate border-spacing-0 min-w-[700px] md:min-w-0">
               <thead>
                 <tr className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] md:tracking-[0.25em] text-muted-foreground font-black bg-muted/5">
-                  <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">Lệnh/Vị thế</th>
-                  <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">Loại/Vào lệnh</th>
-                  <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">Khối lượng</th>
-                  <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">TP/SL</th>
-                  <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40 text-right">{activeTab === 'SPOT' ? 'Tổng' : 'Margin/PnL'}</th>
-                  <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40 text-center">Trực quan</th>
+                  {activeTab === 'DEPOSIT' || activeTab === 'COURSE_PURCHASE' ? (
+                    <>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">Mã giao dịch / Khóa học</th>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">Loại / Ngày tạo</th>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40 text-right">Số tiền / Điểm</th>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40 text-center">Trạng thái</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">Lệnh/Vị thế</th>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">Loại/Vào lệnh</th>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">Khối lượng</th>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40">TP/SL</th>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40 text-right">{activeTab === 'SPOT' ? 'Tổng' : 'Margin/PnL'}</th>
+                      <th className="px-5 md:px-10 py-4 md:py-5 border-b border-border/40 text-center">Trực quan</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/20">
                 <AnimatePresence mode="popLayout">
                   {paginatedOrders.map((itm, idx) => {
+                    if (activeTab === 'DEPOSIT' || activeTab === 'COURSE_PURCHASE') {
+                      const payment = itm as PaymentInfo;
+                      return (
+                        <motion.tr
+                          key={payment.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.03 + 0.5 }}
+                          className="hover:bg-amber-400/5 transition-colors group cursor-default"
+                        >
+                          <td className="px-5 md:px-10 py-5 md:py-6">
+                            <div className="flex items-center gap-3 md:gap-4">
+                              {payment.thumbnailUrl ? (
+                                <img src={payment.thumbnailUrl} alt={payment.courseTitle || 'Course'} className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm border border-border/50" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shrink-0 shadow-inner">
+                                  <History className="text-blue-400 w-5 h-5" />
+                                </div>
+                              )}
+                              <div>
+                                <span className="text-[11px] md:text-xs font-black uppercase tracking-tighter block leading-tight group-hover:text-amber-500 transition-colors text-foreground max-w-[200px] md:max-w-[300px] truncate">
+                                  {payment.courseTitle || (activeTab === 'DEPOSIT' ? 'Nạp tiền vào ví' : 'Mua khóa học')}
+                                </span>
+                                <span className="text-[8px] md:text-[9px] text-muted-foreground/60 font-mono tracking-widest uppercase">
+                                  ID:{payment.id.slice(-6)}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 md:px-10 py-5 md:py-6">
+                            <div className="space-y-1">
+                              <p className="text-[11px] md:text-xs font-bold text-foreground/90">
+                                {payment.qrCode ? 'Chuyển khoản / Mã QR' : 'Đổi điểm thưởng'}
+                              </p>
+                              <p className="text-[9px] md:text-[10px] text-muted-foreground/50 font-mono italic">
+                                {payment.createdDate ? new Date(payment.createdDate).toLocaleDateString('vi-VN', { month: 'numeric', day: 'numeric' }) + ' ' + new Date(payment.createdDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--'}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="px-5 md:px-10 py-5 md:py-6 text-right whitespace-nowrap">
+                            <div className="space-y-0.5">
+                              <p className="text-sm md:text-base font-black font-mono tracking-tighter text-foreground italic">
+                                {payment.qrCode ? `${fmt(payment.amount)} VND` : `${fmt(payment.amount / 1000)} Điểm`}
+                              </p>
+                              {payment.discountValue && payment.discountValue > 0 && (
+                                <span className="text-[9px] font-bold text-emerald-400 font-mono italic block tracking-tighter">
+                                  Giảm: {fmt(payment.discountValue)}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-5 md:px-10 py-5 md:py-6 text-center">
+                            <StatusBadge status={payment.status as any} completed={payment.status === 'COMPLETED'} />
+                          </td>
+                        </motion.tr>
+                      );
+                    }
+
                     const id = activeTab === 'SPOT' ? (itm as TradeOrder).id : (itm as FutureOrderType).id;
                     const type = activeTab === 'SPOT' ? (itm as TradeOrder).type : (itm as FutureOrderType).side === 'LONG' ? 'BUY' : 'SELL';
-                    const symbol = itm.symbol;
-                    const createdDate = itm.createdDate;
+                    const symbol = (itm as any).symbol;
+                    const createdDate = (itm as any).createdDate;
                     const category = activeTab === 'SPOT' ? (itm as TradeOrder).category : (itm as FutureOrderType).orderCategory;
-                    const quantity = itm.quantity;
-                    const takeProfit = itm.takeProfit;
-                    const stopLoss = itm.stopLoss;
+                    const quantity = (itm as any).quantity;
+                    const takeProfit = (itm as any).takeProfit;
+                    const stopLoss = (itm as any).stopLoss;
                     const status = activeTab === 'SPOT' ? (itm as TradeOrder).status : (itm as FutureOrderType).status === 'CLOSED' ? 'COMPLETED' : itm.status === 'OPEN' ? 'PENDING' : 'CANCELLED';
                     const completed = activeTab === 'SPOT' ? (itm as TradeOrder).completed : itm.status === 'CLOSED';
 

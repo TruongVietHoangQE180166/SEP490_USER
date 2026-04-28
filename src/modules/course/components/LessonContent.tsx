@@ -264,7 +264,7 @@ export const LessonContent = observer(({ lesson, onRefresh }: { lesson: any, onR
                         <Clock className="w-6 h-6 text-primary" />
                     </div>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Thời gian</p>
-                    <p className="text-3xl font-black text-foreground">{lesson.timeLimit ? `${lesson.timeLimit}s` : 'Vô cực'}</p>
+                    <p className="text-3xl font-black text-foreground">{lesson.timeLimit ? `${lesson.timeLimit} phút` : 'Vô cực'}</p>
                 </div>
                 <div className="p-6 bg-background rounded-lg border border-border/50 flex flex-col items-center justify-center text-center shadow-sm">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">

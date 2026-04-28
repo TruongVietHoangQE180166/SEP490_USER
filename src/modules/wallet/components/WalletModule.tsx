@@ -19,6 +19,7 @@ export const WalletModule = observer(function WalletModule() {
     assets,
     tradeOrders,
     futureOrders,
+    paymentHistory,
     isLoading,
     availableBalance,
     lockedBalance,
@@ -73,7 +74,7 @@ export const WalletModule = observer(function WalletModule() {
       />
 
       {/* ROW 3 — Trade Order history */}
-      <TradeOrderHistory tradeOrders={tradeOrders} futureOrders={futureOrders} />
+      <TradeOrderHistory tradeOrders={tradeOrders} futureOrders={futureOrders} paymentHistory={paymentHistory} />
     </div>
   );
 

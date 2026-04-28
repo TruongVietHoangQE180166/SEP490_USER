@@ -185,6 +185,10 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeV
         grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
         rightPriceScale: { borderColor: c.border },
         timeScale: { borderColor: c.border },
+        crosshair: {
+          vertLine: { labelBackgroundColor: dark ? '#2a2e39' : '#374151' },
+          horzLine: { labelBackgroundColor: dark ? '#2a2e39' : '#374151' },
+        },
       });
     });
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });

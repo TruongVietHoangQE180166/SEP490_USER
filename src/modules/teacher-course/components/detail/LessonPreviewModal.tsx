@@ -260,7 +260,7 @@ export const LessonPreviewModal = ({
                             }
                             await teacherCourseService.createQuiz(selectedLesson.targetMoocId, {
                                 title: selectedLesson.title,
-                                timeLimit: (selectedLesson.timeLimit || 15) * 60,
+                                timeLimit: selectedLesson.timeLimit || 15,
                                 passingScore: selectedLesson.passingScore || 80
                             });
                             if (onSuccess) onSuccess();
@@ -300,7 +300,7 @@ export const LessonPreviewModal = ({
                             
                             await teacherCourseService.updateQuiz(selectedLesson.id, {
                                 title: selectedLesson.title,
-                                timeLimit: (selectedLesson.timeLimit || 15) * 60,
+                                timeLimit: selectedLesson.timeLimit || 15,
                                 passingScore: selectedLesson.passingScore || 80
                             });
                             

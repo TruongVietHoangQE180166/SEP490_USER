@@ -375,7 +375,7 @@ function ChartDemoModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-sm flex flex-col"
+      className="fixed inset-0 z-[200] bg-background flex flex-col"
     >
       {/* ── Sticky header ───────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 md:gap-3 px-3 md:px-5 py-3 border-b border-border/30 bg-background/95 backdrop-blur shrink-0 sticky top-0 z-10">

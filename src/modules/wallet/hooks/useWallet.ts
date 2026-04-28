@@ -15,6 +15,7 @@ export function useWallet() {
   const transactions = walletState$.transactions.get();
   const tradeOrders = walletState$.tradeOrders.get();
   const futureOrders = walletState$.futureOrders.get();
+  const paymentHistory = walletState$.paymentHistory.get();
   const isLoading = walletState$.isLoading.get();
   const error = walletState$.error.get();
 
@@ -45,6 +46,7 @@ export function useWallet() {
         WalletService.getTradeOrders(),
         WalletService.getFutureOrders(),
         WalletService.getPointDetail(),
+        WalletService.getPaymentHistory(),
       ]);
 
       if (settleAll[0].status === 'fulfilled') walletActions.setWalletInfo(settleAll[0].value);
@@ -53,6 +55,7 @@ export function useWallet() {
       if (settleAll[3].status === 'fulfilled') walletActions.setTradeOrders(settleAll[3].value);
       if (settleAll[4].status === 'fulfilled') walletActions.setFutureOrders(settleAll[4].value);
       if (settleAll[5].status === 'fulfilled') walletActions.setPointDetail(settleAll[5].value);
+      if (settleAll[6].status === 'fulfilled') walletActions.setPaymentHistory(settleAll[6].value);
 
       if (settleAll[0].status === 'rejected' && settleAll[1].status === 'rejected') {
         throw new Error('Không thể tải thông tin ví');
@@ -156,6 +159,7 @@ export function useWallet() {
     transactions,
     tradeOrders,
     futureOrders,
+    paymentHistory,
     currentPayment: walletState$.currentPayment.get(),
     isLoading,
     error,
