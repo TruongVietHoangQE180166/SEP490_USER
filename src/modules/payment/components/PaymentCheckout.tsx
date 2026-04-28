@@ -23,6 +23,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { paymentActions } from '../store';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -330,7 +331,10 @@ export const PaymentCheckout = observer(() => {
                             <div className="group relative">
                               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary to-primary/40 opacity-40 blur-lg group-hover:opacity-70 transition-opacity" />
                               <Button 
-                                onClick={() => router.push('/my-course')}
+                                onClick={() => {
+                                  paymentActions.setPaymentInfo(null);
+                                  router.push('/my-course');
+                                }}
                                 className="relative w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black text-lg shadow-2xl transition-all hover:scale-[1.03] active:scale-[0.97]"
                               >
                                 Bắt đầu học ngay
@@ -340,7 +344,10 @@ export const PaymentCheckout = observer(() => {
                             
                             <Button 
                               variant="ghost"
-                              onClick={() => router.push('/course')}
+                              onClick={() => {
+                                paymentActions.setPaymentInfo(null);
+                                router.push('/course');
+                              }}
                               className="w-full h-12 rounded-2xl font-black text-xs uppercase tracking-widest text-foreground/40 hover:text-primary hover:bg-primary/5 transition-all"
                             >
                               Khám phá thêm khóa học

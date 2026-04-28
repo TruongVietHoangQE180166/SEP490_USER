@@ -14,6 +14,7 @@ const INITIAL_STATE: PaymentManagementState = {
   pageSize: 10,
   filterStatus: 'ALL',
   searchQuery: '',
+  totalRevenue: 0,
 };
 
 export const paymentState$ = observable<PaymentManagementState>(INITIAL_STATE);
@@ -29,6 +30,9 @@ export const paymentActions = {
     paymentState$.totalElements.set(data.totalElement);
     if (data.totalPages) paymentState$.totalPages.set(data.totalPages);
     if (data.page) paymentState$.currentPage.set(data.page);
+  },
+  setTotalRevenue: (revenue: number) => {
+    paymentState$.totalRevenue.set(revenue);
   },
   setCurrentPage: (page: number) => {
     paymentState$.currentPage.set(page);

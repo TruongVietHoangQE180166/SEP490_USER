@@ -13,6 +13,15 @@ import { authState$ } from '@/modules/auth/store';
 const inflight = new Map<string, Promise<void>>();
 let getMeInflight: Promise<void> | null = null;
 
+/**
+ * Xóa toàn bộ in-flight cache của useCourseDetail.
+ * Gọi sau khi mua khóa học thành công để buộc re-fetch fresh data.
+ */
+export const clearCourseDetailCache = () => {
+  inflight.clear();
+  getMeInflight = null;
+};
+
 import { Course } from '../types';
 
 /**

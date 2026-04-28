@@ -18,6 +18,8 @@ export const useManagePayment = () => {
   const pageSize = useSelector(paymentState$.pageSize);
   const totalElementsFromState = useSelector(paymentState$.totalElements);
 
+  const totalRevenue = useSelector(paymentState$.totalRevenue);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -29,12 +31,20 @@ export const useManagePayment = () => {
   const fetchPayments = useCallback(async () => {
     paymentActions.setLoading(true);
     try {
+      // Fetch trang hiện tại để hiển thị bảng
       const response = await paymentService.getPayments(currentPage, pageSize);
       paymentActions.setPayments(response.data.content);
       paymentActions.setPagination({
         totalElement: response.data.totalElement,
         totalPages: Math.ceil(response.data.totalElement / pageSize),
       });
+
+      // Fetch toàn bộ giao dịch để tính tổng dòng tiền COMPLETED
+      const allResponse = await paymentService.getPayments(1, 99999);
+      const revenue = allResponse.data.content
+        .filter((p: any) => p?.status === 'COMPLETED')
+        .reduce((acc: number, curr: any) => acc + (curr?.amount || 0), 0);
+      paymentActions.setTotalRevenue(revenue);
     } catch (err: any) {
       toast.error(err.message || 'Không thể tải danh sách thanh toán');
     } finally {
@@ -89,6 +99,7 @@ export const useManagePayment = () => {
     currentPage,
     totalPages: Math.ceil(totalElementsFromState / pageSize),
     totalElements: totalElementsFromState,
+    totalRevenue,
     filterStatus,
     searchQuery,
     fetchPayments,
