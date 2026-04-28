@@ -219,6 +219,21 @@ export async function closeFuturePosition(futureId: string) {
   }
 }
 
+export async function addFutureMargin(futureId: string, extraMargin: number) {
+  try {
+    const response = await ApiConfigService.patch<{
+      message?: { messageCode: string; messageDetail: string };
+      success: boolean;
+      data?: FutureOrderType;
+      errors?: Array<{ field: string; message: string }>;
+    }>(`/api/v1/futures/${futureId}/add-margin?extraMargin=${extraMargin}`);
+    return response;
+  } catch (error) {
+    console.error('Lỗi thêm ký quỹ Future:', error);
+    throw error;
+  }
+}
+
 export async function fetchMyFuturePositions(page = 1, size = 1000, field = 'createdDate', direction = 'desc') {
   try {
     const response = await ApiConfigService.get<{

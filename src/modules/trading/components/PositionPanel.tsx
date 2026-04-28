@@ -3,8 +3,7 @@
 import { observer } from '@legendapp/state/react';
 import { tradingState$ } from '../store';
 import { cn } from '@/lib/utils';
-import { X, TrendingUp, TrendingDown, Inbox } from 'lucide-react';
-
+import { X, TrendingUp, TrendingDown, Inbox, PlusCircle } from 'lucide-react';
 export const PositionPanel = observer(function PositionPanel() {
   const positions = tradingState$.openPositions.get();
   const currentPrice = tradingState$.currentPrice.get();
@@ -125,9 +124,9 @@ export const PositionPanel = observer(function PositionPanel() {
                 <div className="flex justify-between gap-2">
                   <span className="text-orange-500/90">Giá thanh lý</span>
                   <span className="font-mono text-orange-500/90">
-                    ${pos.liquidationPrice
-                      ? pos.liquidationPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                      : '—'}
+                    {pos.liquidationPrice != null && pos.liquidationPrice >= 0
+                      ? `$${pos.liquidationPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      : 'N/A'}
                   </span>
                 </div>
               </div>
