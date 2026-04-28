@@ -24,7 +24,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { useAnswerDemoByChart } from '../hooks/useAnswerDemoByChart';
-import { AnswerDemoByChartItem } from '../types';
+import { AnswerDemoByChartItem, AnswerDemoCandle } from '../types';
 import { cn } from '@/lib/utils';
 import { useAnswerDemoDetail } from '../hooks/useAnswerDemoDetail';
 import { createPortal } from 'react-dom';
@@ -45,6 +45,8 @@ const DemoChart = dynamic(
 interface AnswerDemoHistoryProps {
   chartId: string;
   onLatestWalletMoney?: (money: number) => void;
+  /** Unix ms timestamp of the snapshot candle — used to highlight the forecast zone in detail chart */
+  chartCloseTs?: number;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -311,7 +313,7 @@ function TradeRow({
                             </tr>
                           </thead>
                           <tbody>
-                            {order.candles.map((c, ci) => {
+                            {order.candles.map((c: AnswerDemoCandle, ci: number) => {
                               const up = c.close >= c.open;
                               return (
                                 <tr
@@ -359,7 +361,7 @@ function TradeRow({
 
 // ── Detail Modal ──────────────────────────────────────────────────────────────
 
-function AnswerDemoDetailModal({ orderId, onClose }: { orderId: string; onClose: () => void }) {
+function AnswerDemoDetailModal({ orderId, onClose, chartCloseTs }: { orderId: string; onClose: () => void; chartCloseTs?: number }) {
   const [mounted, setMounted] = useState(false);
   const { detail, isLoading, error, fetchDetail } = useAnswerDemoDetail();
 
@@ -402,7 +404,7 @@ function AnswerDemoDetailModal({ orderId, onClose }: { orderId: string; onClose:
             </div>
           )}
           {!isLoading && detail && (
-            <div className="flex-1 flex flex-col h-full overflow-y-auto">
+            <div className="flex-1 flex flex-col h-full overflow-y-auto chart-demo-scroll">
               {/* Header Stats */}
               <div className="p-5 md:p-6 border-b border-border/20 bg-muted/5 flex flex-col gap-4">
                  <div className="flex flex-wrap items-center justify-between gap-4">
@@ -466,7 +468,18 @@ function AnswerDemoDetailModal({ orderId, onClose }: { orderId: string; onClose:
                        Diễn biến thị trường của lệnh
                     </div>
                     {detail.candles && detail.candles.length > 0 ? (
-                       <DemoChart candles={detail.candles} themeVariant="result" />
+                       <DemoChart
+                          candles={detail.candles}
+                          themeVariant="result"
+                          closeTs={chartCloseTs}
+                          orderTs={
+                            detail.ts
+                              ? typeof detail.ts === 'number'
+                                ? detail.ts
+                                : new Date(String(detail.ts)).getTime()
+                              : undefined
+                          }
+                        />
                     ) : (
                        <div className="h-full w-full flex items-center justify-center">
                           <p className="text-muted-foreground italic text-sm">Không có dữ liệu nến</p>
@@ -487,7 +500,7 @@ function AnswerDemoDetailModal({ orderId, onClose }: { orderId: string; onClose:
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export const AnswerDemoHistory: React.FC<AnswerDemoHistoryProps> = ({ chartId, onLatestWalletMoney }) => {
+export const AnswerDemoHistory: React.FC<AnswerDemoHistoryProps> = ({ chartId, onLatestWalletMoney, chartCloseTs }) => {
   const { items, isLoading, error, refetch } = useAnswerDemoByChart(chartId);
   const [collapsed, setCollapsed] = useState(false);
   const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
@@ -719,7 +732,7 @@ export const AnswerDemoHistory: React.FC<AnswerDemoHistoryProps> = ({ chartId, o
 
       <AnimatePresence>
         {detailOrderId && (
-           <AnswerDemoDetailModal orderId={detailOrderId} onClose={() => setDetailOrderId(null)} />
+           <AnswerDemoDetailModal orderId={detailOrderId} onClose={() => setDetailOrderId(null)} chartCloseTs={chartCloseTs} />
         )}
       </AnimatePresence>
     </div>
