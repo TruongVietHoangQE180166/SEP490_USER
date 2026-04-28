@@ -205,6 +205,37 @@ export const tradingActions = {
     }
   },
 
+  addPositionMargin: async (positionId: string, extraMargin: number) => {
+    try {
+      const { addFutureMargin } = await import('./services');
+      const res = await addFutureMargin(positionId, extraMargin);
+      
+      if (res && res.success && res.data) {
+        const current = tradingState$.openPositions.get();
+        const posIndex = current.findIndex(p => p.id === positionId);
+        
+        if (posIndex !== -1) {
+          const updatedPositions = [...current];
+          updatedPositions[posIndex] = {
+            ...updatedPositions[posIndex],
+            margin: res.data.margin,
+            liquidationPrice: res.data.liquidationPrice ?? undefined,
+            leverage: res.data.leverage,
+          };
+          tradingState$.openPositions.set(updatedPositions);
+        }
+        
+        tradingActions.refreshWalletData();
+        return { success: true, message: res.message?.messageDetail || 'Thêm ký quỹ thành công' };
+      }
+      
+      return { success: false, message: res?.message?.messageDetail || 'Thêm ký quỹ thất bại' };
+    } catch (error: any) {
+      console.error('Lỗi khi thêm ký quỹ:', error);
+      return { success: false, message: error?.message || 'Lỗi gọi API thêm ký quỹ' };
+    }
+  },
+
   // ─── Orders ───────────────────────────────────────────────
   fetchAndSetOrders: async () => {
     // Need to dynamically import to prevent cyclic dependency on store -> services -> store

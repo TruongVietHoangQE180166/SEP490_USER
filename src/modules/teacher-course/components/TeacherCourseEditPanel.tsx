@@ -123,8 +123,8 @@ export const TeacherCourseEditPanel = ({ courseId, onBack }: TeacherCourseEditPa
 
   return (
     <div className="min-h-screen bg-neutral-50/50 dark:bg-neutral-950/50 pb-20">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
+      {/* Header */}
+      <div className="w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button

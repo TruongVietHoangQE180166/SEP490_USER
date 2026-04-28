@@ -7,7 +7,8 @@ import { cancelTradeOrder } from '../services';
 import { cn } from '@/lib/utils';
 import { OrderType, PositionType, ClosedPositionType, FutureOrderType } from '../types';
 import { toast } from '@/components/ui/toast';
-import { RefreshCcw } from 'lucide-react';
+import { RefreshCcw, X, Plus, Minus } from 'lucide-react';
+import { useAddMargin } from '../hooks/useAddMargin';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -130,6 +131,16 @@ function EmptyState({ message }: { message: string }) {
 const OpenPositionsTable = observer(({ positions, currentPrice, isUp }: { positions: PositionType[], currentPrice: number, isUp: boolean }) => {
   const [closingId, setClosingId] = useState<string | null>(null);
 
+  const {
+    addMarginPosId,
+    setAddMarginPosId,
+    addMarginAmount,
+    setAddMarginAmount,
+    isAddingMargin,
+    handleAddMarginSubmit,
+    toggleAddMargin
+  } = useAddMargin();
+
   const handleClose = async (positionId: string, currentPrice: number) => {
     try {
       setClosingId(positionId);
@@ -226,9 +237,9 @@ const OpenPositionsTable = observer(({ positions, currentPrice, isUp }: { positi
 
               {/* Giá thanh lý */}
               <td className="px-3 py-3 font-mono text-orange-500/90 whitespace-nowrap">
-                {pos.liquidationPrice != null
+                {pos.liquidationPrice != null && pos.liquidationPrice >= 0
                   ? `$${pos.liquidationPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                  : <span className="text-muted-foreground italic text-[10px]">Chưa có</span>
+                  : <span className="text-muted-foreground italic text-[10px]">N/A</span>
                 }
               </td>
 
@@ -266,30 +277,101 @@ const OpenPositionsTable = observer(({ positions, currentPrice, isUp }: { positi
 
               {/* Hành động */}
               <td className="px-3 py-3 text-right">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <button
-                      disabled={closingId === pos.id}
-                      className="text-rose-500 hover:text-rose-600 font-bold transition-colors uppercase text-[10px] disabled:opacity-50"
-                    >
-                      {closingId === pos.id ? 'Đang đóng...' : 'Đóng vị thế'}
-                    </button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Xác nhận đóng vị thế</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Bạn có chắc chắn muốn đóng vị thế {pos.symbol ?? 'XAUT'}/USDT ({pos.side}) ở giá thị trường không? Hành động này không thể hoàn tác.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Hủy</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleClose(pos.id ?? '', currentPrice)}>
-                        Xác nhận đóng
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-3">
+                    <AlertDialog open={addMarginPosId === pos.id} onOpenChange={(open) => {
+                      if (!open) {
+                        setAddMarginPosId(null);
+                        setAddMarginAmount('');
+                      }
+                    }}>
+                      <AlertDialogTrigger asChild>
+                        <button
+                          onClick={() => toggleAddMargin(pos.id ?? '')}
+                          className="text-primary hover:text-primary/80 font-bold transition-colors uppercase text-[10px]"
+                        >
+                          Thêm KQ
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Thêm Ký Quỹ (USDT)</AlertDialogTitle>
+                          <AlertDialogDescription asChild>
+                            <div className="flex flex-col gap-3 mt-4">
+                              <p className="text-sm text-muted-foreground text-center">
+                                Nạp thêm ký quỹ cho <span className="font-bold text-foreground">{pos.symbol} ({pos.side})</span>
+                              </p>
+                              <div className="flex w-full items-center bg-muted/20 border border-border rounded-lg overflow-hidden transition-all duration-200 focus-within:border-primary/50 focus-within:bg-background/50 h-12">
+                                <button
+                                  onClick={() => {
+                                    const current = parseFloat(addMarginAmount) || 0;
+                                    setAddMarginAmount(Math.max(0, current - 10).toString());
+                                  }}
+                                  className="px-4 h-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                                >
+                                  <Minus className="w-4 h-4" />
+                                </button>
+                                <input
+                                  type="number"
+                                  value={addMarginAmount}
+                                  onChange={(e) => setAddMarginAmount(e.target.value)}
+                                  className="flex-1 bg-transparent text-center text-lg font-mono font-bold text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  placeholder="0.00"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const current = parseFloat(addMarginAmount) || 0;
+                                    setAddMarginAmount((current + 10).toString());
+                                  }}
+                                  className="px-4 h-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Hủy</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={(e) => {
+                              e.preventDefault(); // Giữ dialog mở để hiển thị loading nếu cần
+                              handleAddMarginSubmit(pos.id ?? '');
+                            }}
+                            disabled={isAddingMargin || !addMarginAmount}
+                          >
+                            {isAddingMargin ? 'Đang xử lý...' : 'Xác nhận'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button
+                          disabled={closingId === pos.id}
+                          className="text-rose-500 hover:text-rose-600 font-bold transition-colors uppercase text-[10px] disabled:opacity-50"
+                        >
+                          {closingId === pos.id ? 'Đang đóng...' : 'Đóng vị thế'}
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Xác nhận đóng vị thế</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Bạn có chắc chắn muốn đóng vị thế {pos.symbol ?? 'XAUT'}/USDT ({pos.side}) ở giá thị trường không? Hành động này không thể hoàn tác.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Hủy</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleClose(pos.id ?? '', currentPrice)}>
+                            Xác nhận đóng
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
               </td>
             </tr>
           );
@@ -674,7 +756,7 @@ const ClosedPositionsTable = observer(({ positions }: { positions: ClosedPositio
 
               {/* Giá thanh lý */}
               <td className="px-3 py-3 font-mono text-orange-500/80 opacity-60">
-                {pos.liquidationPrice != null ? `$${pos.liquidationPrice.toLocaleString()}` : <span className="italic text-muted-foreground/50">Chưa có</span>}
+                {pos.liquidationPrice != null && pos.liquidationPrice >= 0 ? `$${pos.liquidationPrice.toLocaleString()}` : <span className="italic text-muted-foreground/50">N/A</span>}
               </td>
 
               {/* PnL */}
