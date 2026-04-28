@@ -130,3 +130,124 @@ export interface LessonNote {
   created_date: string;
   updated_date: string;
 }
+
+// ─── Chart Demo / Answer Demo ─────────────────────────────────────────────────
+
+export interface AnswerDemoCandle {
+  id: string;
+  symbol: string;
+  timeframe: string;
+  openTime: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  closed: boolean;
+  createdDate?: string;
+  updatedDate?: string;
+  createdBy?: string;
+  updatedBy?: string;
+}
+
+export interface AnswerDemoByChartItem {
+  id: string;
+  chartId: string;
+  orderType: 'BUY' | 'SELL' | null;
+  entryPrice: number;
+  closePrice: number;
+  quantity: number;
+  totalMoney: number;
+  pnl: number;
+  totalPnl: number;
+  walletMoney: number;
+  createdDate: string;
+  ts: number | string;
+  candles: AnswerDemoCandle[];
+}
+
+export interface AnswerDemoByChartApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: {
+    content: AnswerDemoByChartItem[];
+  };
+  success: boolean;
+}
+
+export interface AnswerDemoSession {
+  id: string;
+  chartId: string;
+  walletMoney: number;
+  provideMoney: number;
+}
+
+export interface AnswerDemoSessionApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: AnswerDemoSession;
+  success: boolean;
+}
+
+export interface ResetAnswerDemoApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: any;
+  success: boolean;
+}
+
+export interface AnswerDemoRequest {
+  chartId: string;
+  orderType: 'BUY' | 'SELL';
+  quantity: number;
+  totalMoney: number;
+  ts: number;
+}
+
+export interface AnswerDemoApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: AnswerDemoByChartItem & { candles: AnswerDemoCandle[]; walletMoney: number };
+  success: boolean;
+}
+
+export interface GetMeResponse {
+  id: string;
+  username: string;
+  email: string;
+  [key: string]: any;
+}
+
+export interface GetMeApiResponse {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: GetMeResponse;
+  success: boolean;
+}
+
+export interface Rating {
+  id: string;
+  courseId: string;
+  userId: string;
+  rateValue: number;
+  comment: string;
+  createdDate: string;
+  [key: string]: any;
+}
+
+export interface RatingPaginationResponse {
+  content: Rating[];
+  [key: string]: any;
+}
+
+export interface CourseApiResponse<T> {
+  message: { messageCode: string; messageDetail: string };
+  errors: any;
+  data: T;
+  success: boolean;
+}
+
+export interface CoursePaginationResponse {
+  content: any[];
+  [key: string]: any;
+}

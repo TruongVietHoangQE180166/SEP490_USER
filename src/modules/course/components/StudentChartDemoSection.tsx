@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useStudentChartDemo } from '../hooks/useStudentChartDemo';
 import { useResetAnswerDemo } from '../hooks/useResetAnswerDemo';
 import { useCreateAnswerDemo } from '../hooks/useCreateAnswerDemo';
-import { ChartDemoData, AnswerDemoCandle } from '../types';
+import { ChartDemoData } from '@/modules/teacher-course/types';
 import { AnswerDemoHistory } from './AnswerDemoHistory';
 import { cn } from '@/lib/utils';
 
@@ -288,6 +288,7 @@ function ChartDemoModal({
   
   // datetime-local input string
   const [limitDateStr, setLimitDateStr] = useState<string>('');
+  const [orderClosedTs, setOrderClosedTs] = useState<number | null>(null);
 
   const [showOrderConfirm, setShowOrderConfirm] = useState(false);
 
@@ -352,6 +353,13 @@ function ChartDemoModal({
       }
       setWalletBalance(res.data.walletMoney);
       setHistoryKey(k => k + 1); // Refresh history
+      // Save the order timestamp for chart highlight
+      // Use the ts from API response (exact closing ms), fallback to end-of-day of limitDateStr
+      const closingTs = res.data.ts
+        ? (typeof res.data.ts === 'number' ? res.data.ts : new Date(res.data.ts).getTime())
+        : new Date(limitDateStr + 'T23:59:59.999Z').getTime();
+      setOrderClosedTs(closingTs);
+
       setTradeMoney('');
       setTradeQuantity('');
       setLimitDateStr('');
@@ -415,7 +423,7 @@ function ChartDemoModal({
       </div>
 
       {/* ── Scrollable body ─────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto chart-demo-scroll">
 
         {/* Info panel (collapsible) */}
         <div className="bg-muted/20 border-b border-border/30">
@@ -444,6 +452,7 @@ function ChartDemoModal({
                     <p className="text-xs font-bold">
                       {new Date(demo.ts).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                     </p>
+                    <p className="text-[9px] text-muted-foreground mt-1 leading-tight">Mốc thời gian nến đầu tiên xuất hiện trên đồ thị</p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-emerald-500/20 space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 flex items-center gap-1">
@@ -452,6 +461,7 @@ function ChartDemoModal({
                     <p className="text-xs font-bold text-emerald-600">
                       {new Date(demo.startTradeTs).toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}
                     </p>
+                    <p className="text-[9px] text-muted-foreground mt-1 leading-tight">Lệnh đầu tiên của bạn chỉ có thể đặt từ ngày này</p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-rose-500/20 space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-rose-500 flex items-center gap-1">
@@ -460,6 +470,7 @@ function ChartDemoModal({
                     <p className="text-xs font-bold text-rose-600">
                       {new Date(demo.closeTs).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' })}
                     </p>
+                    <p className="text-[9px] text-muted-foreground mt-1 leading-tight">Cây nến cuối cùng bạn đang phân tích trên chart</p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-amber-500/20 space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">
@@ -468,6 +479,7 @@ function ChartDemoModal({
                     <p className="text-xs font-bold text-amber-600">
                       {new Date(demo.limitTs).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: 'short' })}
                     </p>
+                    <p className="text-[9px] text-muted-foreground mt-1 leading-tight">Mốc thời gian tối đa để mô phỏng, không thể giao dịch sau đó</p>
                   </div>
                   <div className={cn("bg-background/80 rounded-xl p-3 border space-y-1 transition-colors duration-500", isCompleted ? "border-emerald-500/40 bg-emerald-500/5" : "border-blue-500/20")}>
                     <span className={cn("text-[9px] font-black uppercase tracking-widest flex items-center gap-1", isCompleted ? "text-emerald-500" : "text-blue-500")}>
@@ -481,6 +493,7 @@ function ChartDemoModal({
                         (≈ {availableQuantity.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 4 })} Qty)
                       </span>
                     </div>
+                    <p className="text-[9px] text-muted-foreground mt-1 leading-tight">Vốn giả lập của bạn hiện có & lượng tài sản tương đương</p>
                   </div>
                   <div className="bg-background/80 rounded-xl p-3 border border-purple-500/20 space-y-1">
                     <span className="text-[9px] font-black uppercase tracking-widest text-purple-500 flex items-center gap-1">
@@ -489,6 +502,7 @@ function ChartDemoModal({
                     <p className="text-xs font-black text-purple-600">
                       ${demo.objectDone?.toLocaleString()}
                     </p>
+                    <p className="text-[9px] text-muted-foreground mt-1 leading-tight">Nhiệm vụ: Gia tăng số dư ví bằng hoặc lớn hơn mức này</p>
                   </div>
                 </div>
                 {demo.description && (
@@ -523,7 +537,7 @@ function ChartDemoModal({
           <div className="px-4 py-3 mx-4 mt-2 mb-4 bg-muted/20 border border-border/40 rounded-xl shadow-inner flex flex-col lg:flex-row items-stretch lg:items-end gap-3 md:gap-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 flex-1">
               <div className="space-y-1.5">
-                 <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground flex justify-between">
+                 <label className="block text-[9px] font-black uppercase tracking-widest text-muted-foreground flex justify-between mb-0.5">
                     Loại lệnh
                  </label>
                  <div className="flex bg-background border border-border/40 rounded-lg p-1 w-full">
@@ -540,6 +554,9 @@ function ChartDemoModal({
                      SELL
                    </button>
                  </div>
+                 <p className="text-[8px] text-muted-foreground leading-tight px-1 pt-0.5">
+                   Chọn <b>BUY</b> nếu nghĩ giá lên, chọn <b>SELL</b> nếu bán chốt lời.
+                 </p>
               </div>
               
               <div className="space-y-1.5">
@@ -572,6 +589,9 @@ function ChartDemoModal({
                     <span className="text-[8px] text-muted-foreground font-bold uppercase">{orderType === 'BUY' ? 'Ví' : 'Max'}: {orderType === 'BUY' ? walletBalance.toLocaleString() : availableQuantity.toFixed(2)}</span>
                     {orderType === 'SELL' && <button onClick={() => setTradeQuantity(availableQuantity.toString())} className="text-[8px] font-black text-primary uppercase">MAX</button>}
                  </div>
+                 <p className="text-[8px] text-muted-foreground leading-tight px-1">
+                   {orderType === 'BUY' ? 'Nhập số tiền USD bạn muốn đầu tư' : 'Nhập số lượng tài sản bạn muốn bán ra'}
+                 </p>
               </div>
 
               <div className="space-y-1.5">
@@ -587,6 +607,9 @@ function ChartDemoModal({
                    max={new Date(demo.limitTs).toISOString().split('T')[0]}
                    className="w-full bg-background border border-border/40 rounded-lg px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-primary/20"
                  />
+                 <p className="text-[8px] text-muted-foreground leading-tight px-1 pt-0.5">
+                   Thời điểm chốt lệnh tự động. Chỉ có thể chọn ngày nằm giữa <b>Nến hiện tại</b> và <b>Giới hạn</b>.
+                 </p>
               </div>
             </div>
 
@@ -633,21 +656,89 @@ function ChartDemoModal({
             )}
           </div>
 
+          {/* Chú thích biểu đồ */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-muted/10 border border-border/40 rounded-xl">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 bg-[#26a69a] rounded-sm border border-[#26a69a]/50 shadow-sm shadow-[#26a69a]/20"></div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-foreground">Nến Xanh (Tăng)</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed pl-4 border-l border-border/50 ml-1.5">Giá đóng cửa <b>cao hơn</b> giá mở cửa. Biểu thị lực mua mạnh.</p>
+            </div>
+            
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 bg-[#ef5350] rounded-sm border border-[#ef5350]/50 shadow-sm shadow-[#ef5350]/20"></div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-foreground">Nến Đỏ (Giảm)</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed pl-4 border-l border-border/50 ml-1.5">Giá đóng cửa <b>thấp hơn</b> giá mở cửa. Biểu thị lực bán mạnh.</p>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <div className="flex items-center justify-center w-3 h-3">
+                  <div className="w-0.5 h-3 bg-muted-foreground/80"></div>
+                </div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-foreground">Râu Nến (Wick)</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed pl-4 border-l border-border/50 ml-1.5">Đỉnh râu là giá cao nhất, đáy râu là giá thấp nhất đạt được trong phiên.</p>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <Activity size={12} className="text-blue-500" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-foreground">Khối lượng (Volume)</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed pl-4 border-l border-border/50 ml-1.5">Các cột mờ ở dưới cùng. Cột càng cao nghĩa là lượng giao dịch càng lớn.</p>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <DollarSign size={12} className="text-emerald-500" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-foreground">Trục dọc (Giá)</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed pl-4 border-l border-border/50 ml-1.5">Nằm bên phải, hiển thị mức giá tương ứng của tài sản.</p>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5">
+                <Clock size={12} className="text-amber-500" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-foreground">Trục ngang (Thời gian)</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed pl-4 border-l border-border/50 ml-1.5">Nằm bên dưới, cuộn chuột hoặc vuốt để xem lịch sử nến trước đó.</p>
+            </div>
+
+            <div className="col-span-2 md:col-span-3 flex flex-col gap-1 pt-2 border-t border-border/30">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 bg-blue-500 rounded-sm border border-blue-400/50 shadow-sm shadow-blue-500/20"></div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-blue-500">Vùng dự kiến (Xanh dương)</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed pl-4 border-l border-blue-500/40 ml-1.5">
+                Xuất hiện trên biểu đồ kết quả sau khi bạn đặt lệnh. Các nến <b>tô màu xanh dương</b> đại diện cho giai đoạn thị trường diễn ra từ <b>Nến hiện tại</b> cho đến <b>Ngày đóng lệnh</b> của bạn. Xem lại xem dự đoán của bạn có chính xác không!
+              </p>
+            </div>
+          </div>
+
           {/* Result Chart (Shown only if new candles are added) */}
           {(localCandles && demo.candles && localCandles.length > demo.candles.length) && (
             <div style={{ minHeight: '440px', height: '40vh' }} className="w-full rounded-xl overflow-hidden border-2 border-emerald-500/30 shadow-inner shadow-emerald-500/10 bg-emerald-500/5 relative">
               <div className="absolute top-3 right-3 z-30 px-2.5 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider rounded-md shadow-sm">
                  Kết quả thị trường sau khi lệnh đóng
               </div>
-              <DemoChart candles={localCandles} themeVariant="result" />
+              <DemoChart 
+                candles={localCandles} 
+                themeVariant="result"
+                closeTs={demo.closeTs}
+                orderTs={orderClosedTs ?? undefined}
+              />
             </div>
           )}
         </div>
 
-        {/* History — key remounts on reset to trigger fresh API fetch */}
         <AnswerDemoHistory 
            key={historyKey} 
            chartId={demo.id} 
+           chartCloseTs={demo.closeTs}
            onLatestWalletMoney={(newWalletBalance) => {
               // Ensure we only update if it is different, to avoid loop
               if (newWalletBalance !== walletBalance) {

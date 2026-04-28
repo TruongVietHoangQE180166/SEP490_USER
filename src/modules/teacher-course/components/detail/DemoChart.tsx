@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   createChart,
   IChartApi,
@@ -18,6 +18,10 @@ interface DemoChartProps {
   candles: ChartDemoCandle[];
   isLoading?: boolean;
   themeVariant?: 'default' | 'result';
+  /** Unix ms timestamp of the current (last visible) candle before the order */
+  closeTs?: number;
+  /** Unix ms timestamp of the order closing date chosen by the user */
+  orderTs?: number;
 }
 
 function getChartColors(isDark: boolean, themeVariant?: 'default' | 'result') {
@@ -45,7 +49,7 @@ function getChartColors(isDark: boolean, themeVariant?: 'default' | 'result') {
   };
 }
 
-export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeVariant = 'default' }) => {
+export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeVariant = 'default', closeTs, orderTs }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -53,6 +57,7 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeV
 
   const [hoveredCandle, setHoveredCandle] = useState<any | null>(null);
   const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number; price: number } | null>(null);
+  const [forecastLeft, setForecastLeft] = useState<number | null>(null);
 
   const shouldScrollToLatest = useRef<boolean>(true);
 
@@ -98,9 +103,8 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeV
         borderColor: colors.border,
         timeVisible: true,
         barSpacing: 10,
-        rightOffset: 0,
+        rightOffset: 10,
         fixLeftEdge: true,
-        fixRightEdge: true,
       },
       handleScroll: {
         mouseWheel: true,
@@ -195,6 +199,29 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeV
     };
   }, []);
 
+  // ── Update forecast overlay position when closeTs / chart viewport changes ──────
+  const updateForecastLeft = useCallback(() => {
+    if (!chartRef.current || !closeTs) {
+      setForecastLeft(null);
+      return;
+    }
+    const tsInSeconds = Math.floor(closeTs / 1000) as Time;
+    const x = chartRef.current.timeScale().timeToCoordinate(tsInSeconds);
+    setForecastLeft(x !== null ? x : null);
+  }, [closeTs]);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+    const chart = chartRef.current;
+    chart.timeScale().subscribeVisibleTimeRangeChange(updateForecastLeft);
+    // Initial calculation after a short delay to ensure chart has laid out
+    const t = setTimeout(updateForecastLeft, 120);
+    return () => {
+      chart.timeScale().unsubscribeVisibleTimeRangeChange(updateForecastLeft);
+      clearTimeout(t);
+    };
+  }, [updateForecastLeft]);
+
   useEffect(() => {
     const candleSeries = candleSeriesRef.current;
     const volumeSeries = volumeSeriesRef.current;
@@ -250,10 +277,15 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeV
       setTimeout(() => {
         chartRef.current?.timeScale().scrollToRealTime();
         chartRef.current?.priceScale('right').applyOptions({ autoScale: false });
-      }, 50);
+        // Recalculate forecast overlay after chart finishes scrolling
+        updateForecastLeft();
+      }, 80);
       shouldScrollToLatest.current = false;
+    } else {
+      // Still recalculate in case candles changed
+      setTimeout(updateForecastLeft, 80);
     }
-  }, [candles]);
+  }, [candles, updateForecastLeft]);
 
   const currentCandle = hoveredCandle || (candles?.length > 0 ? candles[candles.length - 1] : null);
   const isUp = currentCandle && currentCandle.close >= currentCandle.open;
@@ -276,11 +308,32 @@ export const DemoChart: React.FC<DemoChartProps> = ({ candles, isLoading, themeV
       </AnimatePresence>
 
       <div className="flex-1 relative min-h-0 min-h-[300px]">
+        {/* Forecast zone overlay — blue tint from closeTs to right edge */}
+        {forecastLeft !== null && closeTs && (
+          <div
+            className="absolute top-0 bottom-0 z-10 pointer-events-none"
+            style={{
+              left: Math.max(0, forecastLeft),
+              right: 0,
+              background: 'rgba(59, 130, 246, 0.18)',
+              borderLeft: '2px solid rgba(59, 130, 246, 0.6)',
+            }}
+          />
+        )}
         <div className="absolute top-2.5 left-2.5 z-20 flex flex-wrap items-center gap-2.5 text-[9px] pointer-events-none p-1.5 rounded bg-background/80 backdrop-blur-md border border-border/10 shadow-sm">
           <div className="flex items-center gap-1.5 mr-1">
             <span className="font-black text-foreground uppercase tracking-widest text-[10px]">Lịch sử Nến Demo</span>
           </div>
           <div className="h-3 w-px bg-border/20 mx-0.5" />
+          {closeTs && orderTs && (
+            <>
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-500/15 border border-blue-500/30">
+                <div className="w-2 h-2 rounded-sm bg-blue-500" />
+                <span className="font-black text-blue-500 text-[9px] uppercase tracking-wider">Vùng dự kiến</span>
+              </div>
+              <div className="h-3 w-px bg-border/20 mx-0.5" />
+            </>
+          )}
           <div className="flex gap-1 items-center">
             <span className="text-muted-foreground uppercase font-black opacity-50">O</span>
             <span className="font-mono font-bold text-foreground">{currentCandle ? currentCandle.open.toFixed(2) : '-'}</span>
