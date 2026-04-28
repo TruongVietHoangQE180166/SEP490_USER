@@ -109,6 +109,22 @@ export const WalletService = {
     }
   },
 
+  async getPaymentHistory(page: number = 1, size: number = 1000): Promise<import('./types').PaymentInfo[]> {
+    try {
+      const field = 'createdDate';
+      const direction = 'desc';
+      const response = await ApiConfigService.get<ApiResponse<{ content: import('./types').PaymentInfo[] }>>(
+        `/api/payment?page=${page}&size=${size}&field=${field}&direction=${direction}`
+      );
+      if (response?.success && response.data?.content) {
+        return response.data.content;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
   async getTransactions(limit: number = 20): Promise<WalletTransaction[]> {
     try {
       const response = await ApiConfigService.get<ApiResponse<WalletTransaction[]>>(

@@ -89,7 +89,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
   // Initialize timer
   useEffect(() => {
     if (lesson?.type === 'quiz' && lesson.timeLimit) {
-      setTimeLeft(Number(lesson.timeLimit));
+      setTimeLeft(Number(lesson.timeLimit) * 60);
     }
   }, [lesson]);
 
@@ -212,7 +212,7 @@ export const QuizInterface = observer(({ quizId: propQuizId, slug }: { quizId?: 
                  setCurrentQuestionIdx(0);
                  setUserAnswers({});
                  setFlaggedQuestions({});
-                 if (lesson?.timeLimit) setTimeLeft(Number(lesson.timeLimit));
+                 if (lesson?.timeLimit) setTimeLeft(Number(lesson.timeLimit) * 60);
                }}
              >
                Làm lại bài

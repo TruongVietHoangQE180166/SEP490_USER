@@ -120,6 +120,7 @@ export interface WalletState {
   transactions: WalletTransaction[];
   tradeOrders: TradeOrder[];
   futureOrders: FutureOrderType[];
+  paymentHistory: PaymentInfo[];
   currentPayment: PaymentInfo | null;
   isLoading: boolean;
   isPnlConnected: boolean;
