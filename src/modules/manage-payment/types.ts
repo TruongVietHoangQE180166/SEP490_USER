@@ -26,6 +26,8 @@ export interface PaymentManagementState {
   // Filters
   filterStatus: string;
   searchQuery: string;
+  // Revenue
+  totalRevenue: number;
 }
 
 export interface PaymentApiResponse {

@@ -34,6 +34,7 @@ export const ManagePaymentModule = () => {
     currentPage,
     totalPages,
     totalElements,
+    totalRevenue,
     filterStatus,
     searchQuery,
     fetchPayments,
@@ -112,9 +113,7 @@ export const ManagePaymentModule = () => {
              <div className="flex flex-col items-end">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">Tổng dòng tiền</span>
                 <p className="text-4xl font-[1000] text-primary tabular-nums tracking-tighter">
-                   {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(
-                     payments.filter(p => p?.status === 'COMPLETED').reduce((acc, curr) => acc + (curr?.amount || 0), 0)
-                   )}
+                   {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(totalRevenue)}
                 </p>
              </div>
           </div>

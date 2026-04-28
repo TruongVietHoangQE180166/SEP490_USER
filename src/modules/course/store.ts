@@ -113,4 +113,23 @@ export const courseActions = {
   reset: () => {
     courseState$.set(initialCourseState);
   },
+
+  /**
+   * Reset toàn bộ state liên quan đến courses sau khi mua khóa học thành công.
+   * Bao gồm: courses list (để isEnrolled được cập nhật), currentCourse,
+   * currentLesson, completedLessons, notes, discussionMessages.
+   * Giữ nguyên: userLevel (không cần refetch).
+   */
+  resetForNewEnrollment: () => {
+    courseState$.courses.set([]);         // buộc re-fetch list với isEnrolled mới
+    courseState$.currentCourse.set(null);
+    courseState$.currentLesson.set(null);
+    courseState$.completedLessons.set([]);
+    courseState$.notes.set([]);
+    courseState$.discussionMessages.set([]);
+    courseState$.isQuizMode.set(false);
+    courseState$.currentQuizId.set(null);
+    courseState$.quizQuestions.set([]);
+    courseState$.error.set(null);
+  },
 };

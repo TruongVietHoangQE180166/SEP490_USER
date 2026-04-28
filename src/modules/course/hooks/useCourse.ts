@@ -9,6 +9,14 @@ import { toast } from '@/components/ui/toast';
  */
 let courseListInflight: Promise<void> | null = null;
 
+/**
+ * Xóa in-flight cache của useCourses.
+ * Gọi sau khi mua khóa học để buộc re-fetch list với isEnrolled mới.
+ */
+export const clearCourseListCache = () => {
+  courseListInflight = null;
+};
+
 export const useCourses = () => {
   const courses = courseState$.courses.get();
   const isLoading = courseState$.isLoading.get();
@@ -163,7 +171,7 @@ export const useCourseList = () => {
 
     // Rating filter
     if (minRating > 0) {
-      result = result.filter(c => (c.averageRate || c.rating || 0) >= minRating);
+      result = result.filter(c => (c.averageRate ?? 0) >= minRating);
     }
 
     // Sort logic
@@ -175,7 +183,7 @@ export const useCourseList = () => {
         result.sort((a, b) => b.price - a.price);
         break;
       case 'rating':
-        result.sort((a, b) => (b.averageRate || b.rating || 0) - (a.averageRate || a.rating || 0));
+        result.sort((a, b) => (b.averageRate ?? 0) - (a.averageRate ?? 0));
         break;
       default:
         break;

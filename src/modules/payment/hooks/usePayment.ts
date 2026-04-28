@@ -5,6 +5,9 @@ import { paymentState$, paymentActions } from '../store';
 import { paymentService } from '../services';
 import { toast } from '@/components/ui/toast';
 import { useRouter } from 'next/navigation';
+import { courseActions } from '@/modules/course/store';
+import { clearCourseDetailCache } from '@/modules/course/hooks/useCourseDetail';
+import { clearCourseListCache } from '@/modules/course/hooks/useCourse';
 
 export const usePaymentOrder = () => {
   const paymentInfo = paymentState$.paymentInfo.get();
@@ -37,6 +40,10 @@ export const usePaymentOrder = () => {
         try {
           const detail = await paymentService.getPaymentDetail(currentOrder.id);
           if (detail.status === 'COMPLETED') {
+            // Reset toàn bộ course state để re-fetch fresh (isEnrolled, courses list, v.v.)
+            courseActions.resetForNewEnrollment();
+            clearCourseDetailCache();
+            clearCourseListCache();
             paymentActions.setPaymentCompleted(true);
             toast.success('Thanh toán thành công! Bạn đã có thể bắt đầu học.');
             if (interval) clearInterval(interval);
@@ -62,6 +69,10 @@ export const usePaymentOrder = () => {
         const order = await paymentService.payWithPoints(paymentInfo.courseId);
         paymentActions.setCurrentOrder(order);
         if (order.status === 'COMPLETED') {
+          // Reset toàn bộ course state để re-fetch fresh (isEnrolled, courses list, v.v.)
+          courseActions.resetForNewEnrollment();
+          clearCourseDetailCache();
+          clearCourseListCache();
           paymentActions.setPaymentCompleted(true);
           toast.success('Thanh toán bằng điểm thành công! Bạn đã có thể bắt đầu học.');
           // Refresh points balance
