@@ -76,40 +76,40 @@ const cryptoSteps = [
 
 const testimonials = [
   {
-    name: "Nguyễn Văn A",
-    handle: "@vanya",
+    name: "Nguyễn Hoàng Anh",
+    handle: "@hoanganh.ng",
     review: "VICTEACH đã giúp mình thay đổi lộ trình học tập hoàn toàn. Các khóa học rất thực tế và dễ hiểu.",
-    avatar: "https://i.pravatar.cc/150?u=a"
+    avatar: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=150&h=150&fit=crop"
   },
   {
-    name: "Trần Thị B",
-    handle: "@thib",
+    name: "Trần Hải Đăng",
+    handle: "@haidang_crypto",
     review: "Nền tảng học trực tuyến tuyệt vời nhất mình từng tham gia. Hỗ trợ từ giảng viên cực kỳ tận tâm.",
-    avatar: "https://i.pravatar.cc/150?u=b"
+    avatar: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=150&h=150&fit=crop"
   },
   {
-    name: "Lê Văn C",
-    handle: "@vanc",
+    name: "Lê Thị Thanh Tú",
+    handle: "@thanhtu.le",
     review: "Kiến thức được hệ thống bài bản, giúp mình từ một người mới bắt đầu có thể tự tin làm dự án.",
-    avatar: "https://i.pravatar.cc/150?u=c"
+    avatar: "https://images.unsplash.com/photo-1506744626753-2ba9b030591f?w=150&h=150&fit=crop"
   },
   {
-    name: "Phạm Thị D",
-    handle: "@thid",
+    name: "Phạm Hoàng Thái",
+    handle: "@thaipham_dev",
     review: "Giao diện mượt mà, bài giảng chất lượng cao. Rất đáng đồng tiền bát gạo!",
-    avatar: "https://i.pravatar.cc/150?u=d"
+    avatar: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=150&h=150&fit=crop"
   },
   {
-    name: "Hoàng Văn E",
-    handle: "@vane",
+    name: "Vũ Mai Phương",
+    handle: "@maiphuong.vu",
     review: "Cộng đồng học viên năng động, mình đã học hỏi được rất nhiều từ các bạn cùng khóa.",
-    avatar: "https://i.pravatar.cc/150?u=e"
+    avatar: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=150&h=150&fit=crop"
   },
   {
-    name: "Đặng Thị F",
-    handle: "@thif",
+    name: "Đặng Nhật Minh",
+    handle: "@minhdang",
     review: "Cảm ơn VICTEACH đã mang lại những giá trị thiết thực. Chúc nền tảng ngày càng phát triển!",
-    avatar: "https://i.pravatar.cc/150?u=f"
+    avatar: "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=150&h=150&fit=crop"
   }
 ];
 

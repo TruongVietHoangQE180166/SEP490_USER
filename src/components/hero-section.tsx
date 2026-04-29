@@ -8,10 +8,10 @@ import { AnimatedGroup } from '@/components/ui/animated-group'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const DASHBOARD_IMAGES = [
-    "https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=2700&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=2700&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2700&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2700&auto=format&fit=crop"
+    "https://media.thuonghieuvaphapluat.vn/upload/2022/06/25/bitcoin-va-thi-truong-crypto-di-xuong-khien-cac-tho-dao-ngop-tho-vi-tra-nofb.jpg",
+    "https://vnn-imgs-f.vgcloud.vn/2022/03/22/09/thi-truong-crypto-dong-von-roi-di-tuan-thu-2-lien-tiep.jpg?width=0&s=Z6HKaLTtnQ81QiLMqx2PuQ",
+    "https://cafefcdn.com/203337114487263232/2022/4/12/photo-1-1649727295765413073863.jpg",
+    "https://files.amberblocks.com/media/chnbzaa92ook5tnj/posts/py8v3uvz0tfhkn20/fsv94kigatwt01z8r9jclrach32hxcn1/market-sentiment.jpeg"
 ];
 
 const transitionVariants = {
